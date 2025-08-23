@@ -1,5 +1,6 @@
 import "./globals.css";
 import { AuthProvider } from "@/components/auth/auth-provider";
+import { Toaster } from "@/components/ui/toaster";
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
@@ -18,6 +19,7 @@ export default function RootLayout({
       <body className="chakra-ui-light">
         <AuthProvider>
           {children}
+          <Toaster />
         </AuthProvider>
       </body>
     </html>
