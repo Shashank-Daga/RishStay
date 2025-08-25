@@ -71,10 +71,10 @@ export function HeroSection() {
                                     <SelectValue placeholder="Any Price" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="0-1500">Under $1,500</SelectItem>
-                                    <SelectItem value="1500-2500">$1,500 - $2,500</SelectItem>
-                                    <SelectItem value="2500-4000">$2,500 - $4,000</SelectItem>
-                                    <SelectItem value="4000+">$4,000+</SelectItem>
+                                    <SelectItem value="0-1500">Under Rs.5,500</SelectItem>
+                                    <SelectItem value="1500-2500">Rs.5,500 - Rs.7,000</SelectItem>
+                                    <SelectItem value="2500-4000">Rs.7,000 - Rs.8,500</SelectItem>
+                                    <SelectItem value="4000+">Rs.8,500+</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
