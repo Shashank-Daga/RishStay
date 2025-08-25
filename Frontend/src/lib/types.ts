@@ -2,9 +2,9 @@ export interface User {
   id: string
   email: string
   name: string
+  phoneNo: string
   role: "owner" | "tenant"
   avatar?: string
-  phone?: string
   createdAt: Date
 }
 
@@ -22,16 +22,22 @@ export interface Property {
   }
   images: string[]
   amenities: string[]
-  propertyType: "apartment" | "house" | "condo" | "studio"
+  propertyType: "apartment" | "house" | "condo" | "studio" | "villa"
   bedrooms: number
   bathrooms: number
-  squareFeet: number
+  area: number
   availableFrom: Date
   ownerId: string
   owner: User
   featured: boolean
+  isAvailable: boolean
   status: "available" | "rented" | "pending"
   createdAt: Date
+  maxGuests: number
+  guestType: "Family" | "Bachelors" | "Girls" | "Boys" | null
+  rules: string[]
+  checkInTime: string
+  checkOutTime: string
 }
 
 export interface Favorite {

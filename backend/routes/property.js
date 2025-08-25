@@ -20,7 +20,7 @@ router.post('/create', fetchuser, [
     body('bathrooms', 'Bathrooms must be a non-negative number').isNumeric().isInt({ min: 0 }),
     body('area', 'Area must be a positive number').isNumeric().isFloat({ min: 0 }),
     body('maxGuests', 'Max guests must be at least 1').isNumeric().isInt({ min: 1 }),
-    body('guestType'),
+    body('guestType').isIn(['Family', 'Bachelors', 'Girls', 'Boys']),
 ], async (req, res) => {
     let success = false;
     const errors = validationResult(req);
@@ -40,13 +40,13 @@ router.post('/create', fetchuser, [
             price,
             location,
             propertyType,
-            amenities: amenities || [],
+            amenities: req.body.amenities || [],
             bedrooms,
             bathrooms,
             area,
             maxGuests,
             guestType,
-            rules: rules || [],
+            rules: req.body.rules || [],
             owner: req.user.id,
             images: req.body.images || []
         });
@@ -120,6 +120,7 @@ router.put('/update/:id', fetchuser, [
     body('bathrooms', 'Bathrooms must be a non-negative number').optional().isNumeric().isInt({ min: 0 }),
     body('area', 'Area must be a positive number').optional().isNumeric().isFloat({ min: 0 }),
     body('maxGuests', 'Max guests must be at least 1').optional().isNumeric().isInt({ min: 1 }),
+    body('guestType').isIn(['Family', 'Bachelors', 'Girls', 'Boys'])
 ], async (req, res) => {
     let success = false;
     const errors = validationResult(req);
@@ -189,7 +190,6 @@ router.put('/toggle-availability/:id', fetchuser, async (req, res) => {
         }
 
         property.isAvailable = !property.isAvailable;
-        property.updatedAt = Date.now();
         await property.save();
 
         success = true;

@@ -32,11 +32,12 @@ const PropertySchema = new Schema({
         zipCode: {
             type: String,
             required: true
-        }
+        },
+        _id: false
     },
     propertyType: {
         type: String,
-        enum: ['apartment', 'house', 'villa', 'condo', 'studio'],
+        enum: ['apartment', 'studio'],
         required: true
     },
     amenities: [{
@@ -80,10 +81,10 @@ const PropertySchema = new Schema({
         type: Boolean,
         default: true
     },
-    rules: [{
+    rules: {
         type: String,
         default: []
-    }],
+    },
     checkInTime: {
         type: String,
         default: '15:00'

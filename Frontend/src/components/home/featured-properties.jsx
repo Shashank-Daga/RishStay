@@ -1,13 +1,38 @@
+"use client"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { MapPin, Bed, Bath, Square, Heart } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { mockProperties } from "@/lib/mock-data"
+import { useEffect, useState } from "react"
+import { propertyApi } from "@/lib/api"
+import { useAuth } from "@/components/auth/auth-provider"
 
 export function FeaturedProperties() {
-  const featuredProperties = mockProperties.filter((property) => property.featured)
+  const [featuredProperties, setFeaturedProperties] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const fetchFeaturedProperties = async () => {
+      try {
+        setLoading(true)
+        const properties = await propertyApi.getAll()
+        // Filter for featured properties (you might want to add a featured field to backend)
+        const featured = properties.filter(prop => prop.featured).slice(0, 3)
+        setFeaturedProperties(featured)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to fetch properties")
+        console.error("Error fetching properties:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchFeaturedProperties()
+  }, [])
 
   return (
     <section className="py-16 lg:py-24 bg-white">
@@ -19,6 +44,19 @@ export function FeaturedProperties() {
           </p>
         </div>
 
+        {loading && (
+          <div className="text-center py-12">
+            <p className="text-gray-600">Loading properties...</p>
+          </div>
+        )}
+        
+        {error && (
+          <div className="text-center py-12">
+            <p className="text-red-600">Error: {error}</p>
+          </div>
+        )}
+        
+        {!loading && !error && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           {featuredProperties.map((property) => (
             <Card key={property.id} className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
@@ -71,6 +109,9 @@ export function FeaturedProperties() {
                     <Square className="h-4 w-4 mr-1" />
                     <span>{property.squareFeet} sqft</span>
                   </div>
+                  <div className="flex items-center">
+                    <span>Max {property.maxGuests} guests</span>
+                  </div>
                 </div>
 
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">{property.description}</p>
@@ -82,6 +123,7 @@ export function FeaturedProperties() {
             </Card>
           ))}
         </div>
+        )}
 
         <div className="text-center">
           <Link href="/properties">

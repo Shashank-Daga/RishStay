@@ -34,7 +34,7 @@ export function LoginForm({ onSuccess, onSwitchToSignup }: LoginFormProps) {
     } else {
       toast({
         title: "Login failed",
-        description: "Invalid email or password. Try email: john.owner@example.com, password: password",
+        description: "Invalid email or password. Please try again.",
         variant: "destructive",
       })
     }
@@ -43,7 +43,7 @@ export function LoginForm({ onSuccess, onSwitchToSignup }: LoginFormProps) {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle>Sign In</CardTitle>
+        <CardTitle>Log In</CardTitle>
         <CardDescription>Enter your credentials to access your account</CardDescription>
       </CardHeader>
       <CardContent>
@@ -71,7 +71,7 @@ export function LoginForm({ onSuccess, onSwitchToSignup }: LoginFormProps) {
             />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? "Logging in..." : "Log In"}
           </Button>
           <div className="text-center">
             <Button type="button" variant="link" onClick={onSwitchToSignup} className="text-sm">

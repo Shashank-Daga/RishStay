@@ -1,49 +1,80 @@
 import type { User } from "./types"
-import { mockUsers } from "./mock-data"
+import { authApi } from "./api"
 
-// Mock authentication context
 export interface AuthContextType {
   user: User | null
   login: (email: string, password: string) => Promise<boolean>
-  signup: (email: string, password: string, name: string, role: "owner" | "tenant") => Promise<boolean>
+  signup: (
+    name: string,
+    phoneNo: string,
+    email: string,
+    password: string,
+    role: "owner" | "tenant"
+  ) => Promise<boolean>
   logout: () => void
   loading: boolean
 }
 
-// Mock authentication functions
-export const mockAuth = {
+export const authService = {
   login: async (email: string, password: string): Promise<User | null> => {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      const response = await authApi.login(email, password)
 
-    // Find user by email (mock authentication)
-    const user = mockUsers.find((u) => u.email === email)
-    if (user && password === "password") {
-      return user
+      if (response.success && response.authtoken) {
+        localStorage.setItem("auth-token", response.authtoken)
+        const user = await authApi.getCurrentUser(response.authtoken)
+        return user
+      }
+      return null
+    } catch (error) {
+      console.error("Login error:", error)
+      return null
     }
-    return null
   },
 
-  signup: async (email: string, password: string, name: string, role: "owner" | "tenant"): Promise<User | null> => {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+  signup: async (
+    name: string,
+    phoneNo: string,
+    email: string,
+    password: string,
+    role: "owner" | "tenant"
+  ): Promise<User | null> => {
+    try {
+      const response = await authApi.signup({
+        name,
+        phoneNo,
+        email,
+        password,
+        role,
+      })
 
-    // Check if user already exists
-    const existingUser = mockUsers.find((u) => u.email === email)
-    if (existingUser) {
-      throw new Error("User already exists")
+      if (response.success && response.authtoken) {
+        localStorage.setItem("auth-token", response.authtoken)
+        const user = await authApi.getCurrentUser(response.authtoken)
+        return user
+      }
+      return null
+    } catch (error) {
+      console.error("Signup error:", error)
+      return null
     }
+  },
 
-    // Create new user
-    const newUser: User = {
-      id: Date.now().toString(),
-      email,
-      name,
-      role,
-      createdAt: new Date(),
+  getCurrentUser: async (): Promise<User | null> => {
+    try {
+      const token = localStorage.getItem("auth-token")
+      if (!token) return null
+      const user = await authApi.getCurrentUser(token)
+      return user
+    } catch (error) {
+      console.error("Get current user error:", error)
+      localStorage.removeItem("auth-token")
+      return null
     }
+  },
 
-    mockUsers.push(newUser)
-    return newUser
+  logout: (): void => {
+    localStorage.removeItem("auth-token")
+    localStorage.removeItem("rental-user")
   },
 }

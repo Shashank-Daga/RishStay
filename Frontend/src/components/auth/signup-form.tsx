@@ -17,9 +17,10 @@ interface SignupFormProps {
 }
 
 export function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormProps) {
+  const [name, setName] = useState("")
+  const [phoneNo, setPhoneNo] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [name, setName] = useState("")
   const [role, setRole] = useState<"owner" | "tenant">("tenant")
   const { signup, loading } = useAuth()
   const { toast } = useToast()
@@ -28,7 +29,7 @@ export function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormProps) {
     e.preventDefault()
 
     try {
-      const success = await signup(email, password, name, role)
+      const success = await signup(name, phoneNo, email, password, role)
       if (success) {
         toast({
           title: "Account created!",
@@ -61,6 +62,17 @@ export function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormProps) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your full name"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="name">Phone Number</Label>
+            <Input
+              id="phoneNo"
+              type="text"
+              value={phoneNo}
+              onChange={(e) => setPhoneNo(e.target.value)}
+              placeholder="Enter your phone number"
               required
             />
           </div>
@@ -104,7 +116,7 @@ export function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormProps) {
           </Button>
           <div className="text-center">
             <Button type="button" variant="link" onClick={onSwitchToLogin} className="text-sm">
-              Already have an account? Sign in
+              Already have an account? Log in
             </Button>
           </div>
         </form>

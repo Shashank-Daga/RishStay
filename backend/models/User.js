@@ -9,8 +9,7 @@ const UserSchema = new Schema({
     phoneNo:{
         type: String,
         required: true,
-        match: /^[0-9]{10}$/,                       // This ensures that the phone number is exactly 10 digits
-        message: 'Enter a valid phone number'
+        match: [/^[0-9]{10}$/, 'Enter a valid phone number'],                  // This ensures that the phone number is exactly 10 digits
     },
     email: {
         type: String,

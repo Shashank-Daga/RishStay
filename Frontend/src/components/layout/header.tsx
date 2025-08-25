@@ -67,7 +67,7 @@ export function Header() {
               <div className="flex items-center space-x-3">
                 <Link href="/auth">
                   <Button variant="ghost" size="sm">
-                    Sign In
+                    Log In
                   </Button>
                 </Link>
                 <Link href="/auth">
@@ -128,7 +128,7 @@ export function Header() {
                   <div className="flex flex-col space-y-3">
                     <Link href="/auth" onClick={() => setIsMenuOpen(false)}>
                       <Button variant="ghost" size="sm" className="justify-start">
-                        Sign In
+                        Log In
                       </Button>
                     </Link>
                     <Link href="/auth" onClick={() => setIsMenuOpen(false)}>

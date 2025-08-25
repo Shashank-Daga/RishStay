@@ -14,6 +14,7 @@ router.post('/createUser', [
     body('email', 'Enter a valid email').isEmail(),
     body('phoneNo', 'Enter a valid phone number').isLength({ min: 10, max: 10 }),
     body('password', 'Password must be at least 5 characters').isLength({ min: 5 }),
+    body('role').isIn(['owner', 'tenant']).withMessage('Invalid role'),
 ], async (req, res) => {
     let success = false;
     // If there are errors, return Bad request and the errors
@@ -23,6 +24,8 @@ router.post('/createUser', [
     }
 
     try {
+        const { name, phoneNo, email, password, role } = req.body;
+
         // Check whether the user with this email exists already
         let user = await User.findOne({ email: req.body.email });
         if (user) {
@@ -38,6 +41,7 @@ router.post('/createUser', [
             phoneNo: req.body.phoneNo,
             email: req.body.email,
             password: secPass,
+            role
         });
 
         const data = {
@@ -48,7 +52,7 @@ router.post('/createUser', [
         const authtoken = jwt.sign(data, JWT_SECRET);
 
         success = true;
-        res.json({ success, authtoken });
+        res.json({ success, authtoken, user: { id: user.id, name: user.name, email: user.email, phoneNo: user.phoneNo, role: user.role } });
 
     } catch (error) {
         console.error(error.message);
@@ -87,7 +91,7 @@ router.post('/login', [
         };
         const authtoken = jwt.sign(data, JWT_SECRET);
         success = true;
-        res.json({ success, authtoken });
+        res.json({ success, authtoken, user: { id: user.id, name: user.name, email: user.email, phoneNo: user.phoneNo, role: user.role } });
 
     } catch (error) {
         console.error(error.message);
