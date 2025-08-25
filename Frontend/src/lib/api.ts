@@ -143,7 +143,7 @@ export const authApi = {
     phoneNo: string
     email: string
     password: string
-    role: "owner" | "tenant"
+    role: "landlord" | "tenant"
   }): Promise<{ success: boolean; authtoken?: string; error?: string; errors?: Array<{ msg: string; param: string }> }> => {
     const response = await fetch(`${API_BASE_URL}/auth/createUser`, {
       method: 'POST',

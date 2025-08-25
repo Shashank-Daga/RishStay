@@ -28,7 +28,7 @@ export function Header() {
             <Link href="/how-it-works" className="text-gray-700 hover:text-blue-600 font-medium">
               How It Works
             </Link>
-            {user?.role === "owner" && (
+            {user?.role === "landlord" && (
               <Link href="/list-property" className="text-gray-700 hover:text-blue-600 font-medium">
                 List Property
               </Link>
@@ -101,7 +101,7 @@ export function Header() {
               >
                 How It Works
               </Link>
-              {user?.role === "owner" && (
+              {user?.role === "landlord" && (
                 <Link
                   href="/list-property"
                   className="text-gray-700 hover:text-blue-600 font-medium"

@@ -14,7 +14,7 @@ router.post('/createUser', [
     body('email', 'Enter a valid email').isEmail(),
     body('phoneNo', 'Enter a valid phone number').isLength({ min: 10, max: 10 }),
     body('password', 'Password must be at least 5 characters').isLength({ min: 5 }),
-    body('role').isIn(['owner', 'tenant']).withMessage('Invalid role'),
+    body('role').isIn(['landlord', 'tenant']).withMessage('Invalid role'),
 ], async (req, res) => {
     let success = false;
     // If there are errors, return Bad request and the errors

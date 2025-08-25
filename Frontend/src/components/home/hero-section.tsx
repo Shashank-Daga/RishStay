@@ -27,8 +27,8 @@ export function HeroSection() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-12">
                     <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
-                        Tag
-                        <span className="text-blue-600 block">Line</span>
+                        Find Your Perfect
+                        <span className="text-blue-600 block">Rental Home</span>
                     </h1>
                     <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
                         Description
@@ -59,8 +59,6 @@ export function HeroSection() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="apartment">Apartment</SelectItem>
-                                    <SelectItem value="house">House</SelectItem>
-                                    <SelectItem value="condo">Condo</SelectItem>
                                     <SelectItem value="studio">Studio</SelectItem>
                                 </SelectContent>
                             </Select>

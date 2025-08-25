@@ -3,7 +3,7 @@ export interface User {
   email: string
   name: string
   phoneNo: string
-  role: "owner" | "tenant"
+  role: "landlord" | "tenant"
   avatar?: string
   createdAt: Date
 }
@@ -22,13 +22,13 @@ export interface Property {
   }
   images: string[]
   amenities: string[]
-  propertyType: "apartment" | "house" | "condo" | "studio" | "villa"
+  propertyType: "apartment" |  "studio" 
   bedrooms: number
   bathrooms: number
   area: number
   availableFrom: Date
-  ownerId: string
-  owner: User
+  landlordId: string
+  landlord: User
   featured: boolean
   isAvailable: boolean
   status: "available" | "rented" | "pending"

@@ -9,7 +9,7 @@ export interface AuthContextType {
     phoneNo: string,
     email: string,
     password: string,
-    role: "owner" | "tenant"
+    role: "landlord" | "tenant"
   ) => Promise<boolean>
   logout: () => void
   loading: boolean
@@ -37,7 +37,7 @@ export const authService = {
     phoneNo: string,
     email: string,
     password: string,
-    role: "owner" | "tenant"
+    role: "landlord" | "tenant"
   ): Promise<User | null> => {
     try {
       const response = await authApi.signup({

@@ -21,7 +21,7 @@ export function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormProps) {
   const [phoneNo, setPhoneNo] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [role, setRole] = useState<"owner" | "tenant">("tenant")
+  const [role, setRole] = useState<"landlord" | "tenant">("tenant")
   const { signup, loading } = useAuth()
   const { toast } = useToast()
 
@@ -100,14 +100,14 @@ export function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormProps) {
           </div>
           <div className="space-y-3">
             <Label>I am a:</Label>
-            <RadioGroup value={role} onValueChange={(value: "owner" | "tenant") => setRole(value)}>
+            <RadioGroup value={role} onValueChange={(value: "landlord" | "tenant") => setRole(value)}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="tenant" id="tenant" />
                 <Label htmlFor="tenant">Tenant (Looking for a place)</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="owner" id="owner" />
-                <Label htmlFor="owner">Property Owner (Listing properties)</Label>
+                <RadioGroupItem value="landlord" id="landlord" />
+                <Label htmlFor="landlord">Property Owner (Listing properties)</Label>
               </div>
             </RadioGroup>
           </div>

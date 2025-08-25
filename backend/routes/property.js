@@ -15,7 +15,7 @@ router.post('/create', fetchuser, [
     body('location.city', 'City is required').notEmpty(),
     body('location.state', 'State is required').notEmpty(),
     body('location.zipCode', 'Zip code is required').notEmpty(),
-    body('propertyType', 'Property type is required').isIn(['apartment', 'house', 'villa', 'condo', 'studio']),
+    body('propertyType', 'Property type is required').isIn(['apartment', 'studio']),
     body('bedrooms', 'Bedrooms must be a non-negative number').isNumeric().isInt({ min: 0 }),
     body('bathrooms', 'Bathrooms must be a non-negative number').isNumeric().isInt({ min: 0 }),
     body('area', 'Area must be a positive number').isNumeric().isFloat({ min: 0 }),
@@ -47,7 +47,7 @@ router.post('/create', fetchuser, [
             maxGuests,
             guestType,
             rules: req.body.rules || [],
-            owner: req.user.id,
+            landlord: req.user.id,
             images: req.body.images || []
         });
 
@@ -78,7 +78,7 @@ router.get('/all', async (req, res) => {
         if (guests) query.maxGuests = { $gte: parseInt(guests) };
         if (guestType) query.guestType = guestType;
 
-        const properties = await Property.find(query).populate('owner', 'name email phoneNo');
+        const properties = await Property.find(query).populate('landlord', 'name email phoneNo');
         res.json(properties);
     } catch (error) {
         console.error(error.message);
@@ -89,7 +89,7 @@ router.get('/all', async (req, res) => {
 // Route 3: Get properties owned by logged-in user: GET "/api/property/myproperties". Login required.
 router.get('/myproperties', fetchuser, async (req, res) => {
     try {
-        const properties = await Property.find({ owner: req.user.id }).sort({ createdAt: -1 });
+        const properties = await Property.find({ landlord: req.user.id }).sort({ createdAt: -1 });
         res.json(properties);
     } catch (error) {
         console.error(error.message);
@@ -100,7 +100,7 @@ router.get('/myproperties', fetchuser, async (req, res) => {
 // Route 4: Get single property by ID: GET "/api/property/:id". No login required.
 router.get('/:id', async (req, res) => {
     try {
-        const property = await Property.findById(req.params.id).populate('owner', 'name email phoneNo');
+        const property = await Property.findById(req.params.id).populate('landlord', 'name email phoneNo');
         if (!property) {
             return res.status(404).json({ error: "Property not found" });
         }
@@ -134,7 +134,7 @@ router.put('/update/:id', fetchuser, [
             return res.status(404).json({ success, error: "Property not found" });
         }
 
-        if (property.owner.toString() !== req.user.id) {
+        if (property.landlord.toString() !== req.user.id) {
             return res.status(401).json({ success, error: "Not authorized to update this property" });
         }
 
@@ -162,7 +162,7 @@ router.delete('/delete/:id', fetchuser, async (req, res) => {
             return res.status(404).json({ success, error: "Property not found" });
         }
 
-        if (property.owner.toString() !== req.user.id) {
+        if (property.landlord.toString() !== req.user.id) {
             return res.status(401).json({ success, error: "Not authorized to delete this property" });
         }
 
@@ -185,7 +185,7 @@ router.put('/toggle-availability/:id', fetchuser, async (req, res) => {
             return res.status(404).json({ success, error: "Property not found" });
         }
 
-        if (property.owner.toString() !== req.user.id) {
+        if (property.landlord.toString() !== req.user.id) {
             return res.status(401).json({ success, error: "Not authorized to update this property" });
         }
 

@@ -20,6 +20,11 @@ const UserSchema = new Schema({
         type: String,
         required: true
     },
+    role: {
+        type: String,
+        enum: ['landlord', 'tenant'],
+        required: true
+    },
     date: {
         type: Date,
         default: Date.now,

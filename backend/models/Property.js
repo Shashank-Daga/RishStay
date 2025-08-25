@@ -72,7 +72,7 @@ const PropertySchema = new Schema({
         enum: ['Family', 'Bachelors', 'Girls', 'Boys'],
         default: null
     },
-    owner: {
+    landlord: {
         type: Schema.Types.ObjectId,
         ref: 'user',
         required: true

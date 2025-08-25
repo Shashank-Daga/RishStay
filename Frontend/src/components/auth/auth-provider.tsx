@@ -8,7 +8,7 @@ import { authService } from "@/lib/auth"
 interface AuthContextType {
   user: User | null
   login: (email: string, password: string) => Promise<boolean>
-  signup: (name: string, phoneNo: string, email: string, password: string, role: "owner" | "tenant") => Promise<boolean>
+  signup: (name: string, phoneNo: string, email: string, password: string, role: "landlord" | "tenant") => Promise<boolean>
   logout: () => void
   loading: boolean
 }
@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signup = async ( name: string, phoneNo: string, email: string, password: string, role: "owner" | "tenant") => {
+  const signup = async ( name: string, phoneNo: string, email: string, password: string, role: "landlord" | "tenant") => {
     setLoading(true)
     try {
       const newUser = await authService.signup(name, phoneNo, email, password, role)
