@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/components/auth/auth-provider"
 import { propertyApi } from "@/lib/api"
-import { Heart, MessageSquare, Home, Eye, PlusCircle, BarChart3 } from "lucide-react"
+import { Heart, Home, Eye, PlusCircle, BarChart3 } from "lucide-react"
 import Link from "next/link"
 import { Property } from "@/lib/types"
 
@@ -97,16 +97,7 @@ export default function DashboardPage() {
     )
   }
 
-  const recentActivities = [
-    {
-      id: "1",
-      type: "message" as const,
-      title: "Welcome to RishStay",
-      description: "Get started by exploring the dashboard",
-      timestamp: new Date(),
-      status: "Read",
-    }
-  ]
+  const recentActivities: [] = []
 
   const favoriteProperties = properties.filter((p: Property) => favorites.includes(p.id))
 
@@ -253,12 +244,6 @@ export default function DashboardPage() {
                       Add New Property
                     </Button>
                   </Link>
-                  <Link href="/dashboard/messages">
-                    <Button variant="outline" className="w-full justify-start bg-transparent">
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      View Messages
-                    </Button>
-                  </Link>
                   <Link href="/dashboard/analytics">
                     <Button variant="outline" className="w-full justify-start bg-transparent">
                       <BarChart3 className="h-4 w-4 mr-2" />
@@ -284,12 +269,6 @@ export default function DashboardPage() {
                     <Button variant="outline" className="w-full justify-start bg-transparent">
                       <Heart className="h-4 w-4 mr-2" />
                       View Favorites
-                    </Button>
-                  </Link>
-                  <Link href="/dashboard/messages">
-                    <Button variant="outline" className="w-full justify-start bg-transparent">
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      View Messages
                     </Button>
                   </Link>
                   <Link href="/dashboard/applications">

@@ -23,7 +23,6 @@ export default function SettingsPage() {
     emailNotifications: true,
     pushNotifications: false,
     marketingEmails: false,
-    newMessageNotifications: true,
     propertyUpdateNotifications: true,
     applicationStatusNotifications: true,
     language: "en",
@@ -141,17 +140,6 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <h4 className="font-medium">Specific Notifications</h4>
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="new-messages">New Messages</Label>
-                    <p className="text-sm text-gray-600">When you receive a new message</p>
-                  </div>
-                  <Switch
-                    id="new-messages"
-                    checked={settings.newMessageNotifications}
-                    onCheckedChange={(checked: boolean) => updateSetting("newMessageNotifications", checked)}
-                  />
-                </div>
 
                 {user.role === "landlord" && (
                   <div className="flex items-center justify-between">

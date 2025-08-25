@@ -6,14 +6,13 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/components/auth/auth-provider"
-import { CalendarIcon, MessageSquare, Phone, Mail } from "lucide-react"
+import { CalendarIcon, Phone, Mail } from "lucide-react"
 import { format } from "date-fns"
 import type { Property } from "@/lib/types"
 
@@ -32,7 +31,6 @@ export function ContactForm({ property }: ContactFormProps) {
     name: user?.name || "",
     email: user?.email || "",
     phone: "",
-    message: "",
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,15 +41,15 @@ export function ContactForm({ property }: ContactFormProps) {
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
     toast({
-      title: "Message sent!",
-      description: "The property owner will get back to you soon.",
+      title: "Inquiry sent!",
+      description: "The property owner will respond soon.",
     })
 
     // Reset form for non-authenticated users
     if (!user) {
-      setFormData({ name: "", email: "", phone: "", message: "" })
+      setFormData({ name: "", email: "", phone: "" })
     } else {
-      setFormData({ ...formData, phone: "", message: "" })
+      setFormData({ ...formData, phone: "" })
     }
     setPreferredDate(undefined)
     setIsSubmitting(false)
@@ -93,10 +91,7 @@ export function ContactForm({ property }: ContactFormProps) {
       {/* Contact Form */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
-            Contact Owner
-          </CardTitle>
+          <CardTitle className="text-lg">Contact Owner</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -176,27 +171,8 @@ export function ContactForm({ property }: ContactFormProps) {
               </div>
             )}
 
-            {/* Message */}
-            <div className="space-y-2">
-              <Label htmlFor="message">Message *</Label>
-              <Textarea
-                id="message"
-                value={formData.message}
-                onChange={(e) => handleInputChange("message", e.target.value)}
-                placeholder={
-                  inquiryType === "viewing"
-                    ? "I'm interested in scheduling a viewing for this property. Please let me know your availability."
-                    : inquiryType === "application"
-                      ? "I would like to apply for this rental property. Please send me the application details."
-                      : "I'm interested in this property and would like more information."
-                }
-                rows={4}
-                required
-              />
-            </div>
-
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Sending..." : "Send Message"}
+              {isSubmitting ? "Sending..." : "Send Inquiry"}
             </Button>
 
             <p className="text-xs text-gray-500 text-center">

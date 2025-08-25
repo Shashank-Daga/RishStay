@@ -1,10 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Heart, MessageSquare, Eye, Calendar } from "lucide-react"
+import { Heart, Eye, Calendar } from "lucide-react"
 
 interface ActivityItem {
   id: string
-  type: "favorite" | "message" | "view" | "application"
+  type: "favorite" | "view" | "application"
   title: string
   description: string
   timestamp: Date
@@ -17,7 +17,6 @@ interface RecentActivityProps {
 
 const activityIcons = {
   favorite: Heart,
-  message: MessageSquare,
   view: Eye,
   application: Calendar,
 }

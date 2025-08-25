@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card"
-import { Search, MessageSquare, Key, Shield } from "lucide-react"
+import { Search, Key, Shield } from "lucide-react"
 
 export function HowItWorks() {
   const steps = [
@@ -8,12 +8,6 @@ export function HowItWorks() {
       title: "Search & Discover",
       description:
         "Browse thousands of verified rental properties using our advanced search filters. Find exactly what you're looking for in your preferred location.",
-    },
-    {
-      icon: MessageSquare,
-      title: "Connect Directly",
-      description:
-        "Message property owners directly through our secure platform. Ask questions, schedule viewings, and get all the information you need.",
     },
     {
       icon: Shield,

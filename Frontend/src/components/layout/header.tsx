@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/components/auth/auth-provider"
-import { Menu, X, Home, User, Heart, MessageSquare } from "lucide-react"
+import { Menu, X, Home, User, Heart } from "lucide-react"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -47,12 +47,6 @@ export function Header() {
                     </Button>
                   </Link>
                 )}
-                <Link href="/messages">
-                  <Button variant="ghost" size="sm">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Messages
-                  </Button>
-                </Link>
                 <Link href="/dashboard">
                   <Button variant="ghost" size="sm">
                     <User className="h-4 w-4 mr-2" />
