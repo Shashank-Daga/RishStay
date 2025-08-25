@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signup = async ( name: string, phoneNo: string, email: string, password: string, role: "landlord" | "tenant") => {
+const signup = async (name: string, phoneNo: string, email: string, password: string, role: "landlord" | "tenant") => {
     setLoading(true)
     try {
       const newUser = await authService.signup(name, phoneNo, email, password, role)

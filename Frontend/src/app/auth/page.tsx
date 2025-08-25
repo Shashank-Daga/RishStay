@@ -13,12 +13,12 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (user) {
-      router.push("/dashboard")
+      router.push("/")
     }
   }, [user, router])
 
   const handleAuthSuccess = () => {
-    router.push("/dashboard")
+    router.push("/")
   }
 
   if (user) {

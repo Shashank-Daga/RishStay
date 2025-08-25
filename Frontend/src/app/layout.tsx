@@ -27,7 +27,7 @@ html {
 }
         `}</style>
       </head>
-      <body>
+      <body className="chakra-ui-light">
         <AuthProvider>
           {children}
           <Toaster />
