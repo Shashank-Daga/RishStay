@@ -27,9 +27,6 @@ export function Footer() {
               <Link href="/how-it-works" className="block text-gray-400 hover:text-white text-sm">
                 How It Works
               </Link>
-              <Link href="/list-property" className="block text-gray-400 hover:text-white text-sm">
-                List Your Property
-              </Link>
               <Link href="/about" className="block text-gray-400 hover:text-white text-sm">
                 About Us
               </Link>
@@ -40,9 +37,6 @@ export function Footer() {
           <div>
             <h3 className="font-semibold mb-4">Support</h3>
             <div className="space-y-2">
-              <Link href="/help" className="block text-gray-400 hover:text-white text-sm">
-                Help Center
-              </Link>
               <Link href="/contact" className="block text-gray-400 hover:text-white text-sm">
                 Contact Us
               </Link>
@@ -58,18 +52,19 @@ export function Footer() {
           {/* Contact */}
           <div>
             <h3 className="font-semibold mb-4">Contact</h3>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <div className="flex items-center space-x-2 text-sm text-gray-400">
                 <Mail className="h-4 w-4" />
-                <span>info@rishstay.com</span>
+                <a href="mailto:info@rishstay.com" className="hover:underline">info@rishstay.com</a>
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-400">
                 <Phone className="h-4 w-4" />
-                <span>+91 9767663123</span>
+                <a href="tel:+91 9767663123" className="hover:underline">+91 9767663123</a>
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-400">
                 <MapPin className="h-4 w-4" />
-                <span>Laxman Nagar, Baner</span>
+                <a href="https://www.google.com/maps/place/Laxman+Nagar,+Baner,+Pune,+Maharashtra+411045/@18.5705908,73.7665306,16z/data=!3m1!4b1!4m6!3m5!1s0x3bc2b94ab6ff4d3b:0x8af90967675eaea9!8m2!3d18.5700156!4d73.7727908!16s%2Fg%2F1tmphz6_?entry=ttu&g_ep=EgoyMDI1MDgxOS4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener noreferrer" className="hover:underline">Laxman Nagar, Baner, Pune</a>
+                {/* <span>Laxman Nagar, Baner</span> */}
               </div>
             </div>
           </div>
