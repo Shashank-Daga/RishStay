@@ -12,10 +12,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useAuth } from "@/components/auth/auth-provider"
 import { useToast } from "@/hooks/use-toast"
+import { propertyApi } from "@/lib/api"
 import { CalendarIcon, Upload, X, Save } from "lucide-react"
 import { format } from "date-fns"
 
@@ -48,14 +47,19 @@ export default function AddPropertyPage() {
     propertyType: "",
     bedrooms: "",
     bathrooms: "",
-    squareFeet: "",
+    area: "",
     address: "",
     city: "",
     state: "",
     zipCode: "",
     amenities: [] as string[],
     images: [] as string[],
-    featured: false,
+    maxGuests: "",
+    guestType: "",
+    rules: [] as string[],
+    checkInTime: "15:00",
+    checkOutTime: "11:00",
+    isAvailable: true,
   })
 
   useEffect(() => {
@@ -85,7 +89,10 @@ export default function AddPropertyPage() {
     setIsSubmitting(true)
 
     // Validate required fields
-    if (!propertyData.title || !propertyData.price || !propertyData.propertyType || !availableFrom) {
+    if (!propertyData.title || !propertyData.description || !propertyData.price ||
+        !propertyData.propertyType || !propertyData.area || !propertyData.address ||
+        !propertyData.city || !propertyData.state || !propertyData.zipCode ||
+        !propertyData.bedrooms || !propertyData.bathrooms || !propertyData.maxGuests) {
       toast({
         title: "Missing required fields",
         description: "Please fill in all required fields.",
@@ -95,19 +102,61 @@ export default function AddPropertyPage() {
       return
     }
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    try {
+      const token = localStorage.getItem('auth-token')
+      if (!token) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to add a property.",
+          variant: "destructive",
+        })
+        setIsSubmitting(false)
+        return
+      }
 
-    toast({
-      title: "Property listed successfully!",
-      description: "Your property has been added and is now live on the platform.",
-    })
+      const propertyPayload = {
+        title: propertyData.title,
+        description: propertyData.description,
+        price: parseFloat(propertyData.price),
+        location: {
+          address: propertyData.address,
+          city: propertyData.city,
+          state: propertyData.state,
+          zipCode: propertyData.zipCode,
+        },
+        propertyType: propertyData.propertyType as "apartment" | "studio",
+        bedrooms: parseInt(propertyData.bedrooms),
+        bathrooms: parseFloat(propertyData.bathrooms),
+        area: parseInt(propertyData.area),
+        maxGuests: parseInt(propertyData.maxGuests),
+        guestType: propertyData.guestType as "Family" | "Bachelors" | "Girls" | "Boys" | null,
+        amenities: propertyData.amenities,
+        images: propertyData.images,
+        rules: propertyData.rules,
+        isAvailable: propertyData.isAvailable,
+      }
 
-    router.push("/dashboard/properties")
-    setIsSubmitting(false)
+      await propertyApi.create(propertyPayload, token)
+
+      toast({
+        title: "Property listed successfully!",
+        description: "Your property has been added and is now live on the platform.",
+      })
+
+      router.push("/dashboard/properties")
+    } catch (error) {
+      console.error("Error creating property:", error)
+      toast({
+        title: "Error creating property",
+        description: error instanceof Error ? error.message : "An error occurred while creating the property.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  const handleInputChange = (field: string, value: string | boolean) => {
+  const handleInputChange = (field: string, value: string | boolean | string[]) => {
     setPropertyData((prev) => ({ ...prev, [field]: value }))
   }
 
@@ -198,83 +247,100 @@ export default function AddPropertyPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="apartment">Apartment</SelectItem>
-                      <SelectItem value="house">House</SelectItem>
-                      <SelectItem value="condo">Condo</SelectItem>
                       <SelectItem value="studio">Studio</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="squareFeet">Square Feet</Label>
+                  <Label htmlFor="area">Area (sq ft) *</Label>
                   <Input
-                    id="squareFeet"
+                    id="area"
                     type="number"
-                    value={propertyData.squareFeet}
-                    onChange={(e) => handleInputChange("squareFeet", e.target.value)}
+                    value={propertyData.area}
+                    onChange={(e) => handleInputChange("area", e.target.value)}
                     placeholder="1200"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="bedrooms">Bedrooms *</Label>
+                  <Input
+                    id="bedrooms"
+                    type="number"
+                    value={propertyData.bedrooms}
+                    onChange={(e) => handleInputChange("bedrooms", e.target.value)}
+                    placeholder="2"
+                    min="0"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bathrooms">Bathrooms *</Label>
+                  <Input
+                    id="bathrooms"
+                    type="number"
+                    value={propertyData.bathrooms}
+                    onChange={(e) => handleInputChange("bathrooms", e.target.value)}
+                    placeholder="1"
+                    min="0"
+                    step="0.5"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="maxGuests">Max Guests *</Label>
+                  <Input
+                    id="maxGuests"
+                    type="number"
+                    value={propertyData.maxGuests}
+                    onChange={(e) => handleInputChange("maxGuests", e.target.value)}
+                    placeholder="4"
+                    min="1"
+                    required
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="bedrooms">Bedrooms</Label>
-                  <Select value={propertyData.bedrooms} onValueChange={(value) => handleInputChange("bedrooms", value)}>
+                  <Label htmlFor="guestType">Guest Type</Label>
+                  <Select
+                    value={propertyData.guestType}
+                    onValueChange={(value) => handleInputChange("guestType", value)}
+                  >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select bedrooms" />
+                      <SelectValue placeholder="Select guest type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="0">Studio</SelectItem>
-                      <SelectItem value="1">1 Bedroom</SelectItem>
-                      <SelectItem value="2">2 Bedrooms</SelectItem>
-                      <SelectItem value="3">3 Bedrooms</SelectItem>
-                      <SelectItem value="4">4 Bedrooms</SelectItem>
-                      <SelectItem value="5">5+ Bedrooms</SelectItem>
+                      <SelectItem value="Family">Family</SelectItem>
+                      <SelectItem value="Bachelors">Bachelors</SelectItem>
+                      <SelectItem value="Girls">Girls</SelectItem>
+                      <SelectItem value="Boys">Boys</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="bathrooms">Bathrooms</Label>
+                  <Label htmlFor="isAvailable">Availability</Label>
                   <Select
-                    value={propertyData.bathrooms}
-                    onValueChange={(value) => handleInputChange("bathrooms", value)}
+                    value={propertyData.isAvailable.toString()}
+                    onValueChange={(value) => handleInputChange("isAvailable", value === "true")}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select bathrooms" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">1 Bathroom</SelectItem>
-                      <SelectItem value="1.5">1.5 Bathrooms</SelectItem>
-                      <SelectItem value="2">2 Bathrooms</SelectItem>
-                      <SelectItem value="2.5">2.5 Bathrooms</SelectItem>
-                      <SelectItem value="3">3 Bathrooms</SelectItem>
-                      <SelectItem value="3.5">3.5+ Bathrooms</SelectItem>
+                      <SelectItem value="true">Available</SelectItem>
+                      <SelectItem value="false">Not Available</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Available From *</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left font-normal bg-transparent">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {availableFrom ? format(availableFrom, "PPP") : "Select availability date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={availableFrom}
-                      onSelect={setAvailableFrom}
-                      disabled={(date: Date) => date < new Date()}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
               </div>
             </CardContent>
           </Card>
@@ -402,19 +468,21 @@ export default function AddPropertyPage() {
             </CardContent>
           </Card>
 
-          {/* Additional Options */}
+          {/* Rules */}
           <Card>
             <CardHeader>
-              <CardTitle>Additional Options</CardTitle>
+              <CardTitle>House Rules</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="featured"
-                  checked={propertyData.featured}
-                  onCheckedChange={(checked: boolean) => handleInputChange("featured", checked as boolean)}
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="rules">Add house rules (one per line)</Label>
+                <Textarea
+                  id="rules"
+                  value={propertyData.rules.join('\n')}
+                  onChange={(e) => handleInputChange("rules", e.target.value.split('\n').filter(rule => rule.trim() !== ''))}
+                  placeholder="No smoking&#10;No pets&#10;Quiet hours after 10 PM"
+                  rows={4}
                 />
-                <Label htmlFor="featured">Mark as featured property (additional visibility)</Label>
               </div>
             </CardContent>
           </Card>

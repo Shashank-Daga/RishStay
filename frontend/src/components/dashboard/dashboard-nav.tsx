@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/components/auth/auth-provider"
-import { Home, Heart, User, Settings, PlusCircle, BarChart3, FileText, Menu, X } from "lucide-react"
+import { Home, Heart, User, Settings, PlusCircle, FileText, Menu, X } from "lucide-react"
 
 export function DashboardNav() {
   const { user } = useAuth()
@@ -20,11 +20,10 @@ export function DashboardNav() {
     { href: "/dashboard/settings", icon: Settings, label: "Settings" },
   ]
 
-  const ownerNavItems = [
+const ownerNavItems = [
     { href: "/dashboard", icon: Home, label: "Overview" },
     { href: "/dashboard/properties", icon: Home, label: "My Properties" },
     { href: "/dashboard/add-property", icon: PlusCircle, label: "Add Property" },
-    { href: "/dashboard/analytics", icon: BarChart3, label: "Analytics" },
     { href: "/dashboard/profile", icon: User, label: "Profile" },
     { href: "/dashboard/settings", icon: Settings, label: "Settings" },
   ]

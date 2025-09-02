@@ -13,6 +13,7 @@ app.use(express.json())
 // Available Routes
 app.use('/api/auth', require('./routes/auth'))
 app.use('/api/property', require('./routes/property'))
+app.use('/api/message', require('./routes/message'))
 
 app.listen(port, () => {
   console.log(`RishStay backend at http://localhost:${port}`)

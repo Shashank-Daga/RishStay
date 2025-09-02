@@ -206,10 +206,10 @@ export function PropertyList({ properties, filters, favorites = [], onFavoriteTo
         <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" : "space-y-6"}>
           {paginatedProperties.map((property) => (
             <PropertyCard
-              key={property.id}
+              key={property._id}
               property={property}
               onFavoriteToggle={onFavoriteToggle}
-              isFavorited={favorites.includes(property.id)}
+              isFavorited={favorites.includes(property._id)}
             />
           ))}
         </div>

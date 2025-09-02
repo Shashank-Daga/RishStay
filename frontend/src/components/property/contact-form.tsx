@@ -12,6 +12,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/components/auth/auth-provider"
+import { messageApi } from "@/lib/api"
 import { CalendarIcon, Phone, Mail } from "lucide-react"
 import { format } from "date-fns"
 import type { Property } from "@/lib/types"
@@ -37,22 +38,68 @@ export function ContactForm({ property }: ContactFormProps) {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      if (!user) {
+        toast({
+          title: "Sign in required",
+          description: "Please sign in to send inquiries.",
+          variant: "destructive",
+        })
+        setIsSubmitting(false)
+        return
+      }
 
-    toast({
-      title: "Inquiry sent!",
-      description: "The property owner will respond soon.",
-    })
+      const token = localStorage.getItem("auth-token")
+      if (!token) {
+        toast({
+          title: "Authentication error",
+          description: "User token not found. Please sign in again.",
+          variant: "destructive",
+        })
+        setIsSubmitting(false)
+        return
+      }
 
-    // Reset form for non-authenticated users
-    if (!user) {
-      setFormData({ name: "", email: "", phone: "" })
-    } else {
-      setFormData({ ...formData, phone: "" })
+      const result = await messageApi.send(
+        {
+          propertyId: property._id,
+          subject: `${formData.name} - ${inquiryType.charAt(0).toUpperCase() + inquiryType.slice(1)} Inquiry`,
+          message: `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\n\nInquiry: ${inquiryType}`,
+          inquiryType: inquiryType as "general" | "viewing" | "application" | "availability",
+          preferredDate,
+          phone: formData.phone,
+        },
+        token
+      )
+
+      if (result.success) {
+        toast({
+          title: "Inquiry sent!",
+          description: "The property owner will respond soon.",
+        })
+        // Reset form for non-authenticated users
+        if (!user) {
+          setFormData({ name: "", email: "", phone: "" })
+        } else {
+          setFormData({ ...formData, phone: "" })
+        }
+        setPreferredDate(undefined)
+      } else {
+        toast({
+          title: "Failed to send inquiry",
+          description: result.error || "Please try again later.",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again later.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
     }
-    setPreferredDate(undefined)
-    setIsSubmitting(false)
   }
 
   const handleInputChange = (field: string, value: string) => {

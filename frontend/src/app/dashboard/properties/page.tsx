@@ -29,7 +29,7 @@ export default function PropertiesPage() {
   useEffect(() => {
     const fetchUserProperties = async () => {
       if (!user || user.role !== "landlord") return
-      
+
       try {
         setLoading(true)
         const token = localStorage.getItem("auth-token")
@@ -125,38 +125,20 @@ export default function PropertiesPage() {
 
         <p className="text-gray-600 text-sm mb-4 line-clamp-2">{property.description}</p>
 
-        {/* Property Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-4 text-center">
-          <div>
-            <p className="text-lg font-bold text-gray-900">{Math.floor(Math.random() * 200) + 50}</p>
-            <p className="text-xs text-gray-600">Views</p>
-          </div>
-          <div>
-            <p className="text-lg font-bold text-gray-900">{Math.floor(Math.random() * 10) + 1}</p>
-            <p className="text-xs text-gray-600">Inquiries</p>
-          </div>
-          <div>
-            <p className="text-lg font-bold text-gray-900">{(Math.random() * 5 + 1).toFixed(1)}%</p>
-            <p className="text-xs text-gray-600">Conv. Rate</p>
-          </div>
-        </div>
-
         {/* Action Buttons */}
         <div className="flex gap-2">
-          <Link href={`/properties/${property.id}`} className="flex-1">
+          <Link href={`/properties/${property._id}`} className="flex-1">
             <Button variant="outline" size="sm" className="w-full bg-transparent">
               <Eye className="h-4 w-4 mr-2" />
               View
             </Button>
           </Link>
-          <Button variant="outline" size="sm" className="flex-1 bg-transparent">
-            <Edit className="h-4 w-4 mr-2" />
-            Edit
-          </Button>
-          <Button variant="outline" size="sm" className="flex-1 bg-transparent">
-            <BarChart3 className="h-4 w-4 mr-2" />
-            Stats
-          </Button>
+          <Link href={`/property/update/${property._id}`} className="flex-1">
+            <Button variant="outline" size="sm" className="flex-1 bg-transparent">
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
+          </Link>
         </div>
       </div>
     </Card>
@@ -206,7 +188,7 @@ export default function PropertiesPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {userProperties.map((property: Property) => (
-                  <PropertyCardWithActions key={property.id} property={property} />
+                  <PropertyCardWithActions key={property._id} property={property} />
                 ))}
               </div>
             )}
@@ -222,7 +204,7 @@ export default function PropertiesPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {availableProperties.map((property: Property) => (
-                  <PropertyCardWithActions key={property.id} property={property} />
+                  <PropertyCardWithActions key={property._id} property={property} />
                 ))}
               </div>
             )}
@@ -238,7 +220,7 @@ export default function PropertiesPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {rentedProperties.map((property: Property) => (
-                  <PropertyCardWithActions key={property.id} property={property} />
+                  <PropertyCardWithActions key={property._id} property={property} />
                 ))}
               </div>
             )}
@@ -254,7 +236,7 @@ export default function PropertiesPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {pendingProperties.map((property: Property) => (
-                  <PropertyCardWithActions key={property.id} property={property} />
+                  <PropertyCardWithActions key={property._id} property={property} />
                 ))}
               </div>
             )}

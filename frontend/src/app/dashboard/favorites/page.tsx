@@ -86,7 +86,7 @@ export default function FavoritesPage() {
     )
   }
 
-  const favoriteProperties = properties.filter((p: Property) => favorites.includes(p.id))
+  const favoriteProperties = properties.filter((p: Property) => favorites.includes(p._id))
 
   const handleFavoriteToggle = (propertyId: string) => {
     const newFavorites = favorites.filter((id) => id !== propertyId)
@@ -137,7 +137,7 @@ export default function FavoritesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {favoriteProperties.map((property) => (
                 <PropertyCard
-                  key={property.id}
+                  key={property._id}
                   property={property}
                   onFavoriteToggle={handleFavoriteToggle}
                   isFavorited={true}

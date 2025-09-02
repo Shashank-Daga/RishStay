@@ -8,52 +8,32 @@ var fetchuser = require('../middleware/fetchuser');
 
 // Route 1: Create a property: POST "/api/property/create". Login required.
 router.post('/create', fetchuser, [
-    body('title', 'Title is required').notEmpty(),
-    body('description', 'Description is required').notEmpty(),
-    body('price', 'Price must be a positive number').isNumeric().isFloat({ min: 0 }),
-    body('location.address', 'Address is required').notEmpty(),
-    body('location.city', 'City is required').notEmpty(),
-    body('location.state', 'State is required').notEmpty(),
-    body('location.zipCode', 'Zip code is required').notEmpty(),
-    body('propertyType', 'Property type is required').isIn(['apartment', 'studio']),
-    body('bedrooms', 'Bedrooms must be a non-negative number').isNumeric().isInt({ min: 0 }),
-    body('bathrooms', 'Bathrooms must be a non-negative number').isNumeric().isInt({ min: 0 }),
-    body('area', 'Area must be a positive number').isNumeric().isFloat({ min: 0 }),
-    body('maxGuests', 'Max guests must be at least 1').isNumeric().isInt({ min: 1 }),
-    body('guestType').isIn(['Family', 'Bachelors', 'Girls', 'Boys']),
+    body('title').notEmpty().withMessage('Title is required'),
+    body('description').notEmpty().withMessage('Description is required'),
+    body('price').isFloat({ min: 0 }).withMessage('Price must be a positive number'),
+    body('location.address').notEmpty().withMessage('Address is required'),
+    body('location.city').notEmpty().withMessage('City is required'),
+    body('location.state').notEmpty().withMessage('State is required'),
+    body('location.zipCode').notEmpty().withMessage('Zip code is required'),
+    body('propertyType').isIn(['apartment', 'studio']).withMessage('Invalid property type'),
+    body('bedrooms').isInt({ min: 0 }).withMessage('Bedrooms must be >= 0'),
+    body('bathrooms').isFloat({ min: 0 }).withMessage('Bathrooms must be >= 0'),
+    body('area').isFloat({ min: 0 }).withMessage('Area must be > 0'),
+    body('maxGuests').isInt({ min: 1 }).withMessage('Max guests must be >= 1'),
+    body('guestType').isIn(['Family', 'Bachelors', 'Girls', 'Boys']).withMessage('Invalid guest type')
 ], async (req, res) => {
-    let success = false;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({ success, errors: errors.array() });
+        return res.status(400).json({ success: false, errors: errors.array() });
     }
 
     try {
-        const {
-            title, description, price, location, propertyType,
-            amenities, bedrooms, bathrooms, area, maxGuests, guestType, rules
-        } = req.body;
-
-        const property = await Property.create({
-            title,
-            description,
-            price,
-            location,
-            propertyType,
-            amenities: req.body.amenities || [],
-            bedrooms,
-            bathrooms,
-            area,
-            maxGuests,
-            guestType,
-            rules: req.body.rules || [],
-            landlord: req.user.id,
-            images: req.body.images || []
+        const property = new Property({
+            ...req.body,
+            landlord: req.user.id
         });
-
-        success = true;
-        res.json({ success, property });
-
+        const savedProperty = await property.save();
+        res.json({ success: true, property: savedProperty });
     } catch (error) {
         console.error(error.message);
         res.status(500).send("Internal Server Error");
@@ -64,25 +44,25 @@ router.post('/create', fetchuser, [
 router.get('/all', async (req, res) => {
     try {
         const { city, propertyType, minPrice, maxPrice, bedrooms, guests, guestType } = req.query;
-        
-        let query = { isAvailable: true };
-        
+
+        let query = {};
+
         if (city) query['location.city'] = new RegExp(city, 'i');
         if (propertyType) query.propertyType = propertyType;
         if (minPrice || maxPrice) {
             query.price = {};
-            if (minPrice) query.price.$gte = parseInt(minPrice);
-            if (maxPrice) query.price.$lte = parseInt(maxPrice);
+            if (minPrice) query.price.$gte = Number(minPrice);
+            if (maxPrice) query.price.$lte = Number(maxPrice);
         }
         if (bedrooms) query.bedrooms = parseInt(bedrooms);
         if (guests) query.maxGuests = { $gte: parseInt(guests) };
         if (guestType) query.guestType = guestType;
 
-        const properties = await Property.find(query).populate('landlord', 'name email phoneNo');
-        res.json(properties);
+        const properties = await Property.find(query).sort({ createdAt: -1 });
+        res.json({ success: true, properties });
     } catch (error) {
         console.error(error.message);
-        res.status(500).send("Internal Server Error");
+        res.status(500).json({ success: false, error: "Internal Server Error" });
     }
 });
 
@@ -90,10 +70,10 @@ router.get('/all', async (req, res) => {
 router.get('/myproperties', fetchuser, async (req, res) => {
     try {
         const properties = await Property.find({ landlord: req.user.id }).sort({ createdAt: -1 });
-        res.json(properties);
+        res.json({ success: true, properties });
     } catch (error) {
         console.error(error.message);
-        res.status(500).send("Internal Server Error");
+        res.status(500).send({ success: false, error: "Internal Server Error"});
     }
 });
 
@@ -104,7 +84,7 @@ router.get('/:id', async (req, res) => {
         if (!property) {
             return res.status(404).json({ error: "Property not found" });
         }
-        res.json(property);
+        res.json({success: true, property});
     } catch (error) {
         console.error(error.message);
         res.status(500).send("Internal Server Error");
@@ -120,32 +100,31 @@ router.put('/update/:id', fetchuser, [
     body('bathrooms', 'Bathrooms must be a non-negative number').optional().isNumeric().isInt({ min: 0 }),
     body('area', 'Area must be a positive number').optional().isNumeric().isFloat({ min: 0 }),
     body('maxGuests', 'Max guests must be at least 1').optional().isNumeric().isInt({ min: 1 }),
-    body('guestType').isIn(['Family', 'Bachelors', 'Girls', 'Boys'])
+    body('guestType').optional().isIn(['Family', 'Bachelors', 'Girls', 'Boys']).withMessage('Invalid guest type')
 ], async (req, res) => {
     let success = false;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({ success, errors: errors.array() });
+        return res.status(400).json({ success: false, errors: errors.array() });
     }
 
     try {
-        const property = await Property.findById(req.params.id);
+        let property = await Property.findById(req.params.id);
         if (!property) {
-            return res.status(404).json({ success, error: "Property not found" });
+            return res.status(404).json({ success: false, error: "Property not found" });
         }
 
         if (property.landlord.toString() !== req.user.id) {
-            return res.status(401).json({ success, error: "Not authorized to update this property" });
+            return res.status(403).json({ success: false, error: "Not authorized to update this property" });
         }
 
-        const updatedProperty = await Property.findByIdAndUpdate(
+        property = await Property.findByIdAndUpdate(
             req.params.id,
-            { ...req.body, updatedAt: Date.now() },
+            { $set: req.body, updatedAt: Date.now() },
             { new: true }
         );
 
-        success = true;
-        res.json({ success, property: updatedProperty });
+        res.json({ success: true, property });
 
     } catch (error) {
         console.error(error.message);
@@ -155,49 +134,43 @@ router.put('/update/:id', fetchuser, [
 
 // Route 6: Delete a property: DELETE "/api/property/delete/:id". Login required.
 router.delete('/delete/:id', fetchuser, async (req, res) => {
-    let success = false;
     try {
         const property = await Property.findById(req.params.id);
         if (!property) {
-            return res.status(404).json({ success, error: "Property not found" });
+            return res.status(404).json({ success: false, error: "Property not found" });
         }
 
         if (property.landlord.toString() !== req.user.id) {
-            return res.status(401).json({ success, error: "Not authorized to delete this property" });
+            return res.status(403).json({ success: false, error: "Not authorized to delete this property" });
         }
 
         await Property.findByIdAndDelete(req.params.id);
-        success = true;
-        res.json({ success, message: "Property deleted successfully" });
-
+        res.json({ success: true, message: "Property deleted successfully" });
     } catch (error) {
         console.error(error.message);
-        res.status(500).send("Internal Server Error");
+        res.status(500).send({ success: false, error: "Internal Server Error" });
     }
 });
 
 // Route 7: Toggle property availability: PUT "/api/property/toggle-availability/:id". Login required.
 router.put('/toggle-availability/:id', fetchuser, async (req, res) => {
-    let success = false;
     try {
-        const property = await Property.findById(req.params.id);
+        let property = await Property.findById(req.params.id);
         if (!property) {
-            return res.status(404).json({ success, error: "Property not found" });
+            return res.status(404).json({ success: false, error: "Property not found" });
         }
 
         if (property.landlord.toString() !== req.user.id) {
-            return res.status(401).json({ success, error: "Not authorized to update this property" });
+            return res.status(401).json({ success: false, error: "Not authorized to update this property" });
         }
 
         property.isAvailable = !property.isAvailable;
         await property.save();
 
-        success = true;
-        res.json({ success, property });
-
+        res.json({ success: true, property });
     } catch (error) {
         console.error(error.message);
-        res.status(500).send("Internal Server Error");
+        res.status(500).send({ success: false, error: "Internal Server Error" });
     }
 });
 

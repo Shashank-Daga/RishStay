@@ -1,31 +1,36 @@
 "use client"
 
-import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useState, useEffect } from "react"
 import { useAuth } from "@/components/auth/auth-provider"
-import { mockProperties } from "@/lib/mock-data"
+import { messageApi } from "@/lib/api"
+import type { Property } from "@/lib/types"
 import { FileText, Calendar, MapPin, DollarSign, Eye, Clock, CheckCircle, XCircle } from "lucide-react"
 import Link from "next/link"
 
 interface Application {
-  id: string
+  _id: string
   propertyId: string
-  property: (typeof mockProperties)[0]
-  status: "pending" | "approved" | "rejected" | "under-review"
-  appliedDate: Date
-  moveInDate: Date
-  monthlyIncome: number
+  property: Property
+  status: "unread" | "read" | "replied"
+  createdAt: Date
+  subject: string
   message: string
+  inquiryType: string
+  preferredDate?: Date
+  phone?: string
 }
 
 export default function ApplicationsPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const [applications, setApplications] = useState<Application[]>([])
+  const [isLoadingApplications, setIsLoadingApplications] = useState(true)
 
   useEffect(() => {
     if (!loading && (!user || user.role !== "tenant")) {
@@ -33,7 +38,46 @@ export default function ApplicationsPage() {
     }
   }, [user, loading, router])
 
-  if (loading) {
+  useEffect(() => {
+    const fetchApplications = async () => {
+      if (!user || user.role !== "tenant") return
+
+      try {
+        setIsLoadingApplications(true)
+        const token = localStorage.getItem("auth-token")
+        if (!token) return
+
+        const messages = await messageApi.getMyMessages(token)
+
+        // Filter messages that are applications (inquiryType: "application")
+        const applicationMessages = messages.filter((msg: any) => msg.inquiryType === "application")
+
+        // Transform messages to applications format
+        const transformedApplications: Application[] = applicationMessages.map((msg: any) => ({
+          _id: msg._id,
+          propertyId: msg.property._id || msg.propertyId,
+          property: msg.property,
+          status: msg.status,
+          createdAt: new Date(msg.createdAt),
+          subject: msg.subject,
+          message: msg.message,
+          inquiryType: msg.inquiryType,
+          preferredDate: msg.preferredDate ? new Date(msg.preferredDate) : undefined,
+          phone: msg.phone,
+        }))
+
+        setApplications(transformedApplications)
+      } catch (error) {
+        console.error("Error fetching applications:", error)
+      } finally {
+        setIsLoadingApplications(false)
+      }
+    }
+
+    fetchApplications()
+  }, [user])
+
+  if (loading || isLoadingApplications) {
     return (
       <DashboardLayout>
         <div className="animate-pulse space-y-6">
@@ -50,63 +94,29 @@ export default function ApplicationsPage() {
 
   if (!user || user.role !== "tenant") return null
 
-  // Mock applications data
-  const mockApplications: Application[] = [
-    {
-      id: "1",
-      propertyId: "1",
-      property: mockProperties[0],
-      status: "under-review",
-      appliedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-      moveInDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-      monthlyIncome: 8000,
-      message: "I'm very interested in this property and would love to schedule a viewing.",
-    },
-    {
-      id: "2",
-      propertyId: "2",
-      property: mockProperties[1],
-      status: "approved",
-      appliedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
-      moveInDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
-      monthlyIncome: 6000,
-      message: "This studio is perfect for my needs as a graduate student.",
-    },
-    {
-      id: "3",
-      propertyId: "3",
-      property: mockProperties[2],
-      status: "rejected",
-      appliedDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), // 14 days ago
-      moveInDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days from now
-      monthlyIncome: 12000,
-      message: "Looking for a family home in a great neighborhood.",
-    },
-  ]
-
   const getStatusIcon = (status: Application["status"]) => {
     switch (status) {
-      case "pending":
+      case "unread":
         return <Clock className="h-4 w-4" />
-      case "under-review":
+      case "read":
         return <Eye className="h-4 w-4" />
-      case "approved":
+      case "replied":
         return <CheckCircle className="h-4 w-4" />
-      case "rejected":
-        return <XCircle className="h-4 w-4" />
+      default:
+        return <Clock className="h-4 w-4" />
     }
   }
 
   const getStatusColor = (status: Application["status"]) => {
     switch (status) {
-      case "pending":
+      case "unread":
         return "bg-yellow-100 text-yellow-800"
-      case "under-review":
+      case "read":
         return "bg-blue-100 text-blue-800"
-      case "approved":
+      case "replied":
         return "bg-green-100 text-green-800"
-      case "rejected":
-        return "bg-red-100 text-red-800"
+      default:
+        return "bg-gray-100 text-gray-800"
     }
   }
 
@@ -118,11 +128,11 @@ export default function ApplicationsPage() {
     }).format(date)
   }
 
-  const pendingApplications = mockApplications.filter(
-    (app) => app.status === "pending" || app.status === "under-review",
+  const pendingApplications = applications.filter(
+    (app) => app.status === "unread" || app.status === "read",
   )
-  const approvedApplications = mockApplications.filter((app) => app.status === "approved")
-  const rejectedApplications = mockApplications.filter((app) => app.status === "rejected")
+  const approvedApplications = applications.filter((app) => app.status === "replied")
+  const rejectedApplications: Application[] = [] // No rejected status in messages
 
   const ApplicationCard = ({ application }: { application: Application }) => (
     <Card className="hover:shadow-md transition-shadow">
@@ -152,21 +162,21 @@ export default function ApplicationsPage() {
             <Calendar className="h-4 w-4 mr-2" />
             <div>
               <p className="font-medium">Applied</p>
-              <p>{formatDate(application.appliedDate)}</p>
+              <p>{formatDate(application.createdAt)}</p>
             </div>
           </div>
           <div className="flex items-center">
             <Calendar className="h-4 w-4 mr-2" />
             <div>
-              <p className="font-medium">Move-in Date</p>
-              <p>{formatDate(application.moveInDate)}</p>
+              <p className="font-medium">Preferred Date</p>
+              <p>{application.preferredDate ? formatDate(new Date(application.preferredDate)) : "N/A"}</p>
             </div>
           </div>
           <div className="flex items-center">
             <DollarSign className="h-4 w-4 mr-2" />
             <div>
-              <p className="font-medium">Monthly Income</p>
-              <p>${application.monthlyIncome.toLocaleString()}</p>
+              <p className="font-medium">Phone</p>
+              <p>{application.phone || "N/A"}</p>
             </div>
           </div>
         </div>
@@ -183,7 +193,7 @@ export default function ApplicationsPage() {
               View Property
             </Button>
           </Link>
-          {application.status === "approved" && <Button size="sm">Complete Rental Agreement</Button>}
+          {application.status === "replied" && <Button size="sm">Complete Rental Agreement</Button>}
         </div>
       </CardContent>
     </Card>
@@ -209,14 +219,14 @@ export default function ApplicationsPage() {
         {/* Applications Tabs */}
         <Tabs defaultValue="all" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="all">All Applications ({mockApplications.length})</TabsTrigger>
+            <TabsTrigger value="all">All Applications ({applications.length})</TabsTrigger>
             <TabsTrigger value="pending">Pending ({pendingApplications.length})</TabsTrigger>
             <TabsTrigger value="approved">Approved ({approvedApplications.length})</TabsTrigger>
             <TabsTrigger value="rejected">Rejected ({rejectedApplications.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="space-y-4">
-            {mockApplications.length === 0 ? (
+            {applications.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">No applications yet</h3>
@@ -226,7 +236,7 @@ export default function ApplicationsPage() {
                 </Link>
               </div>
             ) : (
-              mockApplications.map((application) => <ApplicationCard key={application.id} application={application} />)
+              applications.map((application) => <ApplicationCard key={application._id} application={application} />)
             )}
           </TabsContent>
 
@@ -239,7 +249,7 @@ export default function ApplicationsPage() {
               </div>
             ) : (
               pendingApplications.map((application) => (
-                <ApplicationCard key={application.id} application={application} />
+                <ApplicationCard key={application._id} application={application} />
               ))
             )}
           </TabsContent>
@@ -253,7 +263,7 @@ export default function ApplicationsPage() {
               </div>
             ) : (
               approvedApplications.map((application) => (
-                <ApplicationCard key={application.id} application={application} />
+                <ApplicationCard key={application._id} application={application} />
               ))
             )}
           </TabsContent>
@@ -267,7 +277,7 @@ export default function ApplicationsPage() {
               </div>
             ) : (
               rejectedApplications.map((application) => (
-                <ApplicationCard key={application.id} application={application} />
+                <ApplicationCard key={application._id} application={application} />
               ))
             )}
           </TabsContent>

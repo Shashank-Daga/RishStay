@@ -99,7 +99,7 @@ export default function DashboardPage() {
 
   const recentActivities: [] = []
 
-  const favoriteProperties = properties.filter((p: Property) => favorites.includes(p.id))
+  const favoriteProperties = properties.filter((p: Property) => favorites.includes(p._id))
 
   const handleFavoriteToggle = (propertyId: string) => {
     const newFavorites = favorites.includes(propertyId)
@@ -168,7 +168,7 @@ export default function DashboardPage() {
                   ) : (
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                       {userProperties.slice(0, 4).map((property) => (
-                        <PropertyCard key={property.id} property={property} />
+                        <PropertyCard key={property._id} property={property} />
                       ))}
                     </div>
                   )}
@@ -208,7 +208,7 @@ export default function DashboardPage() {
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                       {favoriteProperties.slice(0, 4).map((property) => (
                         <PropertyCard
-                          key={property.id}
+                          key={property._id}
                           property={property}
                           onFavoriteToggle={handleFavoriteToggle}
                           isFavorited={true}
@@ -244,12 +244,7 @@ export default function DashboardPage() {
                       Add New Property
                     </Button>
                   </Link>
-                  <Link href="/dashboard/analytics">
-                    <Button variant="outline" className="w-full justify-start bg-transparent">
-                      <BarChart3 className="h-4 w-4 mr-2" />
-                      View Analytics
-                    </Button>
-                  </Link>
+
                   <Link href="/dashboard/profile">
                     <Button variant="outline" className="w-full justify-start bg-transparent">
                       <Home className="h-4 w-4 mr-2" />

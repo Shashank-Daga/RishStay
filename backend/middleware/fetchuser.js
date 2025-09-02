@@ -5,7 +5,7 @@ const fetchuser = (req, res, next) => {
     // Get the user from the JWT token and add id to req
     const token = req.header('auth-token');
     if (!token) {
-        return res.status(401).send({ error: "Please authenticate using a valid token" });
+        return res.status(401).send({ success: false, error: "Authentication token missing. Please log in." });
     }
 
     try {
@@ -13,7 +13,7 @@ const fetchuser = (req, res, next) => {
         req.user = data.user;
         next();
     } catch (error) {
-        return res.status(401).send({ error: "Invalid token" });
+        return res.status(401).send({ success: false, error: "Invalid or expired token. Please log in again." });
     }
 }
 

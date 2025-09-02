@@ -64,13 +64,13 @@ export default function PropertyDetailPage() {
         setIsLoading(true)
         const propertyData = await propertyApi.getById(propertyId)
         setProperty(propertyData)
-        
+
         // Fetch similar properties based on location and type
         const similarData = await propertyApi.getAll({
           city: propertyData.location.city,
           propertyType: propertyData.propertyType
         })
-        setSimilarProperties(similarData.filter(p => p.id !== propertyId).slice(0, 6))
+        setSimilarProperties(similarData.filter(p => p._id !== propertyId).slice(0, 6))
       } catch (error) {
         console.error("Error fetching property data:", error)
         toast({
@@ -143,16 +143,16 @@ export default function PropertyDetailPage() {
       return
     }
 
-    const newFavorites = favorites.includes(property.id)
-      ? favorites.filter((id) => id !== property.id)
-      : [...favorites, property.id]
+    const newFavorites = favorites.includes(property._id)
+      ? favorites.filter((id) => id !== property._id)
+      : [...favorites, property._id]
 
     setFavorites(newFavorites)
     localStorage.setItem(`favorites-${user.id}`, JSON.stringify(newFavorites))
 
     toast({
-      title: favorites.includes(property.id) ? "Removed from favorites" : "Added to favorites",
-      description: favorites.includes(property.id)
+      title: favorites.includes(property._id) ? "Removed from favorites" : "Added to favorites",
+      description: favorites.includes(property._id)
         ? "Property removed from your favorites list."
         : "Property saved to your favorites list.",
     })
@@ -179,15 +179,21 @@ export default function PropertyDetailPage() {
     }
   }
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: string | Date | undefined | null) => {
+    if (!date) return "N/A"
+
+    const parsedDate = typeof date === "string" ? new Date(date) : date
+
+    if (isNaN(parsedDate.getTime())) return "Invalid date"
+
     return new Intl.DateTimeFormat("en-US", {
       month: "long",
       day: "numeric",
       year: "numeric",
-    }).format(date)
+    }).format(parsedDate)
   }
 
-  const isFavorited = favorites.includes(property.id)
+  const isFavorited = favorites.includes(property._id)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -248,10 +254,10 @@ export default function PropertyDetailPage() {
                 {property.bathrooms} bathroom{property.bathrooms !== 1 ? "s" : ""}
               </span>
             </div>
-                <div className="flex items-center">
-                  <Square className="h-5 w-5 mr-2" />
-                  <span className="font-medium">{property.area.toLocaleString()} sqft</span>
-                </div>
+            <div className="flex items-center">
+              <Square className="h-5 w-5 mr-2" />
+              <span className="font-medium">{property.area.toLocaleString()} sqft</span>
+            </div>
             <div className="flex items-center">
               <Calendar className="h-5 w-5 mr-2" />
               <span className="font-medium">Available {formatDate(property.availableFrom)}</span>
@@ -305,7 +311,7 @@ export default function PropertyDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-  {property.amenities.map((amenity: string) => {
+                  {property.amenities.map((amenity: string) => {
                     const IconComponent = amenityIcons[amenity] || Check
                     return (
                       <div key={amenity} className="flex items-center gap-3">
@@ -340,10 +346,10 @@ export default function PropertyDetailPage() {
                       <span className="text-gray-600">Bathrooms:</span>
                       <span className="font-medium">{property.bathrooms}</span>
                     </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Area:</span>
-                  <span className="font-medium">{property.area.toLocaleString()} sqft</span>
-                </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Area:</span>
+                      <span className="font-medium">{property.area.toLocaleString()} sqft</span>
+                    </div>
                   </div>
                   <div className="space-y-3">
                     <div className="flex justify-between">

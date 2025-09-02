@@ -9,7 +9,7 @@ export interface User {
 }
 
 export interface Property {
-  id: string
+  _id: string
   title: string
   description: string
   price: number
