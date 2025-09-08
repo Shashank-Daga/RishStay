@@ -20,8 +20,8 @@ export interface PropertyFilters {
   propertyType: string
   minPrice: number
   maxPrice: number
-  bedrooms: string
-  bathrooms: string
+  bedrooms: number
+  bathrooms: number
   amenities: string[]
   sortBy: string
 }
@@ -44,46 +44,48 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
       propertyType: "any",
       minPrice: 0,
       maxPrice: 10000,
-      bedrooms: "any",
-      bathrooms: "any",
+      bedrooms: 1,
+      bathrooms: 1,
       amenities: [],
       sortBy: "newest",
-    },
+    }
   )
 
-  const [priceRange, setPriceRange] = useState([filters.minPrice, filters.maxPrice])
+  const [priceRange, setPriceRange] = useState<[number, number]>([filters.minPrice, filters.maxPrice])
   const [showFilters, setShowFilters] = useState(false)
 
   const updateFilters = (newFilters: Partial<PropertyFilters>) => {
-    const updatedFilters = { ...filters, ...newFilters }
-    setFilters(updatedFilters)
-    onFiltersChange(updatedFilters)
+    const updated = { ...filters, ...newFilters }
+    setFilters(updated)
+    onFiltersChange(updated)
   }
 
-  const handlePriceChange = (value: number[]) => {
+  const handlePriceChange = (value: [number, number]) => {
     setPriceRange(value)
     updateFilters({ minPrice: value[0], maxPrice: value[1] })
   }
 
   const handleAmenityChange = (amenity: string, checked: boolean) => {
-    const newAmenities = checked ? [...filters.amenities, amenity] : filters.amenities.filter((a) => a !== amenity)
+    const newAmenities = checked
+      ? [...filters.amenities, amenity]
+      : filters.amenities.filter((a) => a !== amenity)
     updateFilters({ amenities: newAmenities })
   }
 
   const clearFilters = () => {
-    const clearedFilters = {
+    const cleared: PropertyFilters = {
       location: "",
       propertyType: "any",
       minPrice: 0,
       maxPrice: 10000,
-      bedrooms: "any",
-      bathrooms: "any",
+      bedrooms: 1,
+      bathrooms: 1,
       amenities: [],
       sortBy: "newest",
     }
-    setFilters(clearedFilters)
+    setFilters(cleared)
     setPriceRange([0, 10000])
-    onFiltersChange(clearedFilters)
+    onFiltersChange(cleared)
   }
 
   return (
@@ -98,7 +100,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
 
       {/* Filters */}
       <div className={`space-y-6 ${showFilters ? "block" : "hidden lg:block"}`}>
-        {/* Location Search */}
+        {/* Location */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Location</CardTitle>
@@ -122,14 +124,16 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
             <CardTitle className="text-lg">Property Type</CardTitle>
           </CardHeader>
           <CardContent>
-            <Select value={filters.propertyType} onValueChange={(value) => updateFilters({ propertyType: value })}>
+            <Select
+              value={filters.propertyType}
+              onValueChange={(value) => updateFilters({ propertyType: value })}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Any Type" />
+                <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="any">Any Type</SelectItem>
-                <SelectItem value="apartment">Apartment</SelectItem>
-                <SelectItem value="studio">Studio</SelectItem>
+                <SelectItem value="apartment">apartment</SelectItem>
+                <SelectItem value="studio">studio</SelectItem>
               </SelectContent>
             </Select>
           </CardContent>
@@ -166,13 +170,14 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
           <CardContent className="space-y-4">
             <div>
               <Label className="text-sm font-medium">Bedrooms</Label>
-              <Select value={filters.bedrooms} onValueChange={(value) => updateFilters({ bedrooms: value })}>
+              <Select
+                value={filters.bedrooms.toString()}
+                onValueChange={(value: string) => updateFilters({ bedrooms: Number(value) })}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Any" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="any">Any</SelectItem>
-                  <SelectItem value="0">Studio</SelectItem>
                   <SelectItem value="1">1+</SelectItem>
                   <SelectItem value="2">2+</SelectItem>
                   <SelectItem value="3">3+</SelectItem>
@@ -182,12 +187,14 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
             </div>
             <div>
               <Label className="text-sm font-medium">Bathrooms</Label>
-              <Select value={filters.bathrooms} onValueChange={(value) => updateFilters({ bathrooms: value })}>
+              <Select
+                value={filters.bathrooms.toString()}
+                onValueChange={(value: string) => updateFilters({ bathrooms: Number(value) })}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Any" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="any">Any</SelectItem>
                   <SelectItem value="1">1+</SelectItem>
                   <SelectItem value="2">2+</SelectItem>
                   <SelectItem value="3">3+</SelectItem>
@@ -211,9 +218,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
                     checked={filters.amenities.includes(amenity)}
                     onCheckedChange={(checked: boolean) => handleAmenityChange(amenity, checked)}
                   />
-                  <Label htmlFor={amenity} className="text-sm">
-                    {amenity}
-                  </Label>
+                  <Label htmlFor={amenity} className="text-sm">{amenity}</Label>
                 </div>
               ))}
             </div>

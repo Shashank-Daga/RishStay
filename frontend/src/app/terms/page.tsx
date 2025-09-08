@@ -1,3 +1,5 @@
+"use client"
+
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -81,7 +83,7 @@ export default function TermsPage() {
         <Card className="mb-8">
           <CardContent className="p-6">
             <p className="text-gray-700 leading-relaxed mb-4">
-              Welcome to RishStay. These Terms of Service ("Terms") govern your use of our rental platform and services.
+              Welcome to RishStay. These Terms of Service (&quot;Terms&quot;) govern your use of our rental platform and services.
               By accessing or using RishStay, you agree to be bound by these Terms.
             </p>
             <p className="text-gray-700 leading-relaxed">
@@ -138,7 +140,7 @@ export default function TermsPage() {
           <CardContent>
             <p className="text-gray-700">
               We may modify these Terms at any time. We will notify users of material changes by posting the updated
-              Terms on our platform and updating the "Last updated" date. Your continued use of RishStay after such
+              Terms on our platform and updating the &quot;Last updated&quot; date. Your continued use of RishStay after such
               modifications constitutes acceptance of the updated Terms.
             </p>
           </CardContent>

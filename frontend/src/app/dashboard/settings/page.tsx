@@ -280,6 +280,25 @@ export default function SettingsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Logout */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Logout</p>
+                  <p className="text-sm text-gray-600">Sign out from this device</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    logout()
+                    router.push("/auth")
+                  }}
+                >
+                  Logout
+                </Button>
+              </div>
+              
+              {/* Sign Out All Devices */}
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Sign Out All Devices</p>
@@ -290,6 +309,7 @@ export default function SettingsPage() {
                 </Button>
               </div>
 
+              {/* Delete Account */}
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Delete Account</p>

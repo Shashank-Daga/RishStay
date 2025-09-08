@@ -1,9 +1,11 @@
+"use client"
+
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Users, Target, Award, Heart, MapPin, TrendingUp, Shield, Star } from "lucide-react"
+import { Users, Target, Award, Heart, MapPin, Shield } from "lucide-react"
 import Link from "next/link"
 
 export default function AboutPage() {
@@ -121,7 +123,7 @@ export default function AboutPage() {
                   RishStay was founded with a simple vision: to make finding and renting properties as simple and stress-free as possible. We recognized that the traditional rental process was often complicated, time-consuming, and lacked transparency.
                 </p>
                 <p>
-                  By leveraging technology and focusing on user experience, we've created a platform that serves both property owners and tenants equally, ensuring fair practices and building lasting relationships in the rental community.
+                  By leveraging technology and focusing on user experience, we have created a platform that serves both property owners and tenants equally, ensuring fair practices and building lasting relationships in the rental community.
                 </p>
                 <p>
                   Today, RishStay serves thousands of users across the country, helping them find their perfect homes and connect with trustworthy landlords.
@@ -135,7 +137,7 @@ export default function AboutPage() {
                   Serving Communities Nationwide
                 </h3>
                 <p className="text-gray-600">
-                  From bustling cities to quiet suburbs, we're helping people find their perfect homes everywhere.
+                  From bustling cities to quiet suburbs, we are helping people find their perfect homes everywhere.
                 </p>
               </div>
             </div>
@@ -171,7 +173,7 @@ export default function AboutPage() {
             Join Our Community
           </h2>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Whether you're looking for your next home or want to list your property, RishStay is here to help you every step of the way.
+            Whether you are looking for your next home or want to list your property, RishStay is here to help you every step of the way.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/properties">

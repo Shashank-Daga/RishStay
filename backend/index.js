@@ -1,3 +1,4 @@
+require('dotenv').config({ path: '../.env' });
 const connectToMongo = require('./db');
 const express = require('express')
 var cors = require('cors')
@@ -14,7 +15,9 @@ app.use(express.json())
 app.use('/api/auth', require('./routes/auth'))
 app.use('/api/property', require('./routes/property'))
 app.use('/api/message', require('./routes/message'))
+app.use('/api/favorites', require('./routes/favorites'))
 
 app.listen(port, () => {
-  console.log(`RishStay backend at http://localhost:${port}`)
+  // console.log(`RishStay backend at http://localhost:${port}`)
+  console.log(`MongoDB connected successfully.`)
 })

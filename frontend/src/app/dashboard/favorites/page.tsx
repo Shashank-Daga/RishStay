@@ -6,12 +6,13 @@ import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { PropertyCard } from "@/components/properties/property-card"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/components/auth/auth-provider"
-import { propertyApi } from "@/lib/api"
+import { useApi } from "@/lib/api"
 import { Heart, Home } from "lucide-react"
 import Link from "next/link"
 import { Property } from "@/lib/types"
 
 export default function FavoritesPage() {
+  const { propertyApi } = useApi()
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [favorites, setFavorites] = useState<string[]>([])
@@ -27,7 +28,7 @@ export default function FavoritesPage() {
 
   useEffect(() => {
     if (user) {
-      const savedFavorites = localStorage.getItem(`favorites-${user.id}`)
+      const savedFavorites = localStorage.getItem(`favorites-${user._id}`)
       if (savedFavorites) {
         setFavorites(JSON.parse(savedFavorites))
       }
@@ -91,7 +92,7 @@ export default function FavoritesPage() {
   const handleFavoriteToggle = (propertyId: string) => {
     const newFavorites = favorites.filter((id) => id !== propertyId)
     setFavorites(newFavorites)
-    localStorage.setItem(`favorites-${user.id}`, JSON.stringify(newFavorites))
+    localStorage.setItem(`favorites-${user._id}`, JSON.stringify(newFavorites))
   }
 
   return (
@@ -101,7 +102,7 @@ export default function FavoritesPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Your Favorites</h1>
-            <p className="text-gray-600">Properties you've saved for later</p>
+            <p className="text-gray-600">Properties you have saved for later</p>
           </div>
           <Link href="/properties">
             <Button>

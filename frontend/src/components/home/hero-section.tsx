@@ -58,8 +58,8 @@ export function HeroSection() {
                                     <SelectValue placeholder="Any Type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="apartment">Apartment</SelectItem>
-                                    <SelectItem value="studio">Studio</SelectItem>
+                                    <SelectItem value="apartment">apartment</SelectItem>
+                                    <SelectItem value="studio">studio</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { useAuth } from "@/components/auth/auth-provider"
 import { useToast } from "@/hooks/use-toast"
-import { propertyApi } from "@/lib/api"
+import { useApi } from "@/lib/api"
 import type { Property } from "@/lib/types"
 import {
   MapPin,
@@ -31,10 +31,11 @@ import {
   Waves,
   TreePine,
   Utensils,
+  LucideIcon,
 } from "lucide-react"
 import Link from "next/link"
 
-const amenityIcons: Record<string, any> = {
+const amenityIcons: Record<string, LucideIcon> = {
   "Air Conditioning": Check,
   Dishwasher: Utensils,
   Gym: Dumbbell,
@@ -47,6 +48,7 @@ const amenityIcons: Record<string, any> = {
 }
 
 export default function PropertyDetailPage() {
+  const { propertyApi } = useApi()
   const params = useParams()
   const router = useRouter()
   const { user } = useAuth()
@@ -88,7 +90,7 @@ export default function PropertyDetailPage() {
 
   useEffect(() => {
     if (user?.role === "tenant") {
-      const savedFavorites = localStorage.getItem(`favorites-${user.id}`)
+      const savedFavorites = localStorage.getItem(`favorites-${user._id}`)
       if (savedFavorites) {
         setFavorites(JSON.parse(savedFavorites))
       }
@@ -123,7 +125,7 @@ export default function PropertyDetailPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Property Not Found</h1>
-            <p className="text-gray-600 mb-6">The property you're looking for doesn't exist or has been removed.</p>
+            <p className="text-gray-600 mb-6">The property you are looking for does not exist or has been removed.</p>
             <Link href="/properties">
               <Button>Browse All Properties</Button>
             </Link>
@@ -148,7 +150,7 @@ export default function PropertyDetailPage() {
       : [...favorites, property._id]
 
     setFavorites(newFavorites)
-    localStorage.setItem(`favorites-${user.id}`, JSON.stringify(newFavorites))
+    localStorage.setItem(`favorites-${user._id}`, JSON.stringify(newFavorites))
 
     toast({
       title: favorites.includes(property._id) ? "Removed from favorites" : "Added to favorites",
@@ -167,7 +169,12 @@ export default function PropertyDetailPage() {
           url: window.location.href,
         })
       } catch (error) {
-        // User cancelled sharing
+        console.error("Error fetching property data:", error)
+        toast({
+          title: "Error",
+          description: "Failed to load the property details. Please try again.",
+          variant: "destructive",
+        })
       }
     } else {
       // Fallback: copy to clipboard
@@ -244,7 +251,7 @@ export default function PropertyDetailPage() {
               <Bed className="h-5 w-5 mr-2" />
               <span className="font-medium">
                 {property.bedrooms === 0
-                  ? "Studio"
+                  ? "studio"
                   : `${property.bedrooms} bedroom${property.bedrooms !== 1 ? "s" : ""}`}
               </span>
             </div>
@@ -340,7 +347,7 @@ export default function PropertyDetailPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Bedrooms:</span>
-                      <span className="font-medium">{property.bedrooms === 0 ? "Studio" : property.bedrooms}</span>
+                      <span className="font-medium">{property.bedrooms === 0 ? "studio" : property.bedrooms}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Bathrooms:</span>
@@ -423,7 +430,7 @@ export default function PropertyDetailPage() {
               ? favorites.filter((id) => id !== propertyId)
               : [...favorites, propertyId]
             setFavorites(newFavorites)
-            localStorage.setItem(`favorites-${user.id}`, JSON.stringify(newFavorites))
+            localStorage.setItem(`favorites-${user._id}`, JSON.stringify(newFavorites))
           }}
           favorites={favorites}
         />

@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,20 +12,23 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/components/auth/auth-provider"
-import { messageApi } from "@/lib/api"
+import { useApi } from "@/lib/api"
 import { CalendarIcon, Phone, Mail } from "lucide-react"
 import { format } from "date-fns"
-import type { Property } from "@/lib/types"
+import type { Property, SendMessageResponse } from "@/lib/types"
 
 interface ContactFormProps {
   property: Property
 }
 
 export function ContactForm({ property }: ContactFormProps) {
+  const { messageApi } = useApi()
   const { user } = useAuth()
   const { toast } = useToast()
+  const searchParams = useSearchParams()
+
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [inquiryType, setInquiryType] = useState("general")
+  const [inquiryType, setInquiryType] = useState<"general" | "viewing" | "application" | "availability">("general")
   const [preferredDate, setPreferredDate] = useState<Date>()
 
   const [formData, setFormData] = useState({
@@ -33,6 +36,12 @@ export function ContactForm({ property }: ContactFormProps) {
     email: user?.email || "",
     phone: "",
   })
+
+  // Prefill inquiryType from URL query
+  useEffect(() => {
+    const type = searchParams.get("inquiryType") as "general" | "viewing" | "application" | "availability" | null
+    if (type) setInquiryType(type)
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -60,12 +69,11 @@ export function ContactForm({ property }: ContactFormProps) {
         return
       }
 
-      const result = await messageApi.send(
+      const result: SendMessageResponse = await messageApi.send(
         {
           propertyId: property._id,
-          subject: `${formData.name} - ${inquiryType.charAt(0).toUpperCase() + inquiryType.slice(1)} Inquiry`,
           message: `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\n\nInquiry: ${inquiryType}`,
-          inquiryType: inquiryType as "general" | "viewing" | "application" | "availability",
+          inquiryType: inquiryType,
           preferredDate,
           phone: formData.phone,
         },
@@ -77,7 +85,6 @@ export function ContactForm({ property }: ContactFormProps) {
           title: "Inquiry sent!",
           description: "The property owner will respond soon.",
         })
-        // Reset form for non-authenticated users
         if (!user) {
           setFormData({ name: "", email: "", phone: "" })
         } else {
@@ -92,9 +99,11 @@ export function ContactForm({ property }: ContactFormProps) {
         })
       }
     } catch (error) {
+      console.error("Contact form error:", error)
+
       toast({
         title: "Error",
-        description: "An unexpected error occurred. Please try again later.",
+        description: error instanceof Error ? error.message : "An unexpected error occurred. Please try again later.",
         variant: "destructive",
       })
     } finally {
@@ -144,8 +153,11 @@ export function ContactForm({ property }: ContactFormProps) {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Inquiry Type */}
             <div className="space-y-2">
-              <Label>I'm interested in:</Label>
-              <Select value={inquiryType} onValueChange={setInquiryType}>
+              <Label>I am interested in:</Label>
+              <Select 
+                value={inquiryType} 
+                onValueChange={(value) => setInquiryType(value as "general" | "viewing" | "application" | "availability")}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

@@ -3,17 +3,19 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MapPin, Bed, Bath, Square, Heart } from "lucide-react"
+import { MapPin, Heart } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useEffect, useState } from "react"
-import { propertyApi } from "@/lib/api"
+import { useApi } from "@/lib/api"
 import { useAuth } from "@/components/auth/auth-provider"
 
 export function FeaturedProperties() {
+  const { propertyApi } = useApi()
   const [featuredProperties, setFeaturedProperties] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const { user, toggleFavorite } = useAuth()
 
   useEffect(() => {
     const fetchFeaturedProperties = async () => {
@@ -58,7 +60,7 @@ export function FeaturedProperties() {
         {!loading && !error && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             {featuredProperties.map((property) => (
-              <Card key={property.id} className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
+              <Card key={property._id} className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
                 <div className="relative">
                   <Image
                     src={property.images[0] || "/placeholder.svg"}
@@ -73,10 +75,21 @@ export function FeaturedProperties() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="absolute top-4 right-4 bg-white/80 hover:bg-white"
-                    onClick={(e) => e.preventDefault()} // prevent card navigation if heart is clicked
+                    className={`absolute top-4 right-4 bg-white/80 hover:bg-white ${user?.favorites?.includes(property._id) ? "text-red-500" : "text-gray-400"
+                      }`}
+                    onClick={(e) => {
+                      e.preventDefault() // prevent navigation
+                      if (user) {
+                        toggleFavorite(property._id) // ✅ update local + backend
+                      } else {
+                        alert("Please log in to save favorites")
+                      }
+                    }}
                   >
-                    <Heart className="h-4 w-4" />
+                    <Heart
+                      className={`h-4 w-4 ${user?.favorites?.includes(property._id) ? "fill-red-500" : ""
+                        }`}
+                    />
                   </Button>
                 </div>
 
@@ -95,28 +108,6 @@ export function FeaturedProperties() {
                       {property.location.city}, {property.location.state}
                     </span>
                   </div>
-
-                  {/* <div className="flex items-center space-x-4 mb-4 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <Bed className="h-4 w-4 mr-1" />
-                      <span>
-                        {property.bedrooms} bed{property.bedrooms !== 1 ? "s" : ""}
-                      </span>
-                    </div>
-                    <div className="flex items-center">
-                      <Bath className="h-4 w-4 mr-1" />
-                      <span>
-                        {property.bathrooms} bath{property.bathrooms !== 1 ? "s" : ""}
-                      </span>
-                    </div>
-                    <div className="flex items-center">
-                      <Square className="h-4 w-4 mr-1" />
-                      <span>{property.squareFeet} sqft</span>
-                    </div>
-                    <div className="flex items-center">
-                      <span>Max {property.maxGuests} guests</span>
-                    </div>
-                  </div> */}
 
                   <p className="text-gray-600 text-sm mb-4 line-clamp-2">{property.description}</p>
 

@@ -18,7 +18,7 @@ export function SimilarProperties({
   const similarProperties = allProperties
     .filter((property) => {
       // Exclude current property
-      if (property.id === currentProperty.id) return false
+      if (property._id === currentProperty._id) return false
 
       // Same city or nearby price range
       const sameCity = property.location.city === currentProperty.location.city
@@ -59,10 +59,10 @@ export function SimilarProperties({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {similarProperties.map((property) => (
           <PropertyCard
-            key={property.id}
+            key={property._id}
             property={property}
             onFavoriteToggle={onFavoriteToggle}
-            isFavorited={favorites.includes(property.id)}
+            isFavorited={favorites.includes(property._id)}
           />
         ))}
       </div>

@@ -1,13 +1,17 @@
 const mongoose = require('mongoose');
-
-const mongoURI = "mongodb://localhost:27017/RishStay";
+const mongoURI = process.env.MONGODB_URI;  // Use env variable from Vercel
 
 const connectToMongo = async () => {
     try {
+        if (!mongoURI) {
+            throw new Error("MongoDB URI not found in environment variables");
+        }
+
         await mongoose.connect(mongoURI);
-        console.log("Connected to Mongo");
+
+        console.log("✅ Connected to MongoDB Atlas");
     } catch (error) {
-        console.error("Failed to connect to Mongo", error);
+        console.error("❌ Failed to connect to MongoDB", error);
         process.exit(1);
     }
 };

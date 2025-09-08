@@ -8,24 +8,28 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/components/auth/auth-provider"
-import { propertyApi } from "@/lib/api"
-import { PlusCircle, Home, Edit, Eye, BarChart3 } from "lucide-react"
+import { useApi } from "@/lib/api"
+import { PlusCircle, Home, Edit, Eye } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { Property } from "@/lib/types"
 
 export default function PropertiesPage() {
+  const { propertyApi } = useApi()
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Redirect non-landlord users
   useEffect(() => {
     if (!authLoading && (!user || user.role !== "landlord")) {
-      router.push("/dashboard")
+      router.push("/dashboard") // ✅ Fixed: removed second argument
     }
   }, [user, authLoading, router])
 
+  // Fetch properties
   useEffect(() => {
     const fetchUserProperties = async () => {
       if (!user || user.role !== "landlord") return
@@ -33,11 +37,10 @@ export default function PropertiesPage() {
       try {
         setLoading(true)
         const token = localStorage.getItem("auth-token")
-        if (!token) {
-          throw new Error("Authentication token not found")
-        }
+        if (!token) throw new Error("Authentication token not found")
+
         const userProperties = await propertyApi.getMyProperties(token)
-        setProperties(userProperties)
+        setProperties(userProperties ?? []) // Ensure array, avoid undefined
         setError(null)
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch properties")
@@ -47,9 +50,7 @@ export default function PropertiesPage() {
       }
     }
 
-    if (user && user.role === "landlord") {
-      fetchUserProperties()
-    }
+    if (user && user.role === "landlord") fetchUserProperties()
   }, [user])
 
   if (authLoading || loading) {
@@ -84,32 +85,41 @@ export default function PropertiesPage() {
     )
   }
 
+
+
   const userProperties = properties
-  const availableProperties = userProperties.filter((p: Property) => p.isAvailable && p.status === "available")
+  const availableProperties = userProperties.filter(
+    (p: Property) => p.isAvailable && p.status === "available"
+  )
   const rentedProperties = userProperties.filter((p: Property) => p.status === "rented")
   const pendingProperties = userProperties.filter((p: Property) => p.status === "pending")
 
   const PropertyCardWithActions = ({ property }: { property: Property }) => (
     <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
       <div className="relative">
-        <img
-          src={property.images[0] || "/placeholder.svg?height=250&width=400"}
+        <Image
+          src={property.images?.[0] || "/placeholder.svg?height=250&width=400"}
           alt={property.title}
+          width={400}
+          height={250}
           className="w-full h-48 object-cover"
         />
         <div className="absolute top-4 left-4 flex gap-2">
           {property.featured && <Badge className="bg-blue-600 text-white">Featured</Badge>}
           <Badge
-            variant={property.status === "available" ? "default" : "secondary"}
             className={
               property.status === "available"
                 ? "bg-green-600 text-white"
                 : property.status === "pending"
-                  ? "bg-yellow-600 text-white"
-                  : "bg-gray-600 text-white"
+                ? "bg-yellow-600 text-white"
+                : "bg-gray-600 text-white"
             }
           >
-            {property.status === "available" ? "Available" : property.status === "pending" ? "Pending" : "Rented"}
+            {property.status === "available"
+              ? "Available"
+              : property.status === "pending"
+              ? "Pending"
+              : "Rented"}
           </Badge>
         </div>
       </div>
@@ -125,7 +135,6 @@ export default function PropertiesPage() {
 
         <p className="text-gray-600 text-sm mb-4 line-clamp-2">{property.description}</p>
 
-        {/* Action Buttons */}
         <div className="flex gap-2">
           <Link href={`/properties/${property._id}`} className="flex-1">
             <Button variant="outline" size="sm" className="w-full bg-transparent">
@@ -147,7 +156,6 @@ export default function PropertiesPage() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">My Properties</h1>
@@ -161,7 +169,6 @@ export default function PropertiesPage() {
           </Link>
         </div>
 
-        {/* Properties Tabs */}
         <Tabs defaultValue="all" className="space-y-6">
           <TabsList>
             <TabsTrigger value="all">All Properties ({userProperties.length})</TabsTrigger>

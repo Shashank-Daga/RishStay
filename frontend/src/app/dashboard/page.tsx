@@ -8,12 +8,13 @@ import { PropertyCard } from "@/components/properties/property-card"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/components/auth/auth-provider"
-import { propertyApi } from "@/lib/api"
-import { Heart, Home, Eye, PlusCircle, BarChart3 } from "lucide-react"
+import { useApi } from "@/lib/api"
+import { Heart, Home, Eye, PlusCircle } from "lucide-react"
 import Link from "next/link"
 import { Property } from "@/lib/types"
 
 export default function DashboardPage() {
+  const { propertyApi } = useApi()
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [favorites, setFavorites] = useState<string[]>([])
@@ -30,7 +31,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (user?.role === "tenant") {
-      const savedFavorites = localStorage.getItem(`favorites-${user.id}`)
+      const savedFavorites = localStorage.getItem(`favorites-${user._id}`)
       if (savedFavorites) {
         setFavorites(JSON.parse(savedFavorites))
       }
@@ -106,7 +107,7 @@ export default function DashboardPage() {
       ? favorites.filter((id) => id !== propertyId)
       : [...favorites, propertyId]
     setFavorites(newFavorites)
-    localStorage.setItem(`favorites-${user.id}`, JSON.stringify(newFavorites))
+    localStorage.setItem(`favorites-${user._id}`, JSON.stringify(newFavorites))
   }
 
   return (

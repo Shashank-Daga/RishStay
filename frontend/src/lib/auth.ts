@@ -1,80 +1,126 @@
-import type { User } from "./types"
-import { authApi } from "./api"
+"use client"
 
-export interface AuthContextType {
-  user: User | null
-  login: (email: string, password: string) => Promise<boolean>
-  signup: (
-    name: string,
-    phoneNo: string,
-    email: string,
-    password: string,
-    role: "landlord" | "tenant"
-  ) => Promise<boolean>
-  logout: () => void
-  loading: boolean
-}
+import { useState, useCallback } from "react"
+import type { User } from "@/lib/types"
 
-export const authService = {
-  login: async (email: string, password: string): Promise<User | null> => {
+export function useAuthService() {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  // Restore user from localStorage
+  const getCurrentUser = useCallback((): User | null => {
     try {
-      const response = await authApi.login(email, password)
-
-      if (response.success && response.authtoken) {
-        localStorage.setItem("auth-token", response.authtoken)
-        const user = await authApi.getCurrentUser(response.authtoken)
-        return user
+      const storedUser = localStorage.getItem("rental-user")
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser) as User
+        setUser(parsed)
+        return parsed
       }
       return null
     } catch (error) {
-      console.error("Login error:", error)
+      console.error("Error restoring user:", error)
+      setUser(null)
       return null
     }
-  },
+  }, [])
 
-  signup: async (
-    name: string,
-    phoneNo: string,
-    email: string,
-    password: string,
-    role: "landlord" | "tenant"
-  ): Promise<User | null> => {
+  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
+    setLoading(true)
     try {
-      const response = await authApi.signup({
-        name,
-        phoneNo,
-        email,
-        password,
-        role,
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       })
 
-      if (response.success && response.authtoken) {
-        localStorage.setItem("auth-token", response.authtoken)
-        const user = await authApi.getCurrentUser(response.authtoken)
-        return user
+      if (!res.ok) throw new Error("Login failed")
+      const data = await res.json()
+
+      localStorage.setItem("auth-token", data.token)
+      localStorage.setItem("rental-user", JSON.stringify(data.user))
+
+      setUser(data.user)
+      return true
+    } catch (error) {
+      console.error("Login error:", error)
+      return false
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  const signup = useCallback(
+    async (
+      name: string,
+      phoneNo: string,
+      email: string,
+      password: string,
+      role: "landlord" | "tenant"
+    ): Promise<boolean> => {
+      setLoading(true)
+      try {
+        const res = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, phoneNo, email, password, role }),
+        })
+
+        if (!res.ok) throw new Error("Signup failed")
+        const data = await res.json()
+
+        localStorage.setItem("auth-token", data.token)
+        localStorage.setItem("rental-user", JSON.stringify(data.user))
+
+        setUser(data.user)
+        return true
+      } catch (error) {
+        console.error("Signup error:", error)
+        return false
+      } finally {
+        setLoading(false)
       }
-      return null
-    } catch (error) {
-      console.error("Signup error:", error)
-      return null
-    }
-  },
+    },
+    []
+  )
 
-  getCurrentUser: async (): Promise<User | null> => {
-    try {
-      const token = localStorage.getItem("auth-token")
-      if (!token) return null
-      const user = await authApi.getCurrentUser(token)
-      return user
-    } catch (error) {
-      console.error("Get current user error:", error)
-      localStorage.removeItem("auth-token")
-      return null
-    }
-  },
-
-  logout: (): void => {
+  const logout = useCallback((): void => {
     localStorage.removeItem("auth-token")
     localStorage.removeItem("rental-user")
-  },
+    setUser(null)
+  }, [])
+
+  const toggleFavorite = useCallback((propertyId: string) => {
+    if (!user) return
+
+    const updatedFavorites = user.favorites?.includes(propertyId)
+      ? user.favorites.filter((id) => id !== propertyId)
+      : [...(user.favorites || []), propertyId]
+
+    const updatedUser = { ...user, favorites: updatedFavorites }
+
+    setUser(updatedUser)
+    localStorage.setItem("rental-user", JSON.stringify(updatedUser))
+
+    // (Optional) also update backend
+    fetch(`/api/users/${user._id}/favorites`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("auth-token")}`,
+      },
+      body: JSON.stringify({ favorites: updatedFavorites }),
+    }).catch((err) => console.error("Failed to update favorites:", err))
+  }, [user])
+
+
+  return {
+    user,
+    setUser, // ✅ for AuthProvider's updateUser
+    login,
+    signup,
+    logout,
+    loading,
+    getCurrentUser,
+    toggleFavorite,
+  }
 }

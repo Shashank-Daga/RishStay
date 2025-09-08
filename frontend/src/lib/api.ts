@@ -1,223 +1,366 @@
-import type { Property, User } from "./types"
+"use client"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+import { useMemo, useCallback } from "react"
+import type { Message, Property, User } from "./types"
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
 
 export interface ApiResponse<T> {
   success: boolean
   data?: T
   error?: string
-  errors?: Array<{ msg: string; param: string }>
+  errors?: Array<{ msg: string; param?: string }>
 }
 
-// Safe fetch function to handle non-JSON responses
-const safeFetchJson = async <T>(url: string, options?: RequestInit): Promise<T> => {
-  const response = await fetch(url, options)
-  const text = await response.text() // get raw text first
-  let data: T | null = null
+// -------- SendMessageResponse --------
+export interface SendMessageResponse {
+  success: boolean
+  data?: Message
+  error?: string
+}
+
+// ---------- Helpers ----------
+const withAuth = (token: string): HeadersInit => ({
+  "auth-token": token,
+})
+
+const safeFetchJson = async <T>(
+  url: string,
+  options?: RequestInit
+): Promise<ApiResponse<T>> => {
+  let response: Response
   try {
-    data = JSON.parse(text) // try parsing JSON
+    response = await fetch(url, options)
+  } catch (err) {
+    throw new Error(
+      `Network error while calling ${url}: ${(err as Error).message}`
+    )
+  }
+
+  const text = await response.text()
+  let json: ApiResponse<T>
+
+  try {
+    json = JSON.parse(text) as ApiResponse<T>
   } catch {
-    // ignore parsing error
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} ${response.statusText}: ${text}`)
+    }
+    throw new Error(`Invalid JSON response: ${text}`)
   }
 
-  if (!response.ok) {
-    throw new Error((data as any)?.error || text || `Request failed with status ${response.status}`)
+  if (!response.ok || !json.success) {
+    const details =
+      json.error || (json.errors ? JSON.stringify(json.errors) : text)
+    throw new Error(`Request failed (${response.status}): ${details}`)
   }
 
-  return data as T
+  return json
 }
 
-// Property API functions
-export const propertyApi = {
-  // Get all properties with optional filters
-  getAll: async (filters?: {
-    city?: string
-    propertyType?: string
-    minPrice?: number
-    maxPrice?: number
-    bedrooms?: number
-    guests?: number
-    guestType?: string
-  }): Promise<Property[]> => {
-    const params = new URLSearchParams()
-    if (filters) {
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          params.append(key, value.toString())
-        }
-      })
+// Utility: Convert ISO date strings to Date objects
+const reviveDates = <T extends Record<string, any>>(obj: T): T => {
+  const isISODate = (val: any) =>
+    typeof val === "string" && /^\d{4}-\d{2}-\d{2}T/.test(val)
+
+  const recurse = (input: any): any => {
+    if (Array.isArray(input)) return input.map(recurse)
+    if (input && typeof input === "object") {
+      return Object.fromEntries(
+        Object.entries(input).map(([k, v]) => [k, recurse(v)])
+      )
     }
-    return safeFetchJson<Property[]>(`${API_BASE_URL}/property/all?${params.toString()}`)
-  },
+    return isISODate(input) ? new Date(input) : input
+  }
 
-  // Get single property by ID
-  getById: async (id: string): Promise<Property> => {
-    return safeFetchJson<Property>(`${API_BASE_URL}/property/${id}`)
-  },
+  return recurse(obj)
+}
 
-  // Get properties owned by current user
-  getMyProperties: async (token: string): Promise<Property[]> => {
-    return safeFetchJson<Property[]>(`${API_BASE_URL}/property/myproperties`, {
-      headers: { "auth-token": token },
-    })
-  },
+// ================== useApi Hook ==================
+export const useApi = () => {
+  // -------- Property API --------
+  const getAllProperties = useCallback(
+    async (filters?: {
+      city?: string
+      propertyType?: "apartment" | "studio"
+      minPrice?: number
+      maxPrice?: number
+      bedrooms?: number
+      bathrooms?: number
+      guests?: number
+      guestType?: "Family" | "Bachelors" | "Girls" | "Boys"
+    }): Promise<Property[]> => {
+      const params = new URLSearchParams()
+      if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            params.append(key, value.toString())
+          }
+        })
+      }
+      const res = await safeFetchJson<Property[]>(
+        `${API_BASE_URL}/property/all?${params.toString()}`
+      )
+      return res.data ? reviveDates(res.data) : []
+    },
+    []
+  )
 
-  // Create new property
-  create: async (propertyData: Partial<Property>, token: string): Promise<Property> => {
-    const result = await safeFetchJson<{ success: boolean; property?: Property; error?: string }>(
-      `${API_BASE_URL}/property/create`,
+  const getPropertyById = useCallback(async (id: string): Promise<Property> => {
+    const res = await safeFetchJson<Property>(`${API_BASE_URL}/property/${id}`)
+    if (!res.data) throw new Error("Property not found")
+    return reviveDates(res.data)
+  }, [])
+
+  const getMyProperties = useCallback(async (token: string): Promise<Property[]> => {
+    const res = await safeFetchJson<Property[]>(
+      `${API_BASE_URL}/property/myproperties`,
+      { headers: withAuth(token) }
+    )
+    return res.data ? reviveDates(res.data) : []
+  }, [])
+
+  const createProperty = useCallback(
+    async (propertyData: Partial<Property>, token: string) => {
+      const payload: Partial<Property> = {
+        title: propertyData.title?.trim() || "",
+        description: propertyData.description?.trim() || "",
+        price: Number(propertyData.price) || 0,
+        bedrooms: Number(propertyData.bedrooms) || 0,
+        bathrooms: Number(propertyData.bathrooms) || 0,
+        area: Number(propertyData.area) || 0,
+        maxGuests: Number(propertyData.maxGuests) || 1,
+        propertyType: propertyData.propertyType || "apartment",
+        guestType: propertyData.guestType || "Family",
+        isAvailable:
+          typeof propertyData.isAvailable === "boolean"
+            ? propertyData.isAvailable
+            : true,
+        location: {
+          address: propertyData.location?.address?.trim() || "",
+          city: propertyData.location?.city?.trim() || "",
+          state: propertyData.location?.state?.trim() || "",
+          zipCode: propertyData.location?.zipCode?.trim() || "",
+        },
+        amenities: propertyData.amenities || [],
+        images: propertyData.images || [],
+        rules: propertyData.rules || [],
+      }
+
+      const res = await safeFetchJson<Property>(`${API_BASE_URL}/property/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...withAuth(token) },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.success || !res.data) {
+        if (res.errors?.length) {
+          throw new Error(res.errors.map((e) => `${e.param}: ${e.msg}`).join("\n"))
+        }
+        throw new Error(res.error || "Failed to create property")
+      }
+
+      return reviveDates(res.data)
+    },
+    []
+  )
+
+  const updateProperty = useCallback(
+    async (id: string, propertyData: Partial<Property>, token: string) => {
+      const res = await safeFetchJson<Property>(
+        `${API_BASE_URL}/property/update/${id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", ...withAuth(token) },
+          body: JSON.stringify(propertyData),
+        }
+      )
+      if (!res.data) throw new Error(res.error || "Failed to update property")
+      return reviveDates(res.data)
+    },
+    []
+  )
+
+  const deleteProperty = useCallback(async (id: string, token: string) => {
+    const res = await safeFetchJson<null>(
+      `${API_BASE_URL}/property/delete/${id}`,
+      { method: "DELETE", headers: withAuth(token) }
+    )
+    if (!res.success) throw new Error(res.error || "Failed to delete property")
+  }, [])
+
+  const toggleAvailability = useCallback(async (id: string, token: string) => {
+    const res = await safeFetchJson<Property>(
+      `${API_BASE_URL}/property/toggle-availability/${id}`,
+      { method: "PUT", headers: withAuth(token) }
+    )
+    if (!res.data) throw new Error(res.error || "Failed to toggle availability")
+    return reviveDates(res.data)
+  }, [])
+
+  const propertyApi = useMemo(
+    () => ({
+      getAll: getAllProperties,
+      getById: getPropertyById,
+      getMyProperties,
+      create: createProperty,
+      update: updateProperty,
+      delete: deleteProperty,
+      toggleAvailability,
+    }),
+    [
+      getAllProperties,
+      getPropertyById,
+      getMyProperties,
+      createProperty,
+      updateProperty,
+      deleteProperty,
+      toggleAvailability,
+    ]
+  )
+
+  // -------- Auth API --------
+  const login = useCallback(async (email: string, password: string) => {
+    const res = await safeFetchJson<{ authtoken: string }>(
+      `${API_BASE_URL}/auth/login`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "auth-token": token,
-        },
-        body: JSON.stringify(propertyData),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       }
     )
-    if (!result.success || !result.property) {
-      throw new Error(result.error || "Failed to create property")
-    }
-    return result.property
-  },
+    if (!res.data) throw new Error(res.error || "Login failed")
+    return res.data
+  }, [])
 
-  // Update property
-  update: async (id: string, propertyData: Partial<Property>, token: string): Promise<Property> => {
-    const result = await safeFetchJson<{ success: boolean; property?: Property; error?: string }>(
-      `${API_BASE_URL}/property/update/${id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "auth-token": token,
-        },
-        body: JSON.stringify(propertyData),
-      }
-    )
-    if (!result.success || !result.property) {
-      throw new Error(result.error || "Failed to update property")
-    }
-    return result.property
-  },
-
-  // Delete property
-  delete: async (id: string, token: string): Promise<void> => {
-    const result = await safeFetchJson<{ success: boolean; error?: string }>(
-      `${API_BASE_URL}/property/delete/${id}`,
-      {
-        method: "DELETE",
-        headers: { "auth-token": token },
-      }
-    )
-    if (!result.success) {
-      throw new Error(result.error || "Failed to delete property")
-    }
-  },
-
-  // Toggle property availability
-  toggleAvailability: async (id: string, token: string): Promise<Property> => {
-    const result = await safeFetchJson<{ success: boolean; property?: Property; error?: string }>(
-      `${API_BASE_URL}/property/toggle-availability/${id}`,
-      {
-        method: "PUT",
-        headers: { "auth-token": token },
-      }
-    )
-    if (!result.success || !result.property) {
-      throw new Error(result.error || "Failed to toggle availability")
-    }
-    return result.property
-  },
-}
-
-// Auth API functions
-export const authApi = {
-  // Login user
-  login: async (
-    email: string,
-    password: string
-  ): Promise<{ success: boolean; authtoken?: string; error?: string }> => {
-    return safeFetchJson(`${API_BASE_URL}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    })
-  },
-
-  // Create new user
-  signup: async (userData: {
-    name: string
-    phoneNo: string
-    email: string
-    password: string
-    role: "landlord" | "tenant"
-  }): Promise<{ success: boolean; authtoken?: string; error?: string; errors?: Array<{ msg: string; param: string }> }> => {
-    return safeFetchJson(`${API_BASE_URL}/auth/createUser`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(userData),
-    })
-  },
-
-  // Get current user
-  getCurrentUser: async (token: string): Promise<User> => {
-    return safeFetchJson<User>(`${API_BASE_URL}/auth/getuser`, {
-      method: "POST",
-      headers: { "auth-token": token },
-    })
-  },
-}
-// Message API functions
-export const messageApi = {
-  // Send a message/inquiry
-  send: async (
-    messageData: {
-      propertyId: string
-      subject: string
-      message: string
-      inquiryType?: "general" | "viewing" | "application" | "availability"
-      preferredDate?: Date
-      phone?: string
+  const signup = useCallback(
+    async (userData: {
+      name: string
+      phoneNo: string
+      email: string
+      password: string
+      role: "landlord" | "tenant"
+    }) => {
+      const res = await safeFetchJson<{ authtoken: string }>(
+        `${API_BASE_URL}/auth/createUser`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(userData),
+        }
+      )
+      if (!res.data) throw new Error(res.error || "Signup failed")
+      return res.data
     },
-    token: string
-  ): Promise<{ success: boolean; message?: any; error?: string }> => {
-    return safeFetchJson(`${API_BASE_URL}/message/send`, {
+    []
+  )
+
+  const getCurrentUser = useCallback(async (token: string) => {
+    const res = await safeFetchJson<User>(`${API_BASE_URL}/auth/getuser`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "auth-token": token,
+      headers: withAuth(token),
+    })
+    if (!res.data) throw new Error("User not found")
+    return reviveDates(res.data)
+  }, [])
+
+  const updateUser = useCallback(
+    async (userData: { name: string; phoneNo: string; email: string }, token: string) => {
+      const res = await safeFetchJson<User>(`${API_BASE_URL}/auth/updateuser`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...withAuth(token) },
+        body: JSON.stringify(userData),
+      })
+      if (!res.data) throw new Error("Failed to update user")
+      return reviveDates(res.data)
+    },
+    []
+  )
+
+  const authApi = useMemo(
+    () => ({ login, signup, getCurrentUser, updateUser }),
+    [login, signup, getCurrentUser, updateUser]
+  )
+
+  // -------- Message API --------
+  const sendMessage = useCallback(
+    async (
+      messageData: {
+        propertyId: string
+        message: string
+        inquiryType?: "general" | "viewing" | "application" | "availability"
+        preferredDate?: Date
+        phone?: string
+        subject?: string
       },
-      body: JSON.stringify(messageData),
-    })
-  },
+      token: string
+    ): Promise<SendMessageResponse> => {
+      const res = await safeFetchJson<Message>(
+        `${API_BASE_URL}/message/send`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...withAuth(token) },
+          body: JSON.stringify(messageData),
+        }
+      )
+      if (!res.success) throw new Error(res.error || "Failed to send message")
 
-  // Get messages for current user
-  getMyMessages: async (token: string): Promise<any[]> => {
-    return safeFetchJson<any[]>(`${API_BASE_URL}/message/my-messages`, {
-      headers: { "auth-token": token },
-    })
-  },
+      return {
+        success: res.success,
+        data: res.data ? reviveDates(res.data) : undefined,
+        error: res.error,
+      }
+    },
+    []
+  )
 
-  // Get messages for a specific property
-  getPropertyMessages: async (propertyId: string, token: string): Promise<any[]> => {
-    return safeFetchJson<any[]>(`${API_BASE_URL}/message/property/${propertyId}`, {
-      headers: { "auth-token": token },
-    })
-  },
+  const getMyMessages = useCallback(async (token: string, options?: { signal?: AbortSignal }) => {
+    const res = await safeFetchJson<Message[]>(
+      `${API_BASE_URL}/message/my-messages`,
+      {
+        headers: withAuth(token),
+        signal: options?.signal,
+      }
+    )
+    return res.data ? reviveDates(res.data) : []
+  }, [])
 
-  // Mark message as read
-  markAsRead: async (messageId: string, token: string): Promise<{ success: boolean; message?: any; error?: string }> => {
-    return safeFetchJson(`${API_BASE_URL}/message/mark-read/${messageId}`, {
-      method: "PUT",
-      headers: { "auth-token": token },
-    })
-  },
+  const getPropertyMessages = useCallback(async (propertyId: string, token: string) => {
+    const res = await safeFetchJson<Message[]>(
+      `${API_BASE_URL}/message/property/${propertyId}`,
+      { headers: withAuth(token) }
+    )
+    return res.data ? reviveDates(res.data) : []
+  }, [])
 
-  // Delete message
-  delete: async (messageId: string, token: string): Promise<{ success: boolean; error?: string }> => {
-    return safeFetchJson(`${API_BASE_URL}/message/delete/${messageId}`, {
-      method: "DELETE",
-      headers: { "auth-token": token },
-    })
-  },
+  const markAsRead = useCallback(async (messageId: string, token: string) => {
+    const res = await safeFetchJson<Message>(
+      `${API_BASE_URL}/message/mark-read/${messageId}`,
+      { method: "PUT", headers: withAuth(token) }
+    )
+    if (!res.data) throw new Error(res.error || "Failed to mark as read")
+    return reviveDates(res.data)
+  }, [])
+
+  const deleteMessage = useCallback(async (messageId: string, token: string) => {
+    const res = await safeFetchJson<null>(
+      `${API_BASE_URL}/message/delete/${messageId}`,
+      { method: "DELETE", headers: withAuth(token) }
+    )
+    if (!res.success) throw new Error(res.error || "Failed to delete message")
+  }, [])
+
+  const messageApi = useMemo(
+    () => ({
+      send: sendMessage,
+      getMyMessages,
+      getPropertyMessages,
+      markAsRead,
+      delete: deleteMessage,
+    }),
+    [sendMessage, getMyMessages, getPropertyMessages, markAsRead, deleteMessage]
+  )
+
+  return { propertyApi, authApi, messageApi }
 }

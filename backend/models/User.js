@@ -4,17 +4,22 @@ const { Schema } = mongoose;
 const UserSchema = new Schema({
     name: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
-    phoneNo:{
+    phoneNo: {
         type: String,
         required: true,
-        match: [/^[0-9]{10}$/, 'Enter a valid phone number'],                  // This ensures that the phone number is exactly 10 digits
+        unique: true,
+        match: [/^[0-9]{10}$/, 'Enter a valid 10-digit phone number']
     },
     email: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        lowercase: true,
+        trim: true,
+        match: [/^\S+@\S+\.\S+$/, 'Enter a valid email address']
     },
     password: {
         type: String,
@@ -25,14 +30,14 @@ const UserSchema = new Schema({
         enum: ['landlord', 'tenant'],
         required: true
     },
-    date: {
-        type: Date,
-        default: Date.now,
-        required: true
+    favorites: {
+        type: [Schema.Types.ObjectId], // Array of Property IDs
+        ref: 'Property',
+        default: []
     }
+}, {
+    timestamps: true // adds createdAt, updatedAt automatically
 });
 
-const User = mongoose.model('user', UserSchema);
-//   User.createIndexes();
-
+const User = mongoose.model('User', UserSchema);
 module.exports = User;

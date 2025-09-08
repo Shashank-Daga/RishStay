@@ -31,7 +31,7 @@ export function PropertyList({ properties, filters, favorites = [], onFavoriteTo
           property.location.city.toLowerCase().includes(filters.location.toLowerCase()) ||
           property.location.state.toLowerCase().includes(filters.location.toLowerCase()) ||
           property.location.address.toLowerCase().includes(filters.location.toLowerCase()) ||
-          property.location.zipCode.includes(filters.location)
+          property.location.zipCode.toString().includes(filters.location)
         if (!locationMatch) return false
       }
 
@@ -47,13 +47,13 @@ export function PropertyList({ properties, filters, favorites = [], onFavoriteTo
 
       // Bedrooms filter
       if (filters.bedrooms) {
-        const minBedrooms = Number.parseInt(filters.bedrooms)
+        const minBedrooms = filters.bedrooms
         if (property.bedrooms < minBedrooms) return false
       }
 
       // Bathrooms filter
       if (filters.bathrooms) {
-        const minBathrooms = Number.parseInt(filters.bathrooms)
+        const minBathrooms = filters.bathrooms
         if (property.bathrooms < minBathrooms) return false
       }
 

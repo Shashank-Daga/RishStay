@@ -24,25 +24,43 @@ export function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormProps) {
   const [role, setRole] = useState<"landlord" | "tenant">("tenant")
   const { signup, loading } = useAuth()
   const { toast } = useToast()
+  const [errors, setErrors] = useState<string[]>([])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setErrors([])
 
     try {
-      const success = await signup(name, phoneNo, email, password, role)
-      if (success) {
-        toast({
-          title: "Account created!",
-          description: "Welcome to the platform. You can now start browsing properties.",
-        })
-        onSuccess?.()
-      }
-    } catch (error) {
+      await signup(name, phoneNo, email, password, role)
       toast({
-        title: "Signup failed",
-        description: error instanceof Error ? error.message : "An error occurred during signup",
-        variant: "destructive",
+        title: "Account created!",
+        description: "Welcome to the platform. You can now start browsing properties.",
       })
+
+      // ✅ Reset form fields
+      setName("")
+      setPhoneNo("")
+      setEmail("")
+      setPassword("")
+      setRole("tenant")
+
+      onSuccess?.()
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setErrors([error.message])
+        toast({
+          title: "Signup failed",
+          description: error.message,
+          variant: "destructive",
+        })
+      } else {
+        setErrors(["Signup failed. Please try again."])
+        toast({
+          title: "Signup failed",
+          description: "An error occurred during signup. Please try again.",
+          variant: "destructive",
+        })
+      }
     }
   }
 
@@ -53,6 +71,15 @@ export function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormProps) {
         <CardDescription>Join our platform to find or list rental properties</CardDescription>
       </CardHeader>
       <CardContent>
+        {errors.length > 0 && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+            <ul className="text-sm text-red-600 space-y-1">
+              {errors.map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Full Name</Label>
@@ -66,13 +93,15 @@ export function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormProps) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="name">Phone Number</Label>
+            <Label htmlFor="phoneNo">Phone Number</Label>
             <Input
               id="phoneNo"
-              type="text"
+              type="tel"
               value={phoneNo}
               onChange={(e) => setPhoneNo(e.target.value)}
               placeholder="Enter your phone number"
+              pattern="[0-9]{10}"
+              title="Phone number must be 10 digits"
               required
             />
           </div>
@@ -100,7 +129,7 @@ export function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormProps) {
           </div>
           <div className="space-y-3">
             <Label>I am a:</Label>
-            <RadioGroup value={role} onValueChange={(value: "landlord" | "tenant") => setRole(value)}>
+            <RadioGroup value={role} onValueChange={(value) => setRole(value as "landlord" | "tenant")}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="tenant" id="tenant" />
                 <Label htmlFor="tenant">Tenant (Looking for a place)</Label>

@@ -1,11 +1,14 @@
+"use client"
+
 export interface User {
-  id: string
+ _id: string
   email: string
   name: string
   phoneNo: string
   role: "landlord" | "tenant"
   avatar?: string
   createdAt: Date
+  favorites?: string[] // Array of Property IDs
 }
 
 export interface Property {
@@ -41,24 +44,37 @@ export interface Property {
 }
 
 export interface Favorite {
-  id: string
+ _id: string
   userId: string
   propertyId: string
   createdAt: Date
 }
 
 export interface Message {
-  id: string
+ _id: string
   fromUserId: string
   toUserId: string
   propertyId?: string
-  content: string
-  read: boolean
+  property?: Property
+  subject: string
+  message: string
+  inquiryType?: "general" | "viewing" | "application" | "availability"
+  preferredDate?: Date
+  phone?: string
+  status: "unread" | "read" | "replied"
   createdAt: Date
+  updatedAt? : Date
+}
+
+// API response type for sending messages
+export interface SendMessageResponse {
+  success: boolean
+  error?: string
+  data?: Message
 }
 
 export interface Review {
-  id: string
+ _id: string
   propertyId: string
   userId: string
   rating: number

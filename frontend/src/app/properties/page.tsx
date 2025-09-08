@@ -6,11 +6,12 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { PropertyFilters, type PropertyFilters as PropertyFiltersType } from "@/components/properties/property-filters"
 import { PropertyList } from "@/components/properties/property-list"
-import { propertyApi } from "@/lib/api"
+import { useApi } from "@/lib/api"
 import { useAuth } from "@/components/auth/auth-provider"
 import type { Property } from "@/lib/types"
 
 export default function PropertiesPage() {
+  const { propertyApi } = useApi()
   const searchParams = useSearchParams()
   const { user } = useAuth()
   const [favorites, setFavorites] = useState<string[]>([])
@@ -22,10 +23,10 @@ export default function PropertiesPage() {
   const [filters, setFilters] = useState<PropertyFiltersType>({
     location: searchParams.get("location") || "",
     propertyType: searchParams.get("type") || "",
-    minPrice: Number.parseInt(searchParams.get("minPrice") || "0"),
-    maxPrice: Number.parseInt(searchParams.get("maxPrice") || "10000"),
-    bedrooms: searchParams.get("bedrooms") || "",
-    bathrooms: searchParams.get("bathrooms") || "",
+    minPrice: Number(searchParams.get("minPrice") || 0),
+    maxPrice: Number(searchParams.get("maxPrice") || 10000),
+    bedrooms: Number(searchParams.get("bedrooms") || 1),
+    bathrooms: Number(searchParams.get("bathrooms") || 1),
     amenities: searchParams.get("amenities")?.split(",").filter(Boolean) || [],
     sortBy: searchParams.get("sortBy") || "newest",
   })
@@ -37,10 +38,11 @@ export default function PropertiesPage() {
         setLoading(true)
         const data = await propertyApi.getAll({
           city: filters.location,
-          propertyType: filters.propertyType,
+          propertyType: (["apartment", "studio"].includes(filters.propertyType) ? filters.propertyType as "apartment" | "studio" : undefined),
           minPrice: filters.minPrice,
           maxPrice: filters.maxPrice,
-          bedrooms: filters.bedrooms ? Number(filters.bedrooms) : undefined,
+          bedrooms: filters.bedrooms,
+          bathrooms: filters.bathrooms,
         })
         setProperties(data)
         setError(null)
@@ -58,7 +60,7 @@ export default function PropertiesPage() {
   // Load favorites from localStorage
   useEffect(() => {
     if (user?.role === "tenant") {
-      const savedFavorites = localStorage.getItem(`favorites-${user.id}`)
+      const savedFavorites = localStorage.getItem(`favorites-${user._id}`)
       if (savedFavorites) {
         setFavorites(JSON.parse(savedFavorites))
       }
@@ -74,8 +76,8 @@ export default function PropertiesPage() {
     if (newFilters.propertyType) params.set("type", newFilters.propertyType)
     if (newFilters.minPrice > 0) params.set("minPrice", newFilters.minPrice.toString())
     if (newFilters.maxPrice < 10000) params.set("maxPrice", newFilters.maxPrice.toString())
-    if (newFilters.bedrooms) params.set("bedrooms", newFilters.bedrooms)
-    if (newFilters.bathrooms) params.set("bathrooms", newFilters.bathrooms)
+    if (newFilters.bedrooms) params.set("bedrooms", newFilters.bedrooms.toString())
+    if (newFilters.bathrooms) params.set("bathrooms", newFilters.bathrooms.toString())
     if (newFilters.amenities.length > 0) params.set("amenities", newFilters.amenities.join(","))
     if (newFilters.sortBy !== "newest") params.set("sortBy", newFilters.sortBy)
 
@@ -91,7 +93,7 @@ export default function PropertiesPage() {
       : [...favorites, propertyId]
 
     setFavorites(newFavorites)
-    localStorage.setItem(`favorites-${user.id}`, JSON.stringify(newFavorites))
+    localStorage.setItem(`favorites-${user._id}`, JSON.stringify(newFavorites))
   }
 
   return (

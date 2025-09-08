@@ -1,121 +1,202 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
+import { PropertyCard } from "@/components/properties/property-card"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/components/auth/auth-provider"
-import { Heart, LogIn, UserPlus } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { propertyApi } from "@/lib/api"
+import type { Property } from "@/lib/types"
+import { Heart, ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
 
 export default function FavoritesPage() {
-  const { user, loading } = useAuth()
-  const router = useRouter()
+  const { user } = useAuth()
+  const { toast } = useToast()
+  const [favorites, setFavorites] = useState<string[]>([])
+  const [properties, setProperties] = useState<Property[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!loading && user) {
-      // If user is logged in, redirect to dashboard favorites
-      router.push("/dashboard/favorites")
+    if (!user) {
+      setLoading(false)
+      return
     }
-  }, [user, loading, router])
+
+    const loadFavorites = async () => {
+      try {
+        setLoading(true)
+
+        // Load favorites from localStorage
+        const savedFavorites = localStorage.getItem(`favorites-${user.id}`)
+        if (savedFavorites) {
+          const favoriteIds = JSON.parse(savedFavorites)
+          setFavorites(favoriteIds)
+
+          if (favoriteIds.length > 0) {
+            // Load all properties and filter by favorites
+            const allProperties = await propertyApi.getAll()
+            const favoriteProperties = allProperties.filter(property =>
+              favoriteIds.includes(property._id)
+            )
+            setProperties(favoriteProperties)
+          }
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load favorites")
+        console.error("Error loading favorites:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadFavorites()
+  }, [user])
+
+  const handleFavoriteToggle = (propertyId: string) => {
+    if (!user) return
+
+    const newFavorites = favorites.includes(propertyId)
+      ? favorites.filter((id) => id !== propertyId)
+      : [...favorites, propertyId]
+
+    setFavorites(newFavorites)
+    localStorage.setItem(`favorites-${user.id}`, JSON.stringify(newFavorites))
+
+    // Update properties list
+    if (newFavorites.includes(propertyId)) {
+      // Property was added to favorites, but we already have it
+    } else {
+      // Property was removed from favorites
+      setProperties(properties.filter(p => p._id !== propertyId))
+    }
+
+    toast({
+      title: newFavorites.includes(propertyId) ? "Added to favorites" : "Removed from favorites",
+      description: newFavorites.includes(propertyId)
+        ? "Property saved to your favorites list."
+        : "Property removed from your favorites list.",
+    })
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Card className="max-w-md mx-auto">
+            <CardHeader className="text-center">
+              <CardTitle>Sign In Required</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <p className="text-gray-600">
+                Please sign in to view your favorite properties.
+              </p>
+              <Button asChild>
+                <Link href="/auth">Sign In</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="animate-pulse space-y-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="animate-pulse space-y-6">
             <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-            <div className="h-64 bg-gray-200 rounded"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <div key={index} className="bg-gray-200 h-64 rounded"></div>
+              ))}
+            </div>
           </div>
         </div>
+        <Footer />
       </div>
     )
   }
 
-  if (user) {
-    return null // Will redirect
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-12">
+            <div className="text-red-400 mb-4">
+              <Heart className="h-16 w-16 mx-auto" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Favorites</h3>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center max-w-2xl mx-auto">
-          <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-8">
-            <Heart className="h-12 w-12 text-red-500" />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            <Button variant="ghost" asChild>
+              <Link href="/properties">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Properties
+              </Link>
+            </Button>
           </div>
-
-          <h1 className="text-4xl font-bold text-gray-900 mb-6">
-            Save Your Favorite Properties
-          </h1>
-
-          <p className="text-xl text-gray-600 mb-8">
-            Create an account to save properties you're interested in and keep track of your favorites in one place.
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Favorite Properties</h1>
+          <p className="text-gray-600">
+            {properties.length === 0
+              ? "You haven't saved any properties to your favorites yet."
+              : `You have ${properties.length} favorite${properties.length !== 1 ? 's' : ''} saved.`
+            }
           </p>
-
-          <div className="space-y-4">
-            <Link href="/auth">
-              <Button size="lg" className="w-full bg-blue-600 hover:bg-blue-700">
-                <LogIn className="h-5 w-5 mr-2" />
-                Sign In to View Favorites
-              </Button>
-            </Link>
-
-            <Link href="/auth">
-              <Button size="lg" variant="outline" className="w-full">
-                <UserPlus className="h-5 w-5 mr-2" />
-                Create Account
-              </Button>
-            </Link>
-          </div>
-
-          <div className="mt-12">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              Benefits of Creating an Account
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-              <div className="flex items-start space-x-3">
-                <Heart className="h-6 w-6 text-red-500 mt-1 flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-gray-900">Save Favorites</h3>
-                  <p className="text-gray-600">Keep track of properties you love</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <Heart className="h-6 w-6 text-blue-500 mt-1 flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-gray-900">Get Alerts</h3>
-                  <p className="text-gray-600">Receive notifications about new listings</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <Heart className="h-6 w-6 text-green-500 mt-1 flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-gray-900">Apply Easily</h3>
-                  <p className="text-gray-600">Quick application process for saved properties</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <Heart className="h-6 w-6 text-purple-500 mt-1 flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-gray-900">Message Owners</h3>
-                  <p className="text-gray-600">Direct communication with property owners</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-12">
-            <Link href="/properties">
-              <Button variant="outline" size="lg">
-                Browse Properties Without Account
-              </Button>
-            </Link>
-          </div>
         </div>
-      </main>
 
+        {/* Favorites List */}
+        {properties.length === 0 ? (
+          <Card className="max-w-md mx-auto">
+            <CardContent className="text-center py-12">
+              <div className="text-gray-400 mb-4">
+                <Heart className="h-16 w-16 mx-auto" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No Favorites Yet</h3>
+              <p className="text-gray-600 mb-6">
+                Start browsing properties and save your favorites for easy access later.
+              </p>
+              <Button asChild>
+                <Link href="/properties">Browse Properties</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {properties.map((property) => (
+              <PropertyCard
+                key={property._id}
+                property={property}
+                onFavoriteToggle={handleFavoriteToggle}
+                isFavorited={true}
+              />
+            ))}
+          </div>
+        )}
+      </main>
       <Footer />
     </div>
   )

@@ -21,22 +21,40 @@ export function LoginForm({ onSuccess, onSwitchToSignup }: LoginFormProps) {
   const { login, loading } = useAuth()
   const { toast } = useToast()
 
+  const [errors, setErrors] = useState<string[]>([])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setErrors([])
 
-    const success = await login(email, password)
-    if (success) {
+    try {
+      await login(email, password)
+
+      // ✅ Reset form fields after success
+      setEmail("")
+      setPassword("")
+      
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",
       })
       onSuccess?.()
-    } else {
-      toast({
-        title: "Login failed",
-        description: "Invalid email or password. Please try again.",
-        variant: "destructive",
-      })
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setErrors([error.message])
+        toast({
+          title: "Login failed",
+          description: error.message,
+          variant: "destructive",
+        })
+      } else {
+        setErrors(["Login failed. Please try again."])
+        toast({
+          title: "Login failed",
+          description: "Invalid email or password. Please try again.",
+          variant: "destructive",
+        })
+      }
     }
   }
 
@@ -47,6 +65,15 @@ export function LoginForm({ onSuccess, onSwitchToSignup }: LoginFormProps) {
         <CardDescription>Enter your credentials to access your account</CardDescription>
       </CardHeader>
       <CardContent>
+        {errors.length > 0 && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+            <ul className="text-sm text-red-600 space-y-1">
+              {errors.map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -75,7 +102,7 @@ export function LoginForm({ onSuccess, onSwitchToSignup }: LoginFormProps) {
           </Button>
           <div className="text-center">
             <Button type="button" variant="link" onClick={onSwitchToSignup} className="text-sm">
-              {"Don't have an account? Sign up"}
+              Don&apos;t have an account? Sign up
             </Button>
           </div>
         </form>

@@ -1,31 +1,29 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/components/auth/auth-provider"
 import { useToast } from "@/hooks/use-toast"
-import { User, Mail, Phone, MapPin, Save } from "lucide-react"
+import { useApi } from "@/lib/api"
+import { Save, User } from "lucide-react"
 
 export default function ProfilePage() {
-  const { user, loading } = useAuth()
+  const { authApi } = useApi()
+  const { user, loading, updateUser } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errors, setErrors] = useState<string[]>([])
 
   const [profileData, setProfileData] = useState({
     name: "",
+    phoneNo: "",
     email: "",
-    phone: "",
-    bio: "",
-    location: "",
   })
 
   useEffect(() => {
@@ -38,10 +36,8 @@ export default function ProfilePage() {
     if (user) {
       setProfileData({
         name: user.name || "",
+        phoneNo: user.phoneNo || "",
         email: user.email || "",
-        phone: user.phoneNo || "",
-        bio: "",
-        location: "",
       })
     }
   }, [user])
@@ -64,17 +60,73 @@ export default function ProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setErrors([])
     setIsSubmitting(true)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    // Basic validation
+    if (!profileData.name.trim()) {
+      setErrors(["Name is required"])
+      setIsSubmitting(false)
+      return
+    }
 
-    toast({
-      title: "Profile updated!",
-      description: "Your profile information has been saved successfully.",
-    })
+    if (!profileData.phoneNo.trim()) {
+      setErrors(["Phone number is required"])
+      setIsSubmitting(false)
+      return
+    }
 
-    setIsSubmitting(false)
+    if (!profileData.email.trim()) {
+      setErrors(["Email is required"])
+      setIsSubmitting(false)
+      return
+    }
+
+    try {
+      // Call authApi to update the profile
+      const token = localStorage.getItem("auth-token")
+      if (!token) throw new Error("Authentication token not found")
+      await authApi.updateUser(
+        {
+          name: profileData.name,
+          phoneNo: profileData.phoneNo,
+          email: profileData.email,
+        },
+        token
+      )
+
+      toast({
+        title: "Profile updated!",
+        description: "Your profile information has been updated successfully.",
+      })
+
+      // Update local user state
+      updateUser({
+        ...user,
+        name: profileData.name,
+        phoneNo: profileData.phoneNo,
+        email: profileData.email,
+      })
+
+      router.push("/dashboard")
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast({
+          title: "Update failed",
+          description: error.message,
+          variant: "destructive",
+        })
+      } else {
+        setErrors(["Failed to update profile. Please try again."])
+        toast({
+          title: "Update failed",
+          description: "Failed to update profile. Please try again.",
+          variant: "destructive",
+        })
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleInputChange = (field: string, value: string) => {
@@ -86,148 +138,87 @@ export default function ProfilePage() {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Profile Settings</h1>
-          <p className="text-gray-600">Manage your account information and preferences</p>
+          <h1 className="text-3xl font-bold text-gray-900">Edit Profile</h1>
+          <p className="text-gray-600">Update your personal information</p>
         </div>
 
-        <div className="max-w-2xl space-y-6">
-          {/* Profile Picture */}
+        <div className="max-w-2xl">
           <Card>
             <CardHeader>
-              <CardTitle>Profile Picture</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Personal Information
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-6">
-                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-                  <User className="h-10 w-10 text-blue-600" />
+              {errors.length > 0 && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                  <ul className="text-sm text-red-600 space-y-1">
+                    {errors.map((error, index) => (
+                      <li key={index}>{error}</li>
+                    ))}
+                  </ul>
                 </div>
-                <div>
-                  <Button variant="outline" size="sm">
-                    Change Photo
-                  </Button>
-                  <p className="text-sm text-gray-500 mt-1">JPG, PNG or GIF. Max size 2MB.</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              )}
 
-          {/* Personal Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
-            </CardHeader>
-            <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="name"
-                        value={profileData.name}
-                        onChange={(e) => handleInputChange("name", e.target.value)}
-                        className="pl-10"
-                        placeholder="Your full name"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="email"
-                        type="email"
-                        value={profileData.email}
-                        onChange={(e) => handleInputChange("email", e.target.value)}
-                        className="pl-10"
-                        placeholder="your.email@example.com"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={profileData.phone}
-                        onChange={(e) => handleInputChange("phone", e.target.value)}
-                        className="pl-10"
-                        placeholder="(555) 123-4567"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="location">Location</Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="location"
-                        value={profileData.location}
-                        onChange={(e) => handleInputChange("location", e.target.value)}
-                        className="pl-10"
-                        placeholder="City, State"
-                      />
-                    </div>
-                  </div>
-                </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="bio">Bio</Label>
-                  <Textarea
-                    id="bio"
-                    value={profileData.bio}
-                    onChange={(e) => handleInputChange("bio", e.target.value)}
-                    placeholder={
-                      user.role === "landlord"
-                        ? "Tell potential tenants about yourself and your properties..."
-                        : "Tell property owners about yourself..."
-                    }
-                    rows={4}
+                  <Label htmlFor="name">Full Name *</Label>
+                  <Input
+                    id="name"
+                    value={profileData.name}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
+                    placeholder="Enter your full name"
+                    required
                   />
                 </div>
 
-                <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
-                  <Save className="h-4 w-4 mr-2" />
-                  {isSubmitting ? "Saving..." : "Save Changes"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+                <div className="space-y-2">
+                  <Label htmlFor="phoneNo">Phone Number *</Label>
+                  <Input
+                    id="phoneNo"
+                    type="tel"
+                    value={profileData.phoneNo}
+                    onChange={(e) => handleInputChange("phoneNo", e.target.value)}
+                    placeholder="Enter your phone number"
+                    required
+                  />
+                </div>
 
-          {/* Account Type */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-medium">Account Type</p>
-                    <p className="text-sm text-gray-600 capitalize">{user.role}</p>
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={profileData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    placeholder="Enter your email address"
+                    required
+                  />
                 </div>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-medium">Member Since</p>
-                    <p className="text-sm text-gray-600">
-                      {new Intl.DateTimeFormat("en-US", {
-                        month: "long",
-                        year: "numeric",
-                      }).format(user.createdAt)}
-                    </p>
-                  </div>
+
+                <div className="space-y-2">
+                  <Label>Account Type</Label>
+                  <Input
+                    value={user.role === "landlord" ? "Property Owner" : "Tenant"}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                  <p className="text-sm text-gray-500">
+                    Account type cannot be changed. Contact support if you need to change your account type.
+                  </p>
                 </div>
-              </div>
+
+                <div className="flex gap-4">
+                  <Button type="submit" disabled={isSubmitting}>
+                    <Save className="h-4 w-4 mr-2" />
+                    {isSubmitting ? "Updating..." : "Update Profile"}
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => router.back()}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
             </CardContent>
           </Card>
         </div>

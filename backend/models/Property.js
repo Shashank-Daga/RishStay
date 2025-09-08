@@ -24,7 +24,7 @@ const PropertySchema = new Schema({
   images: [{ type: String, default: [] }],
 
   bedrooms: { type: Number, required: true, min: 0 },
-  bathrooms: { type: Number, required: true, min: 0 }, // can be float (e.g., 1.5)
+  bathrooms: { type: Number, required: true, min: 0 },
   area: { type: Number, required: true },
 
   maxGuests: { type: Number, required: true, min: 1 },
@@ -36,14 +36,22 @@ const PropertySchema = new Schema({
 
   landlord: {
     type: Schema.Types.ObjectId,
-    ref: "user",
+    ref: "User",   // ✅ must match your User model
     required: true,
   },
 
   availability: {
     isAvailable: { type: Boolean, default: true },
     availableFrom: { type: Date },
-    availableTo: { type: Date },
+    availableTo: {
+      type: Date,
+      validate: {
+        validator: function (v) {
+          return !v || !this.availability.availableFrom || v > this.availability.availableFrom;
+        },
+        message: "availableTo must be after availableFrom"
+      }
+    },
   },
 
   rules: { type: [String], default: [] },
@@ -52,9 +60,7 @@ const PropertySchema = new Schema({
 });
 
 // Indexes for better query performance
-PropertySchema.index({ "location.city": 1, "location.state": 1 });
-PropertySchema.index({ price: 1 });
-PropertySchema.index({ propertyType: 1 });
+PropertySchema.index({ "location.city": 1, price: 1, availability: 1 });
 
-const Property = mongoose.model("property", PropertySchema);
+const Property = mongoose.model("Property", PropertySchema);
 module.exports = Property;
