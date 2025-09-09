@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -51,7 +49,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
     }
   )
 
-  const [priceRange, setPriceRange] = useState<[number, number]>([filters.minPrice, filters.maxPrice])
+  const [priceRange, setPriceRange] = useState<number[]>([filters.minPrice, filters.maxPrice])
   const [showFilters, setShowFilters] = useState(false)
 
   const updateFilters = (newFilters: Partial<PropertyFilters>) => {
@@ -132,8 +130,9 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="apartment">apartment</SelectItem>
-                <SelectItem value="studio">studio</SelectItem>
+                <SelectItem value="any">Any</SelectItem>
+                <SelectItem value="apartment">Apartment</SelectItem>
+                <SelectItem value="studio">Studio</SelectItem>
               </SelectContent>
             </Select>
           </CardContent>
@@ -178,10 +177,10 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">1+</SelectItem>
-                  <SelectItem value="2">2+</SelectItem>
-                  <SelectItem value="3">3+</SelectItem>
-                  <SelectItem value="4">4+</SelectItem>
+                  <SelectItem value="1">1</SelectItem>
+                  <SelectItem value="2">2</SelectItem>
+                  <SelectItem value="3">3</SelectItem>
+                  <SelectItem value="4">4</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -195,9 +194,9 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">1+</SelectItem>
-                  <SelectItem value="2">2+</SelectItem>
-                  <SelectItem value="3">3+</SelectItem>
+                  <SelectItem value="1">1</SelectItem>
+                  <SelectItem value="2">2</SelectItem>
+                  <SelectItem value="3">3</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -233,14 +232,11 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
           <CardContent>
             <Select value={filters.sortBy} onValueChange={(value) => updateFilters({ sortBy: value })}>
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Sort By" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="newest">Newest First</SelectItem>
                 <SelectItem value="price-low">Price: Low to High</SelectItem>
                 <SelectItem value="price-high">Price: High to Low</SelectItem>
-                <SelectItem value="bedrooms">Most Bedrooms</SelectItem>
-                <SelectItem value="sqft">Largest First</SelectItem>
               </SelectContent>
             </Select>
           </CardContent>

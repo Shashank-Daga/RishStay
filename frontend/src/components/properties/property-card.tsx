@@ -93,7 +93,7 @@ export function PropertyCard({ property, onFavoriteToggle, isFavorited = false }
         <div className="flex items-start justify-between mb-3">
           <h3 className="text-xl font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">{property.title}</h3>
           <div className="text-right ml-4">
-            <div className="text-2xl font-bold text-blue-600">${property.price.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-blue-600">Rs {property.price.toLocaleString()}</div>
             <div className="text-sm text-gray-500">per month</div>
           </div>
         </div>

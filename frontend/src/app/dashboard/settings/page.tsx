@@ -213,7 +213,7 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="currency">Currency</Label>
                 <Select value={settings.currency} onValueChange={(value) => updateSetting("currency", value)}>
                   <SelectTrigger className="w-full md:w-48">
@@ -226,7 +226,7 @@ export default function SettingsPage() {
                     <SelectItem value="CAD">CAD (C$)</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
             </CardContent>
           </Card>
 

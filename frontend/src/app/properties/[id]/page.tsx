@@ -229,7 +229,7 @@ export default function PropertyDetailPage() {
             </div>
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <div className="text-3xl font-bold text-blue-600">${property.price.toLocaleString()}</div>
+                <div className="text-3xl font-bold text-blue-600">Rs {property.price.toLocaleString()}</div>
                 <div className="text-gray-500">per month</div>
               </div>
               <div className="flex gap-2">

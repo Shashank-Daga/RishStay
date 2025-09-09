@@ -1,8 +1,8 @@
 "use client"
 
-import React, { createContext, useContext, useEffect } from "react"
+import React, { createContext, useContext, useEffect, useState } from "react"
 import type { User } from "@/lib/types"
-import { useAuthService } from "@/lib/auth" // 👈 adjust path if needed
+import { useAuthService } from "@/lib/auth"
 
 interface AuthContextType {
   user: User | null
@@ -22,17 +22,40 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { user, setUser, login, signup, logout, loading, getCurrentUser } = useAuthService()
+  const { user, setUser, login, signup, logout, getCurrentUser } = useAuthService()
+  const [loading, setLoading] = useState(true) // loading while restoring user
 
-  // Restore user when app mounts
+  // Restore user on app mount
   useEffect(() => {
-    getCurrentUser()
+    const restoreUser = async () => {
+      setLoading(true)
+      try {
+        await getCurrentUser()
+      } catch (error) {
+        console.error("Failed to restore user:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    restoreUser()
   }, [getCurrentUser])
 
   // Keep React state + localStorage in sync
   const updateUser = (updatedUser: User) => {
     setUser(updatedUser)
     localStorage.setItem("rental-user", JSON.stringify(updatedUser))
+
+    // Optional: sync favorites to backend
+    if (updatedUser.favorites) {
+      fetch(`/api/users/${updatedUser._id}/favorites`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth-token")}`,
+        },
+        body: JSON.stringify({ favorites: updatedUser.favorites }),
+      }).catch((err) => console.error("Failed to update favorites:", err))
+    }
   }
 
   return (

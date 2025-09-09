@@ -8,12 +8,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/components/auth/auth-provider"
 import { useToast } from "@/hooks/use-toast"
-import { propertyApi } from "@/lib/api"
+import { useApi } from "@/lib/api"
 import type { Property } from "@/lib/types"
 import { Heart, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
 export default function FavoritesPage() {
+  const { propertyApi } = useApi()
   const { user } = useAuth()
   const { toast } = useToast()
   const [favorites, setFavorites] = useState<string[]>([])
@@ -32,7 +33,7 @@ export default function FavoritesPage() {
         setLoading(true)
 
         // Load favorites from localStorage
-        const savedFavorites = localStorage.getItem(`favorites-${user.id}`)
+        const savedFavorites = localStorage.getItem(`favorites-${user._id}`)
         if (savedFavorites) {
           const favoriteIds = JSON.parse(savedFavorites)
           setFavorites(favoriteIds)
@@ -65,7 +66,7 @@ export default function FavoritesPage() {
       : [...favorites, propertyId]
 
     setFavorites(newFavorites)
-    localStorage.setItem(`favorites-${user.id}`, JSON.stringify(newFavorites))
+    localStorage.setItem(`favorites-${user._id}`, JSON.stringify(newFavorites))
 
     // Update properties list
     if (newFavorites.includes(propertyId)) {

@@ -244,7 +244,7 @@ export default function AddPropertyPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label>Price ($) *</Label>
+                  <Label>Price (Rs) *</Label>
                   <Input
                     type="number"
                     value={propertyData.price}

@@ -109,9 +109,9 @@ router.post('/login', [
 router.post('/getuser', fetchuser, async (req, res) => {
     try {
         const userId = req.user.id; 
-        console.log("Decoded token user:", req.user);
+        // console.log("Decoded token user:", req.user);
         const user = await User.findById(userId).select("-password");
-        console.log("DB user:", user);
+        // console.log("DB user:", user);
         res.json({ success: true, data: user });
     } catch (error) {
         console.error(error.message);
