@@ -101,6 +101,19 @@ export default function AddPropertyPage({ editingProperty }: AddPropertyPageProp
     }
   }, [editingProperty])
 
+  // TypeScript fix: cast editingProperty to any to access availability
+  useEffect(() => {
+    if (editingProperty) {
+      const ep = editingProperty as any
+      setPropertyData((prev) => ({
+        ...prev,
+        checkInTime: ep.availability?.availableFrom || prev.checkInTime || "15:00",
+        checkOutTime: ep.availability?.availableTo || prev.checkOutTime || "11:00",
+        isAvailable: ep.availability?.isAvailable ?? prev.isAvailable ?? true,
+      }))
+    }
+  }, [editingProperty])
+
   // Redirect non-landlords
   useEffect(() => {
     if (!loading && (!user || user.role !== "landlord")) {
@@ -208,9 +221,11 @@ export default function AddPropertyPage({ editingProperty }: AddPropertyPageProp
       formData.append("area", propertyData.area)
       formData.append("maxGuests", propertyData.maxGuests)
       formData.append("guestType", propertyData.guestType)
-      formData.append("isAvailable", String(propertyData.isAvailable))
-      formData.append("checkInTime", propertyData.checkInTime)
-      formData.append("checkOutTime", propertyData.checkOutTime)
+      formData.append("availability", JSON.stringify({
+        isAvailable: propertyData.isAvailable,
+        availableFrom: propertyData.checkInTime,
+        availableTo: propertyData.checkOutTime,
+      }))
 
       formData.append("address", propertyData.address.trim())
       formData.append("city", propertyData.city.trim())

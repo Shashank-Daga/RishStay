@@ -126,8 +126,8 @@ export default function EditPropertyPage() {
             maxGuests: data.maxGuests?.toString() || "",
             guestType: data.guestType || "Family",
             rules: data.rules || [],
-            checkInTime: data.checkInTime || "15:00",
-            checkOutTime: data.checkOutTime || "11:00",
+            checkInTime: data.availability?.availableFrom || "15:00",
+            checkOutTime: data.availability?.availableTo || "11:00",
             isAvailable: data.availability?.isAvailable ?? true,
           })
           setExistingImages(data.images || [])
@@ -253,9 +253,11 @@ export default function EditPropertyPage() {
       formData.append("area", propertyData.area)
       formData.append("maxGuests", propertyData.maxGuests)
       formData.append("guestType", propertyData.guestType)
-      formData.append("isAvailable", String(propertyData.isAvailable))
-      formData.append("checkInTime", propertyData.checkInTime)
-      formData.append("checkOutTime", propertyData.checkOutTime)
+      formData.append("availability", JSON.stringify({
+        isAvailable: propertyData.isAvailable,
+        availableFrom: propertyData.checkInTime,
+        availableTo: propertyData.checkOutTime,
+      }))
 
       formData.append("address", propertyData.address.trim())
       formData.append("city", propertyData.city.trim())
@@ -277,7 +279,16 @@ export default function EditPropertyPage() {
         }
       )
 
-      if (!response.ok) throw new Error("Failed to update property")
+      if (!response.ok) {
+        let errorMessage = "Failed to update property"
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.error || errorData.message || response.statusText || errorMessage
+        } catch {
+          errorMessage = response.statusText || errorMessage
+        }
+        throw new Error(errorMessage)
+      }
 
       toast({
         title: "Property updated successfully",
