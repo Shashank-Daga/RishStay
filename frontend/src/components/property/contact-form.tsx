@@ -117,33 +117,6 @@ export function ContactForm({ property }: ContactFormProps) {
 
   return (
     <div className="space-y-6">
-      {/* Owner Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <span className="text-blue-600 font-semibold text-lg">{property.landlord.name.charAt(0).toUpperCase()}</span>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold">{property.landlord.name}</h3>
-              <p className="text-sm text-gray-600">Property Owner</p>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Mail className="h-4 w-4" />
-            <span>{property.landlord.email}</span>
-          </div>
-          {property.landlord.phoneNo && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Phone className="h-4 w-4" />
-              <span>{property.landlord.phoneNo}</span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
       {/* Contact Form */}
       <Card>
         <CardHeader>

@@ -1,7 +1,7 @@
 "use client"
 
 export interface User {
- _id: string
+  _id: string
   email: string
   name: string
   phoneNo: string
@@ -25,16 +25,21 @@ export interface Property {
   }
   images: string[]
   amenities: string[]
-  propertyType: "apartment" |  "studio" 
+  propertyType: "apartment" | "studio"
   bedrooms: number
   bathrooms: number
   area: number
-  availableFrom: Date
+
+  // ✅ Updated to match backend
+  availability: {
+    isAvailable: boolean
+    availableFrom?: Date
+    availableTo?: Date
+  }
+
   landlordId: string
   landlord: User
   featured: boolean
-  isAvailable: boolean
-  status: "available" | "rented" | "pending"
   createdAt: Date
   maxGuests: number
   guestType: "Family" | "Bachelors" | "Girls" | "Boys" | null
@@ -44,14 +49,14 @@ export interface Property {
 }
 
 export interface Favorite {
- _id: string
+  _id: string
   userId: string
   propertyId: string
   createdAt: Date
 }
 
 export interface Message {
- _id: string
+  _id: string
   fromUserId: string
   toUserId: string
   propertyId?: string
@@ -63,7 +68,7 @@ export interface Message {
   phone?: string
   status: "unread" | "read" | "replied"
   createdAt: Date
-  updatedAt? : Date
+  updatedAt?: Date
 }
 
 // API response type for sending messages
@@ -74,7 +79,7 @@ export interface SendMessageResponse {
 }
 
 export interface Review {
- _id: string
+  _id: string
   propertyId: string
   userId: string
   rating: number

@@ -133,10 +133,14 @@ export const useApi = () => {
         maxGuests: Number(propertyData.maxGuests) || 1,
         propertyType: propertyData.propertyType || "apartment",
         guestType: propertyData.guestType || "Family",
-        isAvailable:
-          typeof propertyData.isAvailable === "boolean"
-            ? propertyData.isAvailable
-            : true,
+        availability: {
+          isAvailable:
+            typeof propertyData.availability?.isAvailable === "boolean"
+              ? propertyData.availability.isAvailable
+              : true,
+          availableFrom:
+            propertyData.availability?.availableFrom || new Date(),
+        },
         location: {
           address: propertyData.location?.address?.trim() || "",
           city: propertyData.location?.city?.trim() || "",

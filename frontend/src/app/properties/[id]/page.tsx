@@ -67,18 +67,17 @@ export default function PropertyDetailPage() {
         const propertyData = await propertyApi.getById(propertyId)
         setProperty(propertyData)
 
-        // Fetch similar properties based on location and type
         const similarData = await propertyApi.getAll({
           city: propertyData.location.city,
-          propertyType: propertyData.propertyType
+          propertyType: propertyData.propertyType,
         })
-        setSimilarProperties(similarData.filter(p => p._id !== propertyId).slice(0, 6))
+        setSimilarProperties(similarData.filter((p) => p._id !== propertyId).slice(0, 6))
       } catch (error) {
         console.error("Error fetching property data:", error)
         toast({
           title: "Error",
           description: "Failed to load property details",
-          variant: "destructive"
+          variant: "destructive",
         })
       } finally {
         setIsLoading(false)
@@ -125,7 +124,9 @@ export default function PropertyDetailPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Property Not Found</h1>
-            <p className="text-gray-600 mb-6">The property you are looking for does not exist or has been removed.</p>
+            <p className="text-gray-600 mb-6">
+              The property you are looking for does not exist or has been removed.
+            </p>
             <Link href="/properties">
               <Button>Browse All Properties</Button>
             </Link>
@@ -153,7 +154,9 @@ export default function PropertyDetailPage() {
     localStorage.setItem(`favorites-${user._id}`, JSON.stringify(newFavorites))
 
     toast({
-      title: favorites.includes(property._id) ? "Removed from favorites" : "Added to favorites",
+      title: favorites.includes(property._id)
+        ? "Removed from favorites"
+        : "Added to favorites",
       description: favorites.includes(property._id)
         ? "Property removed from your favorites list."
         : "Property saved to your favorites list.",
@@ -169,15 +172,14 @@ export default function PropertyDetailPage() {
           url: window.location.href,
         })
       } catch (error) {
-        console.error("Error fetching property data:", error)
+        console.error("Error sharing property:", error)
         toast({
           title: "Error",
-          description: "Failed to load the property details. Please try again.",
+          description: "Failed to share property link.",
           variant: "destructive",
         })
       }
     } else {
-      // Fallback: copy to clipboard
       await navigator.clipboard.writeText(window.location.href)
       toast({
         title: "Link copied!",
@@ -186,15 +188,11 @@ export default function PropertyDetailPage() {
     }
   }
 
-  const formatDate = (date: string | Date | undefined | null) => {
+  const formatDate = (date?: string | Date) => {
     if (!date) return "N/A"
-
     const parsedDate = typeof date === "string" ? new Date(date) : date
-
-    if (isNaN(parsedDate.getTime())) return "Invalid date"
-
     return new Intl.DateTimeFormat("en-US", {
-      month: "long",
+      month: "short",
       day: "numeric",
       year: "numeric",
     }).format(parsedDate)
@@ -208,7 +206,11 @@ export default function PropertyDetailPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Button */}
         <div className="mb-6">
-          <Button variant="ghost" onClick={() => router.back()} className="text-gray-600 hover:text-gray-900">
+          <Button
+            variant="ghost"
+            onClick={() => router.back()}
+            className="text-gray-600 hover:text-gray-900"
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Properties
           </Button>
@@ -218,24 +220,32 @@ export default function PropertyDetailPage() {
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
             <div>
-              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">{property.title}</h1>
+              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+                {property.title}
+              </h1>
               <div className="flex items-center text-gray-600 mb-4">
                 <MapPin className="h-5 w-5 mr-2" />
                 <span className="text-lg">
-                  {property.location.address}, {property.location.city}, {property.location.state}{" "}
-                  {property.location.zipCode}
+                  {property.location.address}, {property.location.city},{" "}
+                  {property.location.state} {property.location.zipCode}
                 </span>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <div className="text-3xl font-bold text-blue-600">Rs {property.price.toLocaleString()}</div>
+                <div className="text-3xl font-bold text-blue-600">
+                  Rs {property.price.toLocaleString()}
+                </div>
                 <div className="text-gray-500">per month</div>
               </div>
               <div className="flex gap-2">
                 {user?.role === "tenant" && (
                   <Button variant="outline" size="sm" onClick={handleFavoriteToggle}>
-                    <Heart className={`h-4 w-4 ${isFavorited ? "fill-current text-red-500" : ""}`} />
+                    <Heart
+                      className={`h-4 w-4 ${
+                        isFavorited ? "fill-current text-red-500" : ""
+                      }`}
+                    />
                   </Button>
                 )}
                 <Button variant="outline" size="sm" onClick={handleShare}>
@@ -267,28 +277,30 @@ export default function PropertyDetailPage() {
             </div>
             <div className="flex items-center">
               <Calendar className="h-5 w-5 mr-2" />
-              <span className="font-medium">Available {formatDate(property.availableFrom)}</span>
+              <span className="font-medium">
+                Available {formatDate(property.availability?.availableFrom)}
+              </span>
             </div>
           </div>
 
           {/* Status and Type Badges */}
           <div className="flex gap-2 mt-4">
             <Badge
-              variant={property.status === "available" ? "default" : "secondary"}
+              variant={property.availability?.isAvailable ? "default" : "secondary"}
               className={
-                property.status === "available"
+                property.availability?.isAvailable
                   ? "bg-green-600 text-white"
-                  : property.status === "pending"
-                    ? "bg-yellow-600 text-white"
-                    : "bg-gray-600 text-white"
+                  : "bg-gray-600 text-white"
               }
             >
-              {property.status === "available" ? "Available" : property.status === "pending" ? "Pending" : "Rented"}
+              {property.availability?.isAvailable ? "Available" : "Rented"}
             </Badge>
             <Badge variant="outline" className="capitalize">
               {property.propertyType}
             </Badge>
-            {property.featured && <Badge className="bg-blue-600 text-white">Featured</Badge>}
+            {property.featured && (
+              <Badge className="bg-blue-600 text-white">Featured</Badge>
+            )}
           </div>
         </div>
 
@@ -301,7 +313,6 @@ export default function PropertyDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Property Details */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Description */}
             <Card>
               <CardHeader>
                 <CardTitle>About This Property</CardTitle>
@@ -311,7 +322,6 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Amenities */}
             <Card>
               <CardHeader>
                 <CardTitle>Amenities</CardTitle>
@@ -333,7 +343,6 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Property Details */}
             <Card>
               <CardHeader>
                 <CardTitle>Property Details</CardTitle>
@@ -347,7 +356,9 @@ export default function PropertyDetailPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Bedrooms:</span>
-                      <span className="font-medium">{property.bedrooms === 0 ? "studio" : property.bedrooms}</span>
+                      <span className="font-medium">
+                        {property.bedrooms === 0 ? "studio" : property.bedrooms}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Bathrooms:</span>
@@ -355,21 +366,27 @@ export default function PropertyDetailPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Area:</span>
-                      <span className="font-medium">{property.area.toLocaleString()} sqft</span>
+                      <span className="font-medium">
+                        {property.area.toLocaleString()} sqft
+                      </span>
                     </div>
                   </div>
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Monthly Rent:</span>
-                      <span className="font-medium">${property.price.toLocaleString()}</span>
+                      <span className="font-medium">Rs {property.price.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Available From:</span>
-                      <span className="font-medium">{formatDate(property.availableFrom)}</span>
+                      <span className="font-medium">
+                        {formatDate(property.availability?.availableFrom)}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Status:</span>
-                      <span className="font-medium capitalize">{property.status}</span>
+                      <span className="font-medium capitalize">
+                        {property.availability?.isAvailable ? "Available" : "Rented"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Listed:</span>
@@ -380,7 +397,6 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Location */}
             <Card>
               <CardHeader>
                 <CardTitle>Location</CardTitle>
@@ -392,17 +408,19 @@ export default function PropertyDetailPage() {
                     <div>
                       <p className="font-medium">{property.location.address}</p>
                       <p className="text-gray-600">
-                        {property.location.city}, {property.location.state} {property.location.zipCode}
+                        {property.location.city}, {property.location.state}{" "}
+                        {property.location.zipCode}
                       </p>
                     </div>
                   </div>
 
-                  {/* Placeholder for map */}
                   <div className="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">
                     <div className="text-center text-gray-500">
                       <MapPin className="h-8 w-8 mx-auto mb-2" />
                       <p>Interactive map would be displayed here</p>
-                      <p className="text-sm">Integration with Google Maps or similar service</p>
+                      <p className="text-sm">
+                        Integration with Google Maps or similar service
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -410,7 +428,6 @@ export default function PropertyDetailPage() {
             </Card>
           </div>
 
-          {/* Contact Form Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-24">
               <ContactForm property={property} />
@@ -420,7 +437,6 @@ export default function PropertyDetailPage() {
 
         <Separator className="my-12" />
 
-        {/* Similar Properties */}
         <SimilarProperties
           currentProperty={property}
           allProperties={similarProperties}

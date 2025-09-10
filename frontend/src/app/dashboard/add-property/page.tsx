@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { Button } from "@/components/ui/button"
@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { useAuth } from "@/components/auth/auth-provider"
 import { useToast } from "@/hooks/use-toast"
-import { useApi } from "@/lib/api"
 import { Upload, X, Save } from "lucide-react"
 import Image from "next/image"
 
@@ -44,7 +43,7 @@ type PropertyData = {
   state: string
   zipCode: string
   amenities: string[]
-  images: string[]
+  images: string[] // preview URLs
   maxGuests: string
   guestType: "Family" | "Bachelors" | "Girls" | "Boys"
   rules: string[]
@@ -53,12 +52,16 @@ type PropertyData = {
   isAvailable: boolean
 }
 
-export default function AddPropertyPage() {
-  const { propertyApi } = useApi()
+type AddPropertyPageProps = {
+  editingProperty?: PropertyData & { id: string } // optional, for edit mode
+}
+
+export default function AddPropertyPage({ editingProperty }: AddPropertyPageProps) {
   const { user, loading } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const [propertyData, setPropertyData] = useState<PropertyData>({
     title: "",
@@ -82,6 +85,23 @@ export default function AddPropertyPage() {
     isAvailable: true,
   })
 
+  const [imageFiles, setImageFiles] = useState<File[]>([]) // new uploads
+  const [existingImages, setExistingImages] = useState<string[]>([]) // URLs of existing images
+  const [deletedImages, setDeletedImages] = useState<string[]>([]) // images removed by user
+
+  // Load property for editing
+  useEffect(() => {
+    if (editingProperty) {
+      setPropertyData({
+        ...propertyData,
+        ...editingProperty,
+        images: [...editingProperty.images],
+      })
+      setExistingImages([...editingProperty.images])
+    }
+  }, [editingProperty])
+
+  // Redirect non-landlords
   useEffect(() => {
     if (!loading && (!user || user.role !== "landlord")) {
       router.push("/dashboard")
@@ -102,13 +122,37 @@ export default function AddPropertyPage() {
     setPropertyData((prev) => ({ ...prev, amenities: newAmenities }))
   }
 
-  const handleImageUpload = () => {
-    const mockImageUrl = `/placeholder.svg?height=300&width=400&query=modern apartment interior`
-    setPropertyData((prev) => ({ ...prev, images: [...prev.images, mockImageUrl] }))
-    toast({ title: "Image uploaded", description: "Your image has been added." })
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files) return
+
+    const newFiles = Array.from(files)
+    const newPreviews = newFiles.map((file) => URL.createObjectURL(file))
+
+    setImageFiles((prev) => [...prev, ...newFiles])
+    setPropertyData((prev) => ({
+      ...prev,
+      images: [...prev.images, ...newPreviews],
+    }))
+
+    toast({
+      title: "Images uploaded",
+      description: `${newFiles.length} image(s) added.`,
+    })
   }
 
   const removeImage = (index: number) => {
+    const imgToRemove = propertyData.images[index]
+
+    // Existing image
+    if (existingImages.includes(imgToRemove)) {
+      setDeletedImages((prev) => [...prev, imgToRemove])
+      setExistingImages((prev) => prev.filter((img) => img !== imgToRemove))
+    } else {
+      // New upload
+      setImageFiles((prev) => prev.filter((_, i) => i !== index))
+    }
+
     setPropertyData((prev) => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index),
@@ -154,56 +198,55 @@ export default function AddPropertyPage() {
       const token = localStorage.getItem("auth-token")
       if (!token) throw new Error("Authentication required")
 
-      // Normalize payload
-      const payload = {
-        title: propertyData.title.trim(),
-        description: propertyData.description.trim(),
-        price: parseFloat(propertyData.price),
-        location: {
-          address: propertyData.address.trim(),
-          city: propertyData.city.trim(),
-          state: propertyData.state.trim(),
-          zipCode: propertyData.zipCode.trim(),
-        },
-        propertyType: propertyData.propertyType,
-        bedrooms: parseInt(propertyData.bedrooms, 10),
-        bathrooms: parseFloat(propertyData.bathrooms),
-        area: parseFloat(propertyData.area),
-        maxGuests: parseInt(propertyData.maxGuests, 10),
-        guestType: propertyData.guestType,
-        amenities: propertyData.amenities,
-        images: propertyData.images,
-        rules: propertyData.rules,
-        isAvailable: !!propertyData.isAvailable,
-        checkInTime: propertyData.checkInTime,
-        checkOutTime: propertyData.checkOutTime,
-      }
+      const formData = new FormData()
+      formData.append("title", propertyData.title.trim())
+      formData.append("description", propertyData.description.trim())
+      formData.append("price", propertyData.price)
+      formData.append("propertyType", propertyData.propertyType)
+      formData.append("bedrooms", propertyData.bedrooms)
+      formData.append("bathrooms", propertyData.bathrooms)
+      formData.append("area", propertyData.area)
+      formData.append("maxGuests", propertyData.maxGuests)
+      formData.append("guestType", propertyData.guestType)
+      formData.append("isAvailable", String(propertyData.isAvailable))
+      formData.append("checkInTime", propertyData.checkInTime)
+      formData.append("checkOutTime", propertyData.checkOutTime)
 
-      await propertyApi.create(payload, token)
+      formData.append("address", propertyData.address.trim())
+      formData.append("city", propertyData.city.trim())
+      formData.append("state", propertyData.state.trim())
+      formData.append("zipCode", propertyData.zipCode.trim())
+
+      propertyData.amenities.forEach((a) => formData.append("amenities[]", a))
+      propertyData.rules.forEach((r) => formData.append("rules[]", r))
+
+      // New uploads
+      imageFiles.forEach((file) => formData.append("images", file))
+      // Deleted existing images
+      deletedImages.forEach((img) => formData.append("deletedImages[]", img))
+
+      const endpoint = editingProperty
+        ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/property/update/${editingProperty.id}`
+        : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/property/create`
+
+      await fetch(endpoint, {
+        method: editingProperty ? "PUT" : "POST",
+        headers: { "auth-token": token },
+        body: formData,
+      })
 
       toast({
-        title: "Property listed successfully",
-        description: "Your property is now live.",
+        title: `Property ${editingProperty ? "updated" : "listed"} successfully`,
+        description: `Your property is now ${editingProperty ? "updated" : "live"}.`,
       })
       router.push("/dashboard/properties")
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error(error)
-      if (
-        error &&
-        typeof error === "object" &&
-        "errors" in error &&
-        Array.isArray((error as any).errors)
-      ) {
-        ;(error as { errors: { msg: string }[] }).errors.forEach((err) =>
-          toast({ title: "Validation Error", description: err.msg, variant: "destructive" })
-        )
-      } else {
-        toast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "An error occurred.",
-          variant: "destructive",
-        })
-      }
+      toast({
+        title: "Error",
+        description: error.message || "An error occurred.",
+        variant: "destructive",
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -212,8 +255,14 @@ export default function AddPropertyPage() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        <h1 className="text-3xl font-bold text-gray-900">Add New Property</h1>
-        <p className="text-gray-600">List your property and connect with potential tenants</p>
+        <h1 className="text-3xl font-bold text-gray-900">
+          {editingProperty ? "Edit Property" : "Add New Property"}
+        </h1>
+        <p className="text-gray-600">
+          {editingProperty
+            ? "Update your property details"
+            : "List your property and connect with potential tenants"}
+        </p>
 
         <form onSubmit={handleSubmit} className="max-w-4xl space-y-8">
           {/* BASIC INFO */}
@@ -389,7 +438,9 @@ export default function AddPropertyPage() {
                     checked={propertyData.amenities.includes(amenity)}
                     onCheckedChange={(checked) => handleAmenityChange(amenity, Boolean(checked))}
                   />
-                  <Label htmlFor={amenity} className="text-sm">{amenity}</Label>
+                  <Label htmlFor={amenity} className="text-sm">
+                    {amenity}
+                  </Label>
                 </div>
               ))}
             </CardContent>
@@ -422,12 +473,25 @@ export default function AddPropertyPage() {
                   </Button>
                 </div>
               ))}
-              <Button type="button" variant="outline" className="aspect-square border-dashed" onClick={handleImageUpload}>
+              <Button
+                type="button"
+                variant="outline"
+                className="aspect-square border-dashed"
+                onClick={() => fileInputRef.current?.click()}
+              >
                 <div className="text-center">
                   <Upload className="h-6 w-6 mx-auto mb-2 text-gray-400" />
                   <span className="text-sm text-gray-600">Add Image</span>
                 </div>
               </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                hidden
+                onChange={handleImageUpload}
+              />
             </CardContent>
           </Card>
 
@@ -454,9 +518,11 @@ export default function AddPropertyPage() {
           <div className="flex gap-4">
             <Button type="submit" disabled={isSubmitting}>
               <Save className="h-4 w-4 mr-2" />
-              {isSubmitting ? "Publishing..." : "Publish Property"}
+              {isSubmitting ? (editingProperty ? "Updating..." : "Publishing...") : editingProperty ? "Update Property" : "Publish Property"}
             </Button>
-            <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
+            <Button type="button" variant="outline" onClick={() => router.back()}>
+              Cancel
+            </Button>
           </div>
         </form>
       </div>

@@ -3,8 +3,9 @@
 import { useState } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog"
 import { ChevronLeft, ChevronRight, X, Maximize2 } from "lucide-react"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 
 interface ImageGalleryProps {
   images: string[]
@@ -78,6 +79,11 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-7xl w-full h-full p-0">
+              {/* ✅ Hidden but accessible title */}
+              <VisuallyHidden>
+                <DialogTitle>{title} - Image Gallery</DialogTitle>
+              </VisuallyHidden>
+
               <div className="relative w-full h-full bg-black">
                 <Image
                   src={images[currentImage] || "/placeholder.svg"}

@@ -53,7 +53,13 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
   const [showFilters, setShowFilters] = useState(false)
 
   const updateFilters = (newFilters: Partial<PropertyFilters>) => {
-    const updated = { ...filters, ...newFilters }
+    let updated = { ...filters, ...newFilters }
+
+    // Special case: if propertyType is "any", clear it
+    if (updated.propertyType === "any") {
+      updated = { ...updated, propertyType: "" }
+    }
+
     setFilters(updated)
     onFiltersChange(updated)
   }
@@ -107,7 +113,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
             <div className="relative">
               <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Enter city, state, or zip code"
+                placeholder="Enter city"
                 value={filters.location}
                 onChange={(e) => updateFilters({ location: e.target.value })}
                 className="pl-10"
@@ -130,7 +136,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="any">Any</SelectItem>
+                {/* <SelectItem value="any">Any</SelectItem> */}
                 <SelectItem value="apartment">Apartment</SelectItem>
                 <SelectItem value="studio">Studio</SelectItem>
               </SelectContent>

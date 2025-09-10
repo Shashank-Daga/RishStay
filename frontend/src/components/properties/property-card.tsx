@@ -5,7 +5,7 @@ import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MapPin, Bed, Bath, Square, Heart, Calendar, User } from "lucide-react"
+import { MapPin, Bed, Bath, Square, Heart, Calendar } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import type { Property } from "@/lib/types"
@@ -31,13 +31,13 @@ export function PropertyCard({ property, onFavoriteToggle, isFavorited = false }
     }
   }
 
-  const handleInquiryClick = (inquiryType: "general" | "viewing" | "application" | "availability") => {
-    router.push(`/contact?propertyId=${property._id}&inquiryType=${inquiryType}`)
-  }
-
-  const formatDate = (date: string | Date) => {
+  const formatDate = (date?: string | Date) => {
     const parsedDate = typeof date === "string" ? new Date(date) : date
-    return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(parsedDate)
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(parsedDate)
   }
 
   return (
@@ -81,10 +81,10 @@ export function PropertyCard({ property, onFavoriteToggle, isFavorited = false }
         {/* Status Badge */}
         <div className="absolute bottom-4 left-4">
           <Badge
-            variant={property.status === "available" ? "default" : "secondary"}
-            className={property.status === "available" ? "bg-green-600 text-white" : property.status === "pending" ? "bg-yellow-600 text-white" : "bg-gray-600 text-white"}
+            variant={property.availability?.isAvailable ? "default" : "secondary"}
+            className={property.availability?.isAvailable ? "bg-green-600 text-white" : "bg-gray-600 text-white"}
           >
-            {property.status === "available" ? "Available" : property.status === "pending" ? "Pending" : "Rented"}
+            {property.availability?.isAvailable ? "Available" : "Rented"}
           </Badge>
         </div>
       </div>
@@ -98,7 +98,7 @@ export function PropertyCard({ property, onFavoriteToggle, isFavorited = false }
           </div>
         </div>
 
-        <div className="flex items-center text-gray-600 mb-4">
+        {/* <div className="flex items-center text-gray-600 mb-4">
           <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
           <span className="text-sm truncate">{property.location.address}, {property.location.city}, {property.location.state}</span>
         </div>
@@ -113,7 +113,7 @@ export function PropertyCard({ property, onFavoriteToggle, isFavorited = false }
 
         <p className="text-gray-600 text-sm mb-4 line-clamp-2">{property.description}</p>
 
-        {/* Amenities */}
+        Amenities
         {property.amenities?.length > 0 && (
           <div className="mb-4">
             <div className="flex flex-wrap gap-1">
@@ -123,20 +123,12 @@ export function PropertyCard({ property, onFavoriteToggle, isFavorited = false }
               {property.amenities.length > 3 && <Badge variant="outline" className="text-xs">+{property.amenities.length - 3} more</Badge>}
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Property Info */}
         <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
-          <div className="flex items-center"><Calendar className="h-3 w-3 mr-1" /><span>Available {formatDate(property.availableFrom)}</span></div>
-          <div className="flex items-center"><User className="h-3 w-3 mr-1" /><span>By Owner</span></div>
-        </div>
-
-        {/* Inquiry Buttons */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          <Button size="sm" variant="outline" onClick={() => handleInquiryClick("general")}>General Inquiry</Button>
-          <Button size="sm" variant="outline" onClick={() => handleInquiryClick("viewing")}>Schedule Viewing</Button>
-          <Button size="sm" variant="outline" onClick={() => handleInquiryClick("application")}>Apply</Button>
-          <Button size="sm" variant="outline" onClick={() => handleInquiryClick("availability")}>Check Availability</Button>
+          <div className="flex items-center"><Calendar className="h-3 w-3 mr-1" /><span>Available {formatDate(property.availability?.availableFrom)}</span></div>
+          {/* <div className="flex items-center"><User className="h-3 w-3 mr-1" /><span>By Owner</span></div> */}
         </div>
 
         <Link href={`/properties/${property._id}`}>

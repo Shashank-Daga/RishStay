@@ -25,7 +25,7 @@ export default function PropertiesPage() {
   // Redirect non-landlord users
   useEffect(() => {
     if (!authLoading && (!user || user.role !== "landlord")) {
-      router.push("/dashboard") // ✅ Fixed: removed second argument
+      router.push("/dashboard")
     }
   }, [user, authLoading, router])
 
@@ -40,7 +40,7 @@ export default function PropertiesPage() {
         if (!token) throw new Error("Authentication token not found")
 
         const userProperties = await propertyApi.getMyProperties(token)
-        setProperties(userProperties ?? []) // Ensure array, avoid undefined
+        setProperties(userProperties ?? [])
         setError(null)
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch properties")
@@ -85,14 +85,13 @@ export default function PropertiesPage() {
     )
   }
 
-
-
   const userProperties = properties
   const availableProperties = userProperties.filter(
-    (p: Property) => p.isAvailable && p.status === "available"
+    (p: Property) => p.availability?.isAvailable
   )
-  const rentedProperties = userProperties.filter((p: Property) => p.status === "rented")
-  const pendingProperties = userProperties.filter((p: Property) => p.status === "pending")
+  const rentedProperties = userProperties.filter(
+    (p: Property) => !p.availability?.isAvailable
+  )
 
   const PropertyCardWithActions = ({ property }: { property: Property }) => (
     <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
@@ -107,19 +106,14 @@ export default function PropertiesPage() {
         <div className="absolute top-4 left-4 flex gap-2">
           {property.featured && <Badge className="bg-blue-600 text-white">Featured</Badge>}
           <Badge
+            variant={property.availability?.isAvailable ? "default" : "secondary"}
             className={
-              property.status === "available"
+              property.availability?.isAvailable
                 ? "bg-green-600 text-white"
-                : property.status === "pending"
-                ? "bg-yellow-600 text-white"
                 : "bg-gray-600 text-white"
             }
           >
-            {property.status === "available"
-              ? "Available"
-              : property.status === "pending"
-              ? "Pending"
-              : "Rented"}
+            {property.availability?.isAvailable ? "Available" : "Rented"}
           </Badge>
         </div>
       </div>
@@ -142,7 +136,7 @@ export default function PropertiesPage() {
               View
             </Button>
           </Link>
-          <Link href={`/property/update/${property._id}`} className="flex-1">
+          <Link href={`/properties/update/${property._id}`} className="flex-1">
             <Button variant="outline" size="sm" className="flex-1 bg-transparent">
               <Edit className="h-4 w-4 mr-2" />
               Edit
@@ -174,9 +168,9 @@ export default function PropertiesPage() {
             <TabsTrigger value="all">All Properties ({userProperties.length})</TabsTrigger>
             <TabsTrigger value="available">Available ({availableProperties.length})</TabsTrigger>
             <TabsTrigger value="rented">Rented ({rentedProperties.length})</TabsTrigger>
-            <TabsTrigger value="pending">Pending ({pendingProperties.length})</TabsTrigger>
           </TabsList>
 
+          {/* All */}
           <TabsContent value="all" className="space-y-6">
             {userProperties.length === 0 ? (
               <div className="text-center py-12">
@@ -201,12 +195,13 @@ export default function PropertiesPage() {
             )}
           </TabsContent>
 
+          {/* Available */}
           <TabsContent value="available" className="space-y-6">
             {availableProperties.length === 0 ? (
               <div className="text-center py-12">
                 <Home className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">No available properties</h3>
-                <p className="text-gray-600">All your properties are currently rented or pending.</p>
+                <p className="text-gray-600">All your properties are currently rented.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -217,6 +212,7 @@ export default function PropertiesPage() {
             )}
           </TabsContent>
 
+          {/* Rented */}
           <TabsContent value="rented" className="space-y-6">
             {rentedProperties.length === 0 ? (
               <div className="text-center py-12">
@@ -227,22 +223,6 @@ export default function PropertiesPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {rentedProperties.map((property: Property) => (
-                  <PropertyCardWithActions key={property._id} property={property} />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="pending" className="space-y-6">
-            {pendingProperties.length === 0 ? (
-              <div className="text-center py-12">
-                <Home className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No pending properties</h3>
-                <p className="text-gray-600">No properties are currently pending approval or review.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {pendingProperties.map((property: Property) => (
                   <PropertyCardWithActions key={property._id} property={property} />
                 ))}
               </div>
