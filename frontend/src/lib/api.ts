@@ -68,7 +68,7 @@ const reviveDates = <T>(input: T): T => {
   const isISODate = (val: unknown): val is string =>
     typeof val === "string" && /^\d{4}-\d{2}-\d{2}T/.test(val)
 
-  const recurse = (value: any): any => {
+  const recurse = (value: unknown): unknown => {
     if (Array.isArray(value)) return value.map(recurse)
     if (value && typeof value === "object") {
       return Object.fromEntries(
