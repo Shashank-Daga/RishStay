@@ -60,21 +60,25 @@ const safeFetchJson = async <T>(
 }
 
 // Utility: Convert ISO date strings to Date objects
-const reviveDates = <T extends Record<string, any>>(obj: T): T => {
-  const isISODate = (val: any) =>
+type JsonValue = string | number | boolean | null | JsonObject | JsonValue[]
+interface JsonObject { [key: string]: JsonValue }
+
+// Utility: Convert ISO date strings to Date objects
+const reviveDates = <T>(input: T): T => {
+  const isISODate = (val: unknown): val is string =>
     typeof val === "string" && /^\d{4}-\d{2}-\d{2}T/.test(val)
 
-  const recurse = (input: any): any => {
-    if (Array.isArray(input)) return input.map(recurse)
-    if (input && typeof input === "object") {
+  const recurse = (value: any): any => {
+    if (Array.isArray(value)) return value.map(recurse)
+    if (value && typeof value === "object") {
       return Object.fromEntries(
-        Object.entries(input).map(([k, v]) => [k, recurse(v)])
+        Object.entries(value).map(([k, v]) => [k, recurse(v)])
       )
     }
-    return isISODate(input) ? new Date(input) : input
+    return isISODate(value) ? new Date(value) : value
   }
 
-  return recurse(obj)
+  return recurse(input) as T
 }
 
 // ================== useApi Hook ==================

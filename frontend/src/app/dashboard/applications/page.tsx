@@ -201,14 +201,22 @@ export default function ApplicationsPage() {
         }));
 
         setApplications(transformedApplications);
-      } catch (error: any) {
-        if (error.name === "AbortError") return;
-        console.error("Error fetching applications:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load applications. Please try again.",
-          variant: "destructive",
-        });
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error("Error fetching applications:", error);
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          console.error("Unknown error fetching applications:", error);
+          toast({
+            title: "Error",
+            description: "An unknown error occurred.",
+            variant: "destructive",
+          });
+        }
       } finally {
         setIsLoadingApplications(false);
       }

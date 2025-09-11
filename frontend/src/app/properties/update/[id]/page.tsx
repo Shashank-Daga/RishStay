@@ -136,13 +136,22 @@ export default function EditPropertyPage() {
           })
           setExistingImages(data.images || [])
         }
-      } catch (error: any) {
-        console.error(error)
-        toast({
-          title: "Error",
-          description: error.message || "Failed to load property",
-          variant: "destructive",
-        })
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error(error)
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          })
+        } else {
+          console.error(error)
+          toast({
+            title: "Error",
+            description: "Failed to load property",
+            variant: "destructive",
+          })
+        }
         router.push("/dashboard/properties")
       } finally {
         setIsLoading(false)
