@@ -313,11 +313,19 @@ export default function EditPropertyPage() {
         description: "Your property has been updated.",
       })
       router.push("/dashboard/properties")
-    } catch (error: any) {
+    } catch (error: unknown) {
+      let msg = "An error occurred."
+
+      if (error instanceof Error) {
+        msg = error.message
+      } else if (typeof error === "string") {
+        msg = error
+      }
+
       console.error(error)
       toast({
         title: "Error",
-        description: error.message || "An error occurred.",
+        description: msg,
         variant: "destructive",
       })
     } finally {
