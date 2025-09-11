@@ -52,7 +52,18 @@ type PropertyData = {
   isAvailable: boolean
 }
 
-export default function AddPropertyPage({ editingProperty }: { editingProperty?: PropertyData & { id: string } }) {
+type PropertyAvailability = {
+  isAvailable: boolean
+  availableFrom?: string
+  availableTo?: string
+}
+
+type EditingPropertyData = PropertyData & {
+  id: string
+  availability?: PropertyAvailability
+}
+
+export default function AddPropertyPage({ editingProperty }: { editingProperty?: EditingPropertyData }) {
   const { user, loading } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
@@ -100,12 +111,11 @@ export default function AddPropertyPage({ editingProperty }: { editingProperty?:
   // TypeScript fix: cast editingProperty to any to access availability
   useEffect(() => {
     if (editingProperty) {
-      const ep = editingProperty as any
       setPropertyData((prev) => ({
         ...prev,
-        checkInTime: ep.availability?.availableFrom || prev.checkInTime || "15:00",
-        checkOutTime: ep.availability?.availableTo || prev.checkOutTime || "11:00",
-        isAvailable: ep.availability?.isAvailable ?? prev.isAvailable ?? true,
+        checkInTime: editingProperty.availability?.availableFrom || prev.checkInTime,
+        checkOutTime: editingProperty.availability?.availableTo || prev.checkOutTime,
+        isAvailable: editingProperty.availability?.isAvailable ?? prev.isAvailable ?? true,
       }))
     }
   }, [editingProperty])
