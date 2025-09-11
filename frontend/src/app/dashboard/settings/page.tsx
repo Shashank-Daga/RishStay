@@ -113,18 +113,6 @@ export default function SettingsPage() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="push-notifications">Push Notifications</Label>
-                  <p className="text-sm text-gray-600">Receive push notifications in your browser</p>
-                </div>
-                <Switch
-                  id="push-notifications"
-                  checked={settings.pushNotifications}
-                  onCheckedChange={(checked: boolean) => updateSetting("pushNotifications", checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
                   <Label htmlFor="marketing-emails">Marketing Emails</Label>
                   <p className="text-sm text-gray-600">Receive updates about new features and promotions</p>
                 </div>
@@ -135,11 +123,9 @@ export default function SettingsPage() {
                 />
               </div>
 
-              <Separator />
-
               <div className="space-y-4">
+                {/* #TODO: Add push notifications when implemented
                 <h4 className="font-medium">Specific Notifications</h4>
-
 
                 {user.role === "landlord" && (
                   <div className="flex items-center justify-between">
@@ -153,7 +139,7 @@ export default function SettingsPage() {
                       onCheckedChange={(checked: boolean) => updateSetting("propertyUpdateNotifications", checked)}
                     />
                   </div>
-                )}
+                )} */}
 
                 {user.role === "tenant" && (
                   <div className="flex items-center justify-between">
@@ -186,47 +172,16 @@ export default function SettingsPage() {
                   <Label htmlFor="language">Language</Label>
                   <Select value={settings.language} onValueChange={(value) => updateSetting("language", value)}>
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Select a language"/>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="es">Spanish</SelectItem>
-                      <SelectItem value="fr">French</SelectItem>
-                      <SelectItem value="de">German</SelectItem>
+                      <SelectItem value="hi">Hindi</SelectItem>
+                      <SelectItem value="mr">Marathi</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="timezone">Timezone</Label>
-                  <Select value={settings.timezone} onValueChange={(value) => updateSetting("timezone", value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
-                      <SelectItem value="America/Denver">Mountain Time</SelectItem>
-                      <SelectItem value="America/Chicago">Central Time</SelectItem>
-                      <SelectItem value="America/New_York">Eastern Time</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* <div className="space-y-2">
-                <Label htmlFor="currency">Currency</Label>
-                <Select value={settings.currency} onValueChange={(value) => updateSetting("currency", value)}>
-                  <SelectTrigger className="w-full md:w-48">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USD">USD ($)</SelectItem>
-                    <SelectItem value="EUR">EUR (€)</SelectItem>
-                    <SelectItem value="GBP">GBP (£)</SelectItem>
-                    <SelectItem value="CAD">CAD (C$)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div> */}
+              </div>  
             </CardContent>
           </Card>
 
@@ -246,26 +201,6 @@ export default function SettingsPage() {
                 </div>
                 <Button variant="outline" size="sm">
                   Change Password
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Two-Factor Authentication</p>
-                  <p className="text-sm text-gray-600">Add an extra layer of security</p>
-                </div>
-                <Button variant="outline" size="sm">
-                  Enable 2FA
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Active Sessions</p>
-                  <p className="text-sm text-gray-600">Manage your active sessions</p>
-                </div>
-                <Button variant="outline" size="sm">
-                  View Sessions
                 </Button>
               </div>
             </CardContent>
@@ -295,17 +230,6 @@ export default function SettingsPage() {
                   }}
                 >
                   Logout
-                </Button>
-              </div>
-              
-              {/* Sign Out All Devices */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Sign Out All Devices</p>
-                  <p className="text-sm text-gray-600">Sign out from all devices except this one</p>
-                </div>
-                <Button variant="outline" size="sm">
-                  Sign Out All
                 </Button>
               </div>
 

@@ -43,7 +43,7 @@ export function HeroSection() {
                             <div className="relative">
                                 <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                                 <Input
-                                    placeholder="City, State"
+                                    placeholder="Area"
                                     value={location}
                                     onChange={(e) => setLocation(e.target.value)}
                                     className="pl-10"

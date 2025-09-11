@@ -126,8 +126,12 @@ export default function EditPropertyPage() {
             maxGuests: data.maxGuests?.toString() || "",
             guestType: data.guestType || "Family",
             rules: data.rules || [],
-            checkInTime: data.availability?.availableFrom || "15:00",
-            checkOutTime: data.availability?.availableTo || "11:00",
+            checkInTime: data.availability?.availableFrom
+              ? new Date(data.availability.availableFrom).toISOString().substring(11, 16)
+              : "15:00",
+            checkOutTime: data.availability?.availableTo
+              ? new Date(data.availability.availableTo).toISOString().substring(11, 16)
+              : "11:00",
             isAvailable: data.availability?.isAvailable ?? true,
           })
           setExistingImages(data.images || [])
@@ -255,14 +259,19 @@ export default function EditPropertyPage() {
       formData.append("guestType", propertyData.guestType)
       formData.append("availability", JSON.stringify({
         isAvailable: propertyData.isAvailable,
-        availableFrom: propertyData.checkInTime,
-        availableTo: propertyData.checkOutTime,
+        availableFrom: new Date(`1970-01-01T${propertyData.checkInTime}:00Z`),
+        availableTo: new Date(`1970-01-01T${propertyData.checkOutTime}:00Z`),
       }))
+      formData.append(
+        "location",
+        JSON.stringify({
+          address: propertyData.address.trim(),
+          city: propertyData.city.trim(),
+          state: propertyData.state.trim(),
+          zipCode: propertyData.zipCode.trim(),
+        })
+      )
 
-      formData.append("address", propertyData.address.trim())
-      formData.append("city", propertyData.city.trim())
-      formData.append("state", propertyData.state.trim())
-      formData.append("zipCode", propertyData.zipCode.trim())
 
       propertyData.amenities.forEach((a) => formData.append("amenities[]", a))
       propertyData.rules.forEach((r) => formData.append("rules[]", r))

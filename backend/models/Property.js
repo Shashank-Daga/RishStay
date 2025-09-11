@@ -7,8 +7,8 @@ const PropertySchema = new Schema({
   price: { type: Number, required: true, min: 0 },
 
   location: {
-    address: { type: String, required: true },
-    city: { type: String, required: true, index: true },
+    address: { type: String, required: true, index: true },
+    city: { type: String, required: true },
     state: { type: String, required: true },
     zipCode: { type: String, required: true },
     _id: false,
@@ -60,7 +60,7 @@ const PropertySchema = new Schema({
 });
 
 // Indexes for better query performance
-PropertySchema.index({ "location.city": 1, price: 1, availability: 1 });
+PropertySchema.index({ "location.address": 1, price: 1, availability: 1 });
 
 const Property = mongoose.model("Property", PropertySchema);
 module.exports = Property;

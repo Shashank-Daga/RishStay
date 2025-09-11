@@ -82,11 +82,11 @@ router.post(
 // Route 2: Get all properties with optional filters and pagination – No login required
 router.get('/all', async (req, res) => {
   try {
-    const { city, propertyType, minPrice, maxPrice, bedrooms, guests, guestType, page, limit } = req.query;
+    const { address, propertyType, minPrice, maxPrice, bedrooms, guests, guestType, page, limit } = req.query;
 
     let query = {};
 
-    if (city) query['location.city'] = new RegExp(city.trim(), 'i');
+    if (address) query['location.address'] = new RegExp(address.trim(), 'i');
     if (propertyType) query.propertyType = propertyType;
     if (minPrice || maxPrice) {
       query.price = {};
@@ -162,18 +162,34 @@ router.put(
       if (property.landlord.toString() !== req.user.id)
         return res.status(403).json({ success: false, error: "Not authorized to update this property" });
 
-      // Only allow updating allowed fields
+      // -------------------- Build Updates --------------------
       const updates = {};
-      for (let key of allowedUpdateFields) {
-        if (req.body[key] !== undefined) updates[key] = req.body[key];
+
+      // ✅ Handle availability (supports JSON string or plain object)
+      if (req.body.availability) {
+        try {
+          updates.availability =
+            typeof req.body.availability === "string"
+              ? JSON.parse(req.body.availability)
+              : req.body.availability;
+        } catch (err) {
+          console.error("Invalid availability JSON:", err);
+        }
       }
 
-      // Handle images replacement if new files uploaded
-      if (req.files && req.files.length > 0) {
-        updates.images = req.files.map((file) => `/uploads/properties/${file.filename}`);
+      // ✅ Handle location (supports JSON string or plain object)
+      if (req.body.location) {
+        try {
+          updates.location =
+            typeof req.body.location === "string"
+              ? JSON.parse(req.body.location)
+              : req.body.location;
+        } catch (err) {
+          console.error("Invalid location JSON:", err);
+        }
       }
 
-      // Handle amenities/rules arrays properly
+      // ✅ Handle amenities & rules arrays
       if (req.body["amenities[]"]) {
         updates.amenities = Array.isArray(req.body["amenities[]"])
           ? req.body["amenities[]"]
@@ -185,9 +201,27 @@ router.put(
           : [req.body["rules[]"]];
       }
 
+      // ✅ Copy allowed flat fields (ignoring nested ones)
+      for (let key of allowedUpdateFields) {
+        if (
+          req.body[key] !== undefined &&
+          !["availability", "location", "amenities", "rules"].includes(key)
+        ) {
+          updates[key] = req.body[key];
+        }
+      }
+
+      // ✅ Replace images if new ones uploaded
+      if (req.files && req.files.length > 0) {
+        updates.images = req.files.map(
+          (file) => `/uploads/properties/${file.filename}`
+        );
+      }
+
+      // -------------------- Perform Update --------------------
       property = await Property.findByIdAndUpdate(
         req.params.id,
-        { $set: updates, updatedAt: Date.now() },
+        { $set: { ...updates, updatedAt: Date.now() } },
         { new: true }
       );
 
@@ -198,6 +232,7 @@ router.put(
     }
   }
 );
+
 
 // Route 6: Delete a property (DELETE /api/property/delete/:id) – Login required
 router.delete('/delete/:id', fetchuser, async (req, res) => {

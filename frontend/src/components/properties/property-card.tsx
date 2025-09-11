@@ -40,6 +40,11 @@ export function PropertyCard({ property, onFavoriteToggle, isFavorited = false }
     }).format(parsedDate)
   }
 
+  // ✅ Check if property is "New" (created within last 7 days)
+  const isNew =
+    property.createdAt &&
+    new Date().getTime() - new Date(property.createdAt).getTime() <= 7 * 24 * 60 * 60 * 1000
+
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
       <div className="relative">
@@ -54,15 +59,27 @@ export function PropertyCard({ property, onFavoriteToggle, isFavorited = false }
             alt={property.title || "Property image"}
             width={400}
             height={250}
-            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${isImageLoading ? "opacity-0" : "opacity-100"}`}
+            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
+              isImageLoading ? "opacity-0" : "opacity-100"
+            }`}
             onLoad={() => setIsImageLoading(false)}
           />
         </div>
 
         {/* Badges */}
         <div className="absolute top-4 left-4 flex flex-col gap-2">
-          {property.featured && <Badge className="bg-blue-600 text-white">Featured</Badge>}
-          <Badge variant="secondary" className="bg-white/90 text-gray-900 capitalize">{property.propertyType}</Badge>
+          {property.featured && (
+            <Badge className="bg-blue-600 text-white">Featured</Badge>
+          )}
+          <Badge
+            variant="secondary"
+            className="bg-white/90 text-gray-900 capitalize"
+          >
+            {property.propertyType}
+          </Badge>
+          {isNew && (
+            <Badge className="bg-red-600 text-white font-semibold shadow-md">New</Badge>
+          )}
         </div>
 
         {/* Favorite Button */}
@@ -70,7 +87,9 @@ export function PropertyCard({ property, onFavoriteToggle, isFavorited = false }
           <Button
             variant="ghost"
             size="sm"
-            className={`absolute top-4 right-4 bg-white/80 hover:bg-white ${isFavorited ? "text-red-500" : "text-gray-600"}`}
+            className={`absolute top-4 right-4 bg-white/80 hover:bg-white ${
+              isFavorited ? "text-red-500" : "text-gray-600"
+            }`}
             onClick={handleFavoriteClick}
             aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
           >
@@ -82,7 +101,11 @@ export function PropertyCard({ property, onFavoriteToggle, isFavorited = false }
         <div className="absolute bottom-4 left-4">
           <Badge
             variant={property.availability?.isAvailable ? "default" : "secondary"}
-            className={property.availability?.isAvailable ? "bg-green-600 text-white" : "bg-gray-600 text-white"}
+            className={
+              property.availability?.isAvailable
+                ? "bg-green-600 text-white"
+                : "bg-gray-600 text-white"
+            }
           >
             {property.availability?.isAvailable ? "Available" : "Rented"}
           </Badge>
@@ -91,48 +114,31 @@ export function PropertyCard({ property, onFavoriteToggle, isFavorited = false }
 
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-3">
-          <h3 className="text-xl font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">{property.title}</h3>
+          <h3 className="text-xl font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+            {property.title}
+          </h3>
           <div className="text-right ml-4">
-            <div className="text-2xl font-bold text-blue-600">Rs {property.price.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              Rs {property.price.toLocaleString()}
+            </div>
             <div className="text-sm text-gray-500">per month</div>
           </div>
         </div>
 
-        {/* <div className="flex items-center text-gray-600 mb-4">
-          <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-          <span className="text-sm truncate">{property.location.address}, {property.location.city}, {property.location.state}</span>
-        </div>
-
-        <div className="flex items-center justify-between mb-4 text-sm text-gray-600">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center"><Bed className="h-4 w-4 mr-1" /><span>{property.bedrooms === 0 ? "studio" : `${property.bedrooms} bed${property.bedrooms !== 1 ? "s" : ""}`}</span></div>
-            <div className="flex items-center"><Bath className="h-4 w-4 mr-1" /><span>{property.bathrooms} bath{property.bathrooms !== 1 ? "s" : ""}</span></div>
-            <div className="flex items-center"><Square className="h-4 w-4 mr-1" /><span>{property.area} sqft</span></div>
-          </div>
-        </div>
-
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{property.description}</p>
-
-        Amenities
-        {property.amenities?.length > 0 && (
-          <div className="mb-4">
-            <div className="flex flex-wrap gap-1">
-              {property.amenities.slice(0, 3).map((amenity) => (
-                <Badge key={amenity} variant="outline" className="text-xs">{amenity}</Badge>
-              ))}
-              {property.amenities.length > 3 && <Badge variant="outline" className="text-xs">+{property.amenities.length - 3} more</Badge>}
-            </div>
-          </div>
-        )} */}
-
         {/* Property Info */}
         <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
-          <div className="flex items-center"><Calendar className="h-3 w-3 mr-1" /><span>Available {formatDate(property.availability?.availableFrom)}</span></div>
-          {/* <div className="flex items-center"><User className="h-3 w-3 mr-1" /><span>By Owner</span></div> */}
+          <div className="flex items-center">
+            <Calendar className="h-3 w-3 mr-1" />
+            <span>
+              Available {formatDate(property.availability?.availableFrom)}
+            </span>
+          </div>
         </div>
 
         <Link href={`/properties/${property._id}`}>
-          <Button className="w-full group-hover:bg-blue-700 transition-colors">View Details</Button>
+          <Button className="w-full group-hover:bg-blue-700 transition-colors">
+            View Details
+          </Button>
         </Link>
       </CardContent>
     </Card>
