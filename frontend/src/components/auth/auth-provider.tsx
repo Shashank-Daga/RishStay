@@ -17,13 +17,23 @@ interface AuthContextType {
   logout: () => void
   loading: boolean
   updateUser: (user: User) => void
+  toggleFavorite: (propertyId: string) => Promise<void> // ✅ added
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { user, setUser, login, signup, logout, getCurrentUser } = useAuthService()
-  const [loading, setLoading] = useState(true) // loading while restoring user
+  const {
+    user,
+    setUser,
+    login,
+    signup,
+    logout,
+    getCurrentUser,
+    toggleFavorite, // ✅ bring it from useAuthService
+  } = useAuthService()
+
+  const [loading, setLoading] = useState(true)
 
   // Restore user on app mount
   useEffect(() => {
@@ -45,7 +55,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(updatedUser)
     localStorage.setItem("rental-user", JSON.stringify(updatedUser))
 
-    // Optional: sync favorites to backend
     if (updatedUser.favorites) {
       fetch(`/api/users/${updatedUser._id}/favorites`, {
         method: "PUT",
@@ -67,6 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
         loading,
         updateUser,
+        toggleFavorite, // ✅ provide it
       }}
     >
       {children}
@@ -74,7 +84,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   )
 }
 
-// ✅ Public hook for components
 export function useAuth() {
   const context = useContext(AuthContext)
   if (!context) {

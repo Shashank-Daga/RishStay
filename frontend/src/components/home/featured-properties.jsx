@@ -51,6 +51,9 @@ export function FeaturedProperties() {
     return diffDays <= 7
   }
 
+  // ✅ Helper: check if user can favorite (tenant only)
+  const canFavorite = user && user.role === "tenant"
+
   return (
     <section className="py-16 lg:py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -112,30 +115,28 @@ export function FeaturedProperties() {
                         )}
                       </div>
 
-                      {/* Favorite Button */}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className={`absolute top-4 right-4 bg-white/80 hover:bg-white ${
-                          user?.favorites?.includes(property._id)
-                            ? "text-red-500"
-                            : "text-gray-400"
-                        }`}
-                        onClick={(e) => {
-                          e.preventDefault()
-                          if (user) {
-                            toggleFavorite(property._id)
-                          } else {
-                            alert("Please log in to save favorites")
-                          }
-                        }}
-                      >
-                        <Heart
-                          className={`h-4 w-4 ${
-                            user?.favorites?.includes(property._id) ? "fill-red-500" : ""
+                      {/* Favorite Button - Only show for tenants */}
+                      {canFavorite && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={`absolute top-4 right-4 bg-white/80 hover:bg-white ${
+                            user?.favorites?.includes(property._id)
+                              ? "text-red-500"
+                              : "text-gray-400"
                           }`}
-                        />
-                      </Button>
+                          onClick={(e) => {
+                            e.preventDefault()
+                            toggleFavorite(property._id)
+                          }}
+                        >
+                          <Heart
+                            className={`h-4 w-4 ${
+                              user?.favorites?.includes(property._id) ? "fill-red-500" : ""
+                            }`}
+                          />
+                        </Button>
+                      )}
 
                       {/* Status Badge */}
                       <div className="absolute bottom-4 left-4">

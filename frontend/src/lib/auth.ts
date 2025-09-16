@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react"
 import type { User } from "@/lib/types"
+import { useToast } from "@/hooks/use-toast"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
 
@@ -14,6 +15,7 @@ interface AuthResponse {
 }
 
 export function useAuthService() {
+  const { toast } = useToast()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -156,30 +158,83 @@ export function useAuthService() {
     setUser(null)
   }, [])
 
-  const toggleFavorite = useCallback(
-    (propertyId: string) => {
-      if (!user) return
+  const toggleFavorite = async (propertyId: string): Promise<void> => {
+    if (!user) {
+      toast({
+        title: "Login required",
+        description: "Please log in to save favorites.",
+        variant: "destructive",
+      })
+      return
+    }
 
-      const updatedFavorites = user.favorites?.includes(propertyId)
-        ? user.favorites.filter((id) => id !== propertyId)
-        : [...(user.favorites || []), propertyId]
+    const token = localStorage.getItem("auth-token")
+    if (!token) {
+      toast({
+        title: "Authentication error",
+        description: "Please log in again.",
+        variant: "destructive",
+      })
+      return
+    }
 
-      const updatedUser = { ...user, favorites: updatedFavorites }
-      setUser(updatedUser)
-      localStorage.setItem("rental-user", JSON.stringify(updatedUser))
+    const isFavorite = user.favorites?.includes(propertyId)
+    
+    try {
+      let res;
+      
+      if (isFavorite) {
+        // Remove from favorites
+        res = await fetch(`${API_BASE_URL}/favorites/${user._id}/remove/${propertyId}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            "auth-token": token, // Remove "Bearer " prefix
+          },
+        })
+      } else {
+        // Add to favorites
+        res = await fetch(`${API_BASE_URL}/favorites/${user._id}/add`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "auth-token": token, // Remove "Bearer " prefix
+          },
+          body: JSON.stringify({ propertyId }),
+        })
+      }
 
-      // Sync with backend
-      fetch(`${API_BASE_URL}/users/${user._id}/favorites`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("auth-token")}`,
-        },
-        body: JSON.stringify({ favorites: updatedFavorites }),
-      }).catch((err) => console.error("Failed to update favorites:", err))
-    },
-    [user]
-  )
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: "Unknown error" }))
+        throw new Error(errorData.error || "Failed to update favorites")
+      }
+
+      const data = await res.json()
+      
+      if (data.success) {
+        // Update user state with the returned favorites
+        const updatedUser = { ...user, favorites: data.favorites }
+        setUser(updatedUser)
+        localStorage.setItem("rental-user", JSON.stringify(updatedUser))
+
+        toast({
+          title: isFavorite ? "Removed from favorites" : "Added to favorites",
+          description: isFavorite
+            ? "This property was removed from your favorites list."
+            : "This property was added to your favorites list.",
+        })
+      } else {
+        throw new Error(data.error || "Failed to update favorites")
+      }
+    } catch (err) {
+      console.error("Failed to update favorites:", err)
+      toast({
+        title: "Something went wrong",
+        description: err instanceof Error ? err.message : "Could not update favorites. Please try again later.",
+        variant: "destructive",
+      })
+    }
+  }
 
   return {
     user,
