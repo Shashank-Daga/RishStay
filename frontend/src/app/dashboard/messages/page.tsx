@@ -21,7 +21,6 @@ export default function MessagesPage() {
   const [error, setError] = useState<string | null>(null)
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null)
 
-  // 👇 Role-based default filter
   const isTenant = user?.role === "tenant"
   const [filter] = useState<"received" | "sent">(isTenant ? "sent" : "received")
 
@@ -52,9 +51,7 @@ export default function MessagesPage() {
       }
     }
 
-    if (user) {
-      fetchMessages()
-    }
+    if (user) fetchMessages()
   }, [user])
 
   const handleMarkAsRead = async (messageId: string) => {
@@ -68,6 +65,10 @@ export default function MessagesPage() {
           msg._id === messageId ? { ...msg, status: "read" } : msg
         )
       )
+      // update selectedMessage if it's the current one
+      if (selectedMessage?._id === messageId) {
+        setSelectedMessage(prev => prev ? { ...prev, status: "read" } : prev)
+      }
     } catch (err) {
       console.error("Error marking message as read:", err)
     }
@@ -80,9 +81,7 @@ export default function MessagesPage() {
 
       await messageApi.delete(messageId, token)
       setMessages(prev => prev.filter(msg => msg._id !== messageId))
-      if (selectedMessage?._id === messageId) {
-        setSelectedMessage(null)
-      }
+      if (selectedMessage?._id === messageId) setSelectedMessage(null)
     } catch (err) {
       console.error("Error deleting message:", err)
     }
@@ -122,7 +121,6 @@ export default function MessagesPage() {
     )
   }
 
-  // 👇 Role-based filtering
   const filteredMessages = messages.filter(message =>
     filter === "received"
       ? message.recipient._id === user._id
@@ -187,7 +185,7 @@ export default function MessagesPage() {
                         selectedMessage?._id === message._id
                           ? "bg-blue-50 border-blue-200"
                           : message.status === "unread"
-                          ? "bg-gray-50 border-gray-200"
+                          ? "bg-gray-50 border-gray-300" // slightly lighter for unread
                           : "bg-white border-gray-200 hover:bg-gray-50"
                       }`}
                       onClick={() => {
@@ -267,14 +265,23 @@ export default function MessagesPage() {
                       )}
                     </div>
                     <div className="flex gap-2">
-                      {!isTenant && selectedMessage.status === "unread" && (
+                      {!isTenant && (
                         <Button
-                          variant="outline"
+                          variant={
+                            selectedMessage.status === "read"
+                              ? "secondary"
+                              : "outline"
+                          }
                           size="sm"
-                          onClick={() => handleMarkAsRead(selectedMessage._id)}
+                          disabled={selectedMessage.status === "read"}
+                          onClick={() =>
+                            handleMarkAsRead(selectedMessage._id)
+                          }
                         >
                           <Eye className="h-4 w-4 mr-2" />
-                          Mark as Read
+                          {selectedMessage.status === "read"
+                            ? "Read"
+                            : "Mark as Read"}
                         </Button>
                       )}
                       <Button
@@ -323,9 +330,7 @@ export default function MessagesPage() {
                         <h4 className="font-medium text-gray-900 mb-2">
                           Phone:
                         </h4>
-                        <p className="text-gray-700">
-                          {selectedMessage.phone}
-                        </p>
+                        <p className="text-gray-700">{selectedMessage.phone}</p>
                       </div>
                     )}
                   </div>
