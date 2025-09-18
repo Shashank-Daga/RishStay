@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
@@ -13,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/components/auth/auth-provider"
 import { useApi } from "@/lib/api"
-import { CalendarIcon, Phone, Mail } from "lucide-react"
+import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import type { Property, SendMessageResponse } from "@/lib/types"
 
@@ -35,6 +36,7 @@ export function ContactForm({ property }: ContactFormProps) {
     name: user?.name || "",
     email: user?.email || "",
     phone: "",
+    message: "", // ✅ new field
   })
 
   // Prefill inquiryType from URL query
@@ -42,6 +44,20 @@ export function ContactForm({ property }: ContactFormProps) {
     const type = searchParams.get("inquiryType") as "general" | "viewing" | "application" | "availability" | null
     if (type) setInquiryType(type)
   }, [searchParams])
+
+  // Map inquiry type to subject string
+  const getSubject = (type: typeof inquiryType) => {
+    switch (type) {
+      case "viewing":
+        return "Schedule a Viewing"
+      case "application":
+        return "Rental Application"
+      case "availability":
+        return "Availability Inquiry"
+      default:
+        return "General Information"
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -72,8 +88,9 @@ export function ContactForm({ property }: ContactFormProps) {
       const result: SendMessageResponse = await messageApi.send(
         {
           propertyId: property._id,
-          message: `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\n\nInquiry: ${inquiryType}`,
-          inquiryType: inquiryType,
+          subject: getSubject(inquiryType), // ✅ subject sent
+          message: formData.message.trim(), // ✅ tenant's message
+          inquiryType,
           preferredDate,
           phone: formData.phone,
         },
@@ -85,11 +102,7 @@ export function ContactForm({ property }: ContactFormProps) {
           title: "Inquiry sent!",
           description: "The property owner will respond soon.",
         })
-        if (!user) {
-          setFormData({ name: "", email: "", phone: "" })
-        } else {
-          setFormData({ ...formData, phone: "" })
-        }
+        setFormData({ name: user?.name || "", email: user?.email || "", phone: "", message: "" })
         setPreferredDate(undefined)
       } else {
         toast({
@@ -100,7 +113,6 @@ export function ContactForm({ property }: ContactFormProps) {
       }
     } catch (error) {
       console.error("Contact form error:", error)
-
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "An unexpected error occurred. Please try again later.",
@@ -117,7 +129,6 @@ export function ContactForm({ property }: ContactFormProps) {
 
   return (
     <div className="space-y-6">
-      {/* Contact Form */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Contact Owner</CardTitle>
@@ -127,9 +138,11 @@ export function ContactForm({ property }: ContactFormProps) {
             {/* Inquiry Type */}
             <div className="space-y-2">
               <Label>I am interested in:</Label>
-              <Select 
-                value={inquiryType} 
-                onValueChange={(value) => setInquiryType(value as "general" | "viewing" | "application" | "availability")}
+              <Select
+                value={inquiryType}
+                onValueChange={(value) =>
+                  setInquiryType(value as "general" | "viewing" | "application" | "availability")
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -169,17 +182,33 @@ export function ContactForm({ property }: ContactFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">Phone Number *</Label>
               <Input
                 id="phone"
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => handleInputChange("phone", e.target.value)}
-                placeholder="(555) 123-4567"
+                placeholder="9876543210"
+                required
+                pattern="[0-9]{10}"
+                title="Enter a valid 10-digit phone number"
               />
             </div>
 
-            {/* Preferred Date for Viewing */}
+            {/* Message Box */}
+            <div className="space-y-2">
+              <Label htmlFor="message">Message *</Label>
+              <Textarea
+                id="message"
+                value={formData.message}
+                onChange={(e) => handleInputChange("message", e.target.value)}
+                placeholder="Write your message to the property owner"
+                required
+                rows={4}
+              />
+            </div>
+
+            {/* Preferred Date */}
             {inquiryType === "viewing" && (
               <div className="space-y-2">
                 <Label>Preferred Viewing Date</Label>

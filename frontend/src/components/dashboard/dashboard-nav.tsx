@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/components/auth/auth-provider"
-import { Home, Heart, User, Settings, PlusCircle, FileText, Menu, X } from "lucide-react"
+import { Home, Heart, User, Settings, PlusCircle, FileText, Menu, X, MessageSquare } from "lucide-react"
 
 export function DashboardNav() {
   const { user } = useAuth()
@@ -14,14 +14,16 @@ export function DashboardNav() {
 
   const tenantNavItems = [
     { href: "/dashboard", icon: Home, label: "Overview" },
+    { href: "/dashboard/messages", icon: MessageSquare, label: "Messages" },
     { href: "/dashboard/favorites", icon: Heart, label: "Favorites" },
-    { href: "/dashboard/applications", icon: FileText, label: "Applications" },
+    // Removed Applications link as per user request
     { href: "/dashboard/profile", icon: User, label: "Profile" },
     { href: "/dashboard/settings", icon: Settings, label: "Settings" },
   ]
 
 const ownerNavItems = [
     { href: "/dashboard", icon: Home, label: "Overview" },
+    { href: "/dashboard/messages", icon: MessageSquare, label: "Messages" },
     { href: "/dashboard/properties", icon: Home, label: "My Properties" },
     { href: "/dashboard/add-property", icon: PlusCircle, label: "Add Property" },
     { href: "/dashboard/profile", icon: User, label: "Profile" },

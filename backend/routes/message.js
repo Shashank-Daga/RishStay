@@ -18,7 +18,10 @@ router.post('/send', fetchuser, [
     body('message', 'Message is required').notEmpty(),
     body('inquiryType').optional().isIn(['general', 'viewing', 'application', 'availability']),
     body('preferredDate').optional().isISO8601(),
-    body('phone').optional().isMobilePhone('en-IN')
+    body('phone')
+        .optional()
+        .matches(/^[0-9]{10}$/)
+        .withMessage('Phone must be a valid 10-digit number')
 ], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -59,22 +62,74 @@ router.post('/send', fetchuser, [
 });
 
 /**
- * ROUTE 2: Get all messages for current user
- * GET /api/message/my-messages
+ * ROUTE 2a: Get all sent messages (inquiries by tenant)
+ * GET /api/message/my-messages/sent?page=1&limit=20
  * Login required
  */
-router.get('/my-messages', fetchuser, async (req, res) => {
+router.get('/my-messages/sent', fetchuser, async (req, res) => {
     try {
-        const messages = await Message.find({
-            $or: [{ sender: req.user.id }, { recipient: req.user.id }]
-        })
-            .populate('sender', 'name email phoneNo')
-            .populate('recipient', 'name email phoneNo')
-            .populate('property', 'title location')
-            .sort({ createdAt: -1 });
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
 
-        res.json({ success: true, data: messages });
+        const [messages, total] = await Promise.all([
+            Message.find({ sender: req.user.id })
+                .populate('recipient', 'name email phoneNo')
+                .populate('property', 'title location')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+            Message.countDocuments({ sender: req.user.id })
+        ]);
 
+        res.json({
+            success: true,
+            data: messages,
+            pagination: {
+                page,
+                limit,
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({ success: false, error: "Internal Server Error" });
+    }
+});
+
+
+/**
+ * ROUTE 2b: Get all received messages (inquiries landlords get)
+ * GET /api/message/my-messages/received?page=1&limit=20
+ * Login required
+ */
+router.get('/my-messages/received', fetchuser, async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+
+        const [messages, total] = await Promise.all([
+            Message.find({ recipient: req.user.id })
+                .populate('sender', 'name email phoneNo')
+                .populate('property', 'title location')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+            Message.countDocuments({ recipient: req.user.id })
+        ]);
+
+        res.json({
+            success: true,
+            data: messages,
+            pagination: {
+                page,
+                limit,
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        });
     } catch (error) {
         console.error(error.message);
         res.status(500).json({ success: false, error: "Internal Server Error" });

@@ -57,16 +57,15 @@ export interface Favorite {
 
 export interface Message {
   _id: string
-  fromUserId: string
-  toUserId: string
-  propertyId?: string
-  property?: Property
+  sender: User
+  recipient: User
+  property: Property
   subject: string
   message: string
   inquiryType?: "general" | "viewing" | "application" | "availability"
   preferredDate?: Date
   phone?: string
-  status: "unread" | "read" | "replied"
+  status: "unread" | "read"
   createdAt: Date
   updatedAt?: Date
 }
