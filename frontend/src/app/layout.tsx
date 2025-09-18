@@ -27,7 +27,7 @@ html {
 }
         `}</style>
       </head>
-      <body className="chakra-ui-light">
+      <body suppressHydrationWarning={true} className="bg-white text-black">
         <AuthProvider>
           {children}
           <Toaster />

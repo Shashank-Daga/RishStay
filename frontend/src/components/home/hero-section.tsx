@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, MapPin } from "lucide-react"
 
 export function HeroSection() {
-
     const [location, setLocation] = useState("")
     const [propertyType, setPropertyType] = useState("")
     const [priceRange, setPriceRange] = useState("")
@@ -23,22 +22,23 @@ export function HeroSection() {
     }
 
     return (
-        <section className="relative bg-gradient-to-br from-blue-50 to-indigo-100 py-20 lg:py-32">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-12">
-                    <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
+        <section className="relative bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                <div className="text-center mb-16">
+                    <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                         Find Your Perfect
                         <span className="text-blue-600 block">Rental Home</span>
                     </h1>
-                    <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-                        Description
+                    <p className="text-xl lg:text-2xl text-gray-600 max-w-3xl mx-auto mb-8 leading-relaxed">
+                        Discover thousands of verified rental properties. Connect directly with property 
+                        owners and find your ideal home with ease.
                     </p>
                 </div>
 
                 {/* Search Form */}
-                < div className="bg-white rounded-2xl shadow-xl p-6 lg:p-8 max-w-4xl mx-auto mb-12" >
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div className="space-y-2">
+                < div className="bg-white rounded-2xl shadow-xl p-6 lg:p-8 max-w-5xl mx-auto border border-gray-100" >
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+                        <div className="space-y-3">
                             <label className="text-sm font-medium text-gray-700">Location</label>
                             <div className="relative">
                                 <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -51,7 +51,7 @@ export function HeroSection() {
                             </div>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                             <label className="text-sm font-medium text-gray-700">Property Type</label>
                             <Select value={propertyType} onValueChange={setPropertyType}>
                                 <SelectTrigger>
@@ -64,7 +64,7 @@ export function HeroSection() {
                             </Select>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                             <label className="text-sm font-medium text-gray-700">Price Range</label>
                             <Select value={priceRange} onValueChange={setPriceRange}>
                                 <SelectTrigger>
@@ -79,7 +79,7 @@ export function HeroSection() {
                             </Select>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                             <label className="text-sm font-medium text-gray-700">&nbsp;</label>
                             <Button onClick={handleSearch} className="w-full h-10">
                                 <Search className="h-4 w-4 mr-2" />
