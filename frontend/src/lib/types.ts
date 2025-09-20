@@ -1,5 +1,6 @@
 "use client"
 
+// ✅ User type
 export interface User {
   _id: string
   email: string
@@ -11,6 +12,7 @@ export interface User {
   favorites?: string[] // Array of Property IDs
 }
 
+// ✅ Property type
 export interface Property {
   _id: string
   title: string
@@ -29,14 +31,11 @@ export interface Property {
   bedrooms: number
   bathrooms: number
   area: number
-
-  // ✅ Updated to match backend
   availability: {
     isAvailable: boolean
     availableFrom?: Date
     availableTo?: Date
   }
-
   landlordId: string
   landlord: User
   featured: boolean
@@ -48,6 +47,7 @@ export interface Property {
   checkOutTime: string
 }
 
+// ✅ Favorites type
 export interface Favorite {
   _id: string
   userId: string
@@ -55,6 +55,7 @@ export interface Favorite {
   createdAt: Date
 }
 
+// ✅ Messages type
 export interface Message {
   _id: string
   sender: User
@@ -70,13 +71,14 @@ export interface Message {
   updatedAt?: Date
 }
 
-// API response type for sending messages
+// ✅ API response for sending a single message
 export interface SendMessageResponse {
   success: boolean
   error?: string
   data?: Message
 }
 
+// ✅ Review type
 export interface Review {
   _id: string
   propertyId: string
@@ -84,4 +86,17 @@ export interface Review {
   rating: number
   comment: string
   createdAt: Date
+}
+
+// ✅ Shared pagination types
+export interface PaginationMeta {
+  page: number
+  limit: number
+  total: number
+  pages: number
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  pagination: PaginationMeta
 }

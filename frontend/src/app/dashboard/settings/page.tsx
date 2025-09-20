@@ -1,33 +1,29 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Switch } from "@/components/ui/switch"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useAuth } from "@/components/auth/auth-provider"
 import { useToast } from "@/hooks/use-toast"
-import { Settings, Bell, Shield, Trash2, Save } from "lucide-react"
+import { useApi } from "@/lib/api"
+import { Shield, Trash2 } from "lucide-react"
 
 export default function SettingsPage() {
   const { user, loading, logout } = useAuth()
+  const { authApi } = useApi()
   const router = useRouter()
   const { toast } = useToast()
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const [settings, setSettings] = useState({
-    emailNotifications: true,
-    pushNotifications: false,
-    marketingEmails: false,
-    propertyUpdateNotifications: true,
-    applicationStatusNotifications: true,
-    language: "en",
-    timezone: "IST — India Standard Time",
-    currency: "Rupees",
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: ""
   })
 
   useEffect(() => {
@@ -52,32 +48,92 @@ export default function SettingsPage() {
 
   if (!user) return null
 
-  const handleSave = async () => {
-    setIsSubmitting(true)
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    toast({
-      title: "Settings saved!",
-      description: "Your preferences have been updated successfully.",
-    })
-
-    setIsSubmitting(false)
-  }
-
-  const handleDeleteAccount = () => {
-    if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+  const handleChangePassword = async () => {
+    if (!passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
       toast({
-        title: "Account deletion requested",
-        description: "Your account will be deleted within 24 hours. You can contact support to cancel this request.",
+        title: "Validation Error",
+        description: "Please fill in all password fields.",
         variant: "destructive",
       })
+      return
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: "Validation Error",
+        description: "New passwords do not match.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (passwordData.newPassword.length < 5) {
+      toast({
+        title: "Validation Error",
+        description: "New password must be at least 5 characters long.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const token = localStorage.getItem("auth-token")
+      if (!token) throw new Error("Not authenticated")
+
+      await authApi.changePassword(passwordData.oldPassword, passwordData.newPassword, token)
+
+      toast({
+        title: "Password changed",
+        description: "Your password was updated successfully.",
+      })
+
+      // Reset form and close dialog
+      setPasswordData({ oldPassword: "", newPassword: "", confirmPassword: "" })
+      setIsChangePasswordOpen(false)
+
+    } catch (err) {
+      toast({
+        title: "Password change failed",
+        description: err instanceof Error ? err.message : "Unknown error",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
-  const updateSetting = (key: string, value: boolean | string) => {
-    setSettings((prev) => ({ ...prev, [key]: value }))
+  const handleDeleteAccount = async () => {
+    if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+      setIsSubmitting(true)
+
+      try {
+        const token = localStorage.getItem("auth-token")
+        if (!token) throw new Error("Not authenticated")
+
+        await authApi.deleteAccount(token)
+
+        toast({
+          title: "Account deleted",
+          description: "Your account has been permanently deleted.",
+          variant: "destructive",
+        })
+
+        // Logout and redirect to home
+        logout()
+        router.push("/")
+
+      } catch (err) {
+        toast({
+          title: "Account deletion failed",
+          description: err instanceof Error ? err.message : "Unknown error",
+          variant: "destructive",
+        })
+      } finally {
+        setIsSubmitting(false)
+      }
+    }
   }
 
   return (
@@ -90,101 +146,6 @@ export default function SettingsPage() {
         </div>
 
         <div className="max-w-2xl space-y-6">
-          {/* Notifications */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5" />
-                Notifications
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="email-notifications">Email Notifications</Label>
-                  <p className="text-sm text-gray-600">Receive notifications via email</p>
-                </div>
-                <Switch
-                  id="email-notifications"
-                  checked={settings.emailNotifications}
-                  onCheckedChange={(checked: boolean) => updateSetting("emailNotifications", checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="marketing-emails">Marketing Emails</Label>
-                  <p className="text-sm text-gray-600">Receive updates about new features and promotions</p>
-                </div>
-                <Switch
-                  id="marketing-emails"
-                  checked={settings.marketingEmails}
-                  onCheckedChange={(checked: boolean) => updateSetting("marketingEmails", checked)}
-                />
-              </div>
-
-              <div className="space-y-4">
-                {/* #TODO: Add push notifications when implemented
-                <h4 className="font-medium">Specific Notifications</h4>
-
-                {user.role === "landlord" && (
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="property-updates">Property Updates</Label>
-                      <p className="text-sm text-gray-600">Updates about your listed properties</p>
-                    </div>
-                    <Switch
-                      id="property-updates"
-                      checked={settings.propertyUpdateNotifications}
-                      onCheckedChange={(checked: boolean) => updateSetting("propertyUpdateNotifications", checked)}
-                    />
-                  </div>
-                )} */}
-
-                {user.role === "tenant" && (
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="application-status">Application Status</Label>
-                      <p className="text-sm text-gray-600">Updates on your rental applications</p>
-                    </div>
-                    <Switch
-                      id="application-status"
-                      checked={settings.applicationStatusNotifications}
-                      onCheckedChange={(checked: boolean) => updateSetting("applicationStatusNotifications", checked)}
-                    />
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Preferences */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Preferences
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="language">Language</Label>
-                  <Select value={settings.language} onValueChange={(value) => updateSetting("language", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a language"/>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="hi">Hindi</SelectItem>
-                      <SelectItem value="mr">Marathi</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>  
-            </CardContent>
-          </Card>
-
           {/* Security */}
           <Card>
             <CardHeader>
@@ -197,11 +158,81 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Password</p>
-                  <p className="text-sm text-gray-600">Last changed 3 months ago</p>
+                  <p className="text-sm text-gray-600">Last changed recently</p>
                 </div>
-                <Button variant="outline" size="sm">
-                  Change Password
-                </Button>
+                <Dialog open={isChangePasswordOpen} onOpenChange={setIsChangePasswordOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      Change Password
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Change Password</DialogTitle>
+                      <DialogDescription>
+                        Enter your current password and choose a new password. Your new password must be at least 5 characters long.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="old-password" className="text-right">
+                          Current
+                        </Label>
+                        <Input
+                          id="old-password"
+                          type="password"
+                          value={passwordData.oldPassword}
+                          onChange={(e) => setPasswordData(prev => ({ ...prev, oldPassword: e.target.value }))}
+                          className="col-span-3"
+                          placeholder="Enter current password"
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-password" className="text-right">
+                          New
+                        </Label>
+                        <Input
+                          id="new-password"
+                          type="password"
+                          value={passwordData.newPassword}
+                          onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                          className="col-span-3"
+                          placeholder="Enter new password"
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="confirm-password" className="text-right">
+                          Confirm
+                        </Label>
+                        <Input
+                          id="confirm-password"
+                          type="password"
+                          value={passwordData.confirmPassword}
+                          onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                          className="col-span-3"
+                          placeholder="Confirm new password"
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsChangePasswordOpen(false)}
+                        disabled={isSubmitting}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={handleChangePassword}
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? "Changing..." : "Change Password"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardContent>
           </Card>
@@ -234,28 +265,22 @@ export default function SettingsPage() {
               </div>
 
               {/* Delete Account */}
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                 <div>
                   <p className="font-medium">Delete Account</p>
                   <p className="text-sm text-gray-600">Permanently delete your account and all data</p>
                 </div>
-                <Button variant="destructive" size="sm" onClick={handleDeleteAccount}>
-                  Delete Account
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDeleteAccount}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Deleting..." : "Delete Account"}
                 </Button>
               </div>
             </CardContent>
           </Card>
-
-          {/* Save Button */}
-          <div className="flex gap-4">
-            <Button onClick={handleSave} disabled={isSubmitting}>
-              <Save className="h-4 w-4 mr-2" />
-              {isSubmitting ? "Saving..." : "Save Settings"}
-            </Button>
-            <Button variant="outline" onClick={() => router.back()}>
-              Cancel
-            </Button>
-          </div>
         </div>
       </div>
     </DashboardLayout>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useCallback } from "react"
-import type { Message, Property, User } from "./types"
+import type { Message, Property, User, PaginatedResponse } from "./types"
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
@@ -11,9 +11,14 @@ export interface ApiResponse<T> {
   data?: T
   error?: string
   errors?: Array<{ msg: string; param?: string }>
+  pagination?: {
+    page: number
+    limit: number
+    total: number
+    pages: number
+  }
 }
 
-// -------- SendMessageResponse --------
 export interface SendMessageResponse {
   success: boolean
   data?: Message
@@ -59,11 +64,7 @@ const safeFetchJson = async <T>(
   return json
 }
 
-// Utility: Convert ISO date strings to Date objects
-type JsonValue = string | number | boolean | null | JsonObject | JsonValue[]
-interface JsonObject { [key: string]: JsonValue }
-
-// Utility: Convert ISO date strings to Date objects
+// Utility: revive ISO dates
 const reviveDates = <T>(input: T): T => {
   const isISODate = (val: unknown): val is string =>
     typeof val === "string" && /^\d{4}-\d{2}-\d{2}T/.test(val)
@@ -117,58 +118,28 @@ export const useApi = () => {
     return reviveDates(res.data)
   }, [])
 
-  const getMyProperties = useCallback(async (token: string): Promise<Property[]> => {
-    const res = await safeFetchJson<Property[]>(
-      `${API_BASE_URL}/property/myproperties`,
-      { headers: withAuth(token) }
-    )
-    return res.data ? reviveDates(res.data) : []
-  }, [])
+  const getMyProperties = useCallback(
+    async (token: string): Promise<Property[]> => {
+      const res = await safeFetchJson<Property[]>(
+        `${API_BASE_URL}/property/myproperties`,
+        { headers: withAuth(token) }
+      )
+      return res.data ? reviveDates(res.data) : []
+    },
+    []
+  )
 
   const createProperty = useCallback(
     async (propertyData: Partial<Property>, token: string) => {
-      const payload: Partial<Property> = {
-        title: propertyData.title?.trim() || "",
-        description: propertyData.description?.trim() || "",
-        price: Number(propertyData.price) || 0,
-        bedrooms: Number(propertyData.bedrooms) || 0,
-        bathrooms: Number(propertyData.bathrooms) || 0,
-        area: Number(propertyData.area) || 0,
-        maxGuests: Number(propertyData.maxGuests) || 1,
-        propertyType: propertyData.propertyType || "apartment",
-        guestType: propertyData.guestType || "Family",
-        availability: {
-          isAvailable:
-            typeof propertyData.availability?.isAvailable === "boolean"
-              ? propertyData.availability.isAvailable
-              : true,
-          availableFrom:
-            propertyData.availability?.availableFrom || new Date(),
-        },
-        location: {
-          address: propertyData.location?.address?.trim() || "",
-          city: propertyData.location?.city?.trim() || "",
-          state: propertyData.location?.state?.trim() || "",
-          zipCode: propertyData.location?.zipCode?.trim() || "",
-        },
-        amenities: propertyData.amenities || [],
-        images: propertyData.images || [],
-        rules: propertyData.rules || [],
-      }
-
-      const res = await safeFetchJson<Property>(`${API_BASE_URL}/property/create`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...withAuth(token) },
-        body: JSON.stringify(payload),
-      })
-
-      if (!res.success || !res.data) {
-        if (res.errors?.length) {
-          throw new Error(res.errors.map((e) => `${e.param}: ${e.msg}`).join("\n"))
+      const res = await safeFetchJson<Property>(
+        `${API_BASE_URL}/property/create`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...withAuth(token) },
+          body: JSON.stringify(propertyData),
         }
-        throw new Error(res.error || "Failed to create property")
-      }
-
+      )
+      if (!res.data) throw new Error(res.error || "Failed to create property")
       return reviveDates(res.data)
     },
     []
@@ -230,7 +201,7 @@ export const useApi = () => {
 
   // -------- Auth API --------
   const login = useCallback(async (email: string, password: string) => {
-    const res = await safeFetchJson<{ authtoken: string }>(
+    const res = await safeFetchJson<{ authtoken: string; user: User }>(
       `${API_BASE_URL}/auth/login`,
       {
         method: "POST",
@@ -239,7 +210,7 @@ export const useApi = () => {
       }
     )
     if (!res.data) throw new Error(res.error || "Login failed")
-    return res.data
+    return reviveDates(res.data)
   }, [])
 
   const signup = useCallback(
@@ -250,7 +221,7 @@ export const useApi = () => {
       password: string
       role: "landlord" | "tenant"
     }) => {
-      const res = await safeFetchJson<{ authtoken: string }>(
+      const res = await safeFetchJson<{ authtoken: string; user: User }>(
         `${API_BASE_URL}/auth/createUser`,
         {
           method: "POST",
@@ -259,7 +230,7 @@ export const useApi = () => {
         }
       )
       if (!res.data) throw new Error(res.error || "Signup failed")
-      return res.data
+      return reviveDates(res.data)
     },
     []
   )
@@ -286,9 +257,74 @@ export const useApi = () => {
     []
   )
 
+  const changePassword = useCallback(
+    async (
+      oldPassword: string,
+      newPassword: string,
+      token: string
+    ): Promise<void> => {
+      const res = await safeFetchJson<null>(
+        `${API_BASE_URL}/auth/change-password`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", ...withAuth(token) },
+          body: JSON.stringify({ oldPassword, newPassword }),
+        }
+      )
+      if (!res.success) throw new Error(res.error || "Failed to change password")
+    },
+    []
+  )
+
+  const deleteAccount = useCallback(async (token: string): Promise<void> => {
+    const res = await safeFetchJson<null>(
+      `${API_BASE_URL}/auth/delete-account`,
+      {
+        method: "DELETE",
+        headers: withAuth(token),
+      }
+    )
+    if (!res.success) throw new Error(res.error || "Failed to delete account")
+  }, [])
+
   const authApi = useMemo(
-    () => ({ login, signup, getCurrentUser, updateUser }),
-    [login, signup, getCurrentUser, updateUser]
+    () => ({ login, signup, getCurrentUser, updateUser, changePassword, deleteAccount }),
+    [login, signup, getCurrentUser, updateUser, changePassword, deleteAccount]
+  )
+
+  // -------- Favorites API --------
+  const addFavorite = useCallback(
+    async (userId: string, propertyId: string, token: string) => {
+      const res = await safeFetchJson<{ favorites: string[] }>(
+        `${API_BASE_URL}/favorites/${userId}/add`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...withAuth(token) },
+          body: JSON.stringify({ propertyId }),
+        }
+      )
+      return res.data?.favorites || []
+    },
+    []
+  )
+
+  const removeFavorite = useCallback(
+    async (userId: string, propertyId: string, token: string) => {
+      const res = await safeFetchJson<{ favorites: string[] }>(
+        `${API_BASE_URL}/favorites/${userId}/remove/${propertyId}`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json", ...withAuth(token) },
+        }
+      )
+      return res.data?.favorites || []
+    },
+    []
+  )
+
+  const favoritesApi = useMemo(
+    () => ({ add: addFavorite, remove: removeFavorite }),
+    [addFavorite, removeFavorite]
   )
 
   // -------- Message API --------
@@ -323,24 +359,63 @@ export const useApi = () => {
     []
   )
 
-  const getMyMessages = useCallback(async (token: string, options?: { signal?: AbortSignal }) => {
-    const res = await safeFetchJson<Message[]>(
-      `${API_BASE_URL}/message/my-messages`,
-      {
-        headers: withAuth(token),
-        signal: options?.signal,
-      }
-    )
-    return res.data ? reviveDates(res.data) : []
-  }, [])
+  // -------- Message API --------
+  const getSentMessages = useCallback(
+    async (
+      token: string,
+      page = 1,
+      limit = 10
+    ): Promise<PaginatedResponse<Message>> => {
+      const res = await safeFetchJson<PaginatedResponse<Message>>(
+        `${API_BASE_URL}/message/my-messages/sent?page=${page}&limit=${limit}`,
+        { headers: withAuth(token) }
+      )
 
-  const getPropertyMessages = useCallback(async (propertyId: string, token: string) => {
-    const res = await safeFetchJson<Message[]>(
-      `${API_BASE_URL}/message/property/${propertyId}`,
-      { headers: withAuth(token) }
-    )
-    return res.data ? reviveDates(res.data) : []
-  }, [])
+      if (!res.data) {
+        return { data: [], pagination: { page, limit, total: 0, pages: 0 } }
+      }
+
+      return {
+        data: reviveDates(res.data.data),        // ✅ drill into res.data.data
+        pagination: res.data.pagination,        // ✅ res.data.pagination is present
+      }
+    },
+    []
+  )
+
+  const getReceivedMessages = useCallback(
+    async (
+      token: string,
+      page = 1,
+      limit = 10
+    ): Promise<PaginatedResponse<Message>> => {
+      const res = await safeFetchJson<PaginatedResponse<Message>>(
+        `${API_BASE_URL}/message/my-messages/received?page=${page}&limit=${limit}`,
+        { headers: withAuth(token) }
+      )
+
+      if (!res.data) {
+        return { data: [], pagination: { page, limit, total: 0, pages: 0 } }
+      }
+
+      return {
+        data: reviveDates(res.data.data),        // ✅ correct drilling
+        pagination: res.data.pagination,
+      }
+    },
+    []
+  )
+
+  const getPropertyMessages = useCallback(
+    async (propertyId: string, token: string) => {
+      const res = await safeFetchJson<Message[]>(
+        `${API_BASE_URL}/message/property/${propertyId}`,
+        { headers: withAuth(token) }
+      )
+      return res.data ? reviveDates(res.data) : []
+    },
+    []
+  )
 
   const markAsRead = useCallback(async (messageId: string, token: string) => {
     const res = await safeFetchJson<Message>(
@@ -362,13 +437,21 @@ export const useApi = () => {
   const messageApi = useMemo(
     () => ({
       send: sendMessage,
-      getMyMessages,
+      getSentMessages,
+      getReceivedMessages,
       getPropertyMessages,
       markAsRead,
       delete: deleteMessage,
     }),
-    [sendMessage, getMyMessages, getPropertyMessages, markAsRead, deleteMessage]
+    [
+      sendMessage,
+      getSentMessages,
+      getReceivedMessages,
+      getPropertyMessages,
+      markAsRead,
+      deleteMessage,
+    ]
   )
 
-  return { propertyApi, authApi, messageApi }
+  return { propertyApi, authApi, favoritesApi, messageApi }
 }

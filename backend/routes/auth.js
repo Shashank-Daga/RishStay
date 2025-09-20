@@ -161,4 +161,80 @@ router.put('/updateuser', fetchuser, [
     }
 });
 
+/**
+ * ROUTE 5: Change password
+ * PUT /api/auth/change-password
+ * Private
+ */
+router.put(
+  "/change-password",
+  fetchuser,
+  [
+    body("oldPassword", "Old password is required").exists(),
+    body("newPassword", "New password must be at least 5 characters").isLength({
+      min: 5,
+    }),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() })
+    }
+
+    try {
+      const userId = req.user.id
+      const { oldPassword, newPassword } = req.body
+
+      const user = await User.findById(userId)
+      if (!user) {
+        return res.status(404).json({ success: false, error: "User not found" })
+      }
+
+      const isMatch = await bcrypt.compare(oldPassword, user.password)
+      if (!isMatch) {
+        return res
+          .status(401)
+          .json({ success: false, error: "Old password is incorrect" })
+      }
+
+      const salt = await bcrypt.genSalt(10)
+      user.password = await bcrypt.hash(newPassword, salt)
+      await user.save()
+
+      res.json({ success: true, message: "Password updated successfully" })
+    } catch (error) {
+      console.error(error.message)
+      res.status(500).json({ success: false, error: "Internal Server Error" })
+    }
+  }
+)
+
+/**
+ * ROUTE 6: Delete user account
+ * DELETE /api/auth/delete-account
+ * Private
+ */
+router.delete("/delete-account", fetchuser, async (req, res) => {
+  try {
+    const userId = req.user.id
+
+    // Find the user
+    const user = await User.findById(userId)
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" })
+    }
+
+    // Delete the user account
+    await User.findByIdAndDelete(userId)
+
+    res.json({
+      success: true,
+      message: "Account deleted successfully. We're sorry to see you go."
+    })
+  } catch (error) {
+    console.error(error.message)
+    res.status(500).json({ success: false, error: "Internal Server Error" })
+  }
+})
+
 module.exports = router;
