@@ -22,7 +22,6 @@ export default function MessagesPage() {
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null)
 
   const isTenant = user?.role === "tenant"
-  const [filter] = useState<"received" | "sent">(isTenant ? "sent" : "received")
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -32,27 +31,40 @@ export default function MessagesPage() {
 
   useEffect(() => {
     const fetchMessages = async () => {
+      if (!user) return
+      
       try {
         setLoading(true)
+        setError(null)
         const token = localStorage.getItem("auth-token")
         if (!token) {
           setError("Authentication token not found")
           return
         }
 
-        const fetchedMessages = await messageApi.getMyMessages(token)
-        setMessages(fetchedMessages)
-        setError(null)
+        console.log("Fetching messages for user:", user.role) // Debug log
+        
+        let fetchedMessages: Message[]
+        if (isTenant) {
+          fetchedMessages = await messageApi.getSentMessages(token)
+        } else {
+          fetchedMessages = await messageApi.getReceivedMessages(token)
+        }
+        
+        console.log("Fetched messages:", fetchedMessages) // Debug log
+        
+        setMessages(Array.isArray(fetchedMessages) ? fetchedMessages : [])
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch messages")
+        const errorMessage = err instanceof Error ? err.message : "Failed to fetch messages"
+        setError(errorMessage)
         console.error("Error fetching messages:", err)
       } finally {
         setLoading(false)
       }
     }
 
-    if (user) fetchMessages()
-  }, [user])
+    fetchMessages()
+  }, [user, isTenant, messageApi])
 
   const handleMarkAsRead = async (messageId: string) => {
     try {
@@ -121,12 +133,6 @@ export default function MessagesPage() {
     )
   }
 
-  const filteredMessages = messages.filter(message =>
-    filter === "received"
-      ? message.recipient._id === user._id
-      : message.sender._id === user._id
-  )
-
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -160,12 +166,12 @@ export default function MessagesPage() {
                 <CardTitle className="flex items-center gap-2">
                   <MessageSquare className="h-5 w-5" />
                   {isTenant
-                    ? `Your Inquiries (${filteredMessages.length})`
-                    : `Received Messages (${filteredMessages.length})`}
+                    ? `Your Inquiries (${messages.length})`
+                    : `Received Messages (${messages.length})`}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {filteredMessages.length === 0 ? (
+                {messages.length === 0 ? (
                   <div className="text-center py-8">
                     <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -178,19 +184,18 @@ export default function MessagesPage() {
                     </p>
                   </div>
                 ) : (
-                  filteredMessages.map(message => (
+                  messages.map(message => (
                     <div
                       key={message._id}
-                      className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                        selectedMessage?._id === message._id
+                      className={`p-3 rounded-lg border cursor-pointer transition-colors ${selectedMessage?._id === message._id
                           ? "bg-blue-50 border-blue-200"
                           : message.status === "unread"
-                          ? "bg-gray-50 border-gray-300" // slightly lighter for unread
-                          : "bg-white border-gray-200 hover:bg-gray-50"
-                      }`}
+                            ? "bg-gray-50 border-gray-300"
+                            : "bg-white border-gray-200 hover:bg-gray-50"
+                        }`}
                       onClick={() => {
                         setSelectedMessage(message)
-                        if (message.status === "unread") {
+                        if (message.status === "unread" && !isTenant) {
                           handleMarkAsRead(message._id)
                         }
                       }}
@@ -198,7 +203,7 @@ export default function MessagesPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">
-                            {message.subject}
+                            {message.subject || "No Subject"}
                           </p>
                           <p className="text-xs text-gray-600 truncate">
                             {message.property?.title || "Property"}
@@ -208,7 +213,7 @@ export default function MessagesPage() {
                           </p>
                         </div>
                         <div className="flex items-center gap-1 ml-2">
-                          {message.status === "unread" && (
+                          {message.status === "unread" && !isTenant && (
                             <Badge variant="secondary" className="text-xs">
                               New
                             </Badge>
@@ -241,15 +246,15 @@ export default function MessagesPage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <CardTitle className="text-xl">
-                        {selectedMessage.subject}
+                        {selectedMessage.subject || "No Subject"}
                       </CardTitle>
                       <p className="text-sm text-gray-600 mt-1">
                         Property:{" "}
                         {selectedMessage.property?.title || "Unknown Property"}
                       </p>
                       <p className="text-xs text-gray-500">
-                        From: {selectedMessage.sender.name} (
-                        {selectedMessage.sender.email})
+                        {isTenant ? "To" : "From"}: {isTenant ? selectedMessage.recipient?.name : selectedMessage.sender?.name || "Unknown"} (
+                        {isTenant ? selectedMessage.recipient?.email : selectedMessage.sender?.email || "No email"})
                       </p>
                       <p className="text-xs text-gray-500">
                         Sent:{" "}

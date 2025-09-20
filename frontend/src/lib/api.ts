@@ -360,25 +360,25 @@ export const useApi = () => {
   )
 
   // -------- Message API --------
+  // Corrected Message API functions - replace these in your api.ts
+
   const getSentMessages = useCallback(
     async (
       token: string,
       page = 1,
       limit = 10
-    ): Promise<PaginatedResponse<Message>> => {
-      const res = await safeFetchJson<PaginatedResponse<Message>>(
+    ): Promise<Message[]> => {
+      const res = await safeFetchJson<Message[]>(  // ← Changed: expecting Message[] directly
         `${API_BASE_URL}/message/my-messages/sent?page=${page}&limit=${limit}`,
         { headers: withAuth(token) }
       )
 
       if (!res.data) {
-        return { data: [], pagination: { page, limit, total: 0, pages: 0 } }
+        return []
       }
 
-      return {
-        data: reviveDates(res.data.data),        // ✅ drill into res.data.data
-        pagination: res.data.pagination,        // ✅ res.data.pagination is present
-      }
+      // ← Fixed: res.data is the messages array directly, not res.data.data
+      return reviveDates(res.data)
     },
     []
   )
@@ -388,20 +388,18 @@ export const useApi = () => {
       token: string,
       page = 1,
       limit = 10
-    ): Promise<PaginatedResponse<Message>> => {
-      const res = await safeFetchJson<PaginatedResponse<Message>>(
+    ): Promise<Message[]> => {
+      const res = await safeFetchJson<Message[]>(  // ← Changed: expecting Message[] directly
         `${API_BASE_URL}/message/my-messages/received?page=${page}&limit=${limit}`,
         { headers: withAuth(token) }
       )
 
       if (!res.data) {
-        return { data: [], pagination: { page, limit, total: 0, pages: 0 } }
+        return []
       }
 
-      return {
-        data: reviveDates(res.data.data),        // ✅ correct drilling
-        pagination: res.data.pagination,
-      }
+      // ← Fixed: res.data is the messages array directly, not res.data.data
+      return reviveDates(res.data)
     },
     []
   )
