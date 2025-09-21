@@ -9,7 +9,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 const allowedOrigins = [
-  "https://your-frontend-name.vercel.app", // Vercel frontend
+  "https://rish-stay-jqwrxrvo7-shashank-dagas-projects.vercel.app", // Vercel frontend
   "http://localhost:3000", // local dev
   "https://rishstay.onrender.com" // production frontend domain
 ];
