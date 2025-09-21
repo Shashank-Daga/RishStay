@@ -10,7 +10,8 @@ const port = process.env.PORT || 5000;
 
 const allowedOrigins = [
   "https://your-frontend-name.vercel.app", // Vercel frontend
-  "http://localhost:3000" // local dev
+  "http://localhost:3000", // local dev
+  "https://rishstay.onrender.com" // production frontend domain
 ];
 
 app.use(cors({
