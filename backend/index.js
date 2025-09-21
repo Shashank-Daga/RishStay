@@ -1,24 +1,36 @@
-require('dotenv').config({ path: '../.env' });
-const connectToMongo = require('./db');
-const express = require('express')
-var cors = require('cors')
+require("dotenv").config();
+const connectToMongo = require("./db");
+const express = require("express");
+const cors = require("cors");
 
 connectToMongo();
 
-const app = express()
-const port = 5000
+const app = express();
+const port = process.env.PORT || 5000;
 
-app.use(cors())
-app.use(express.json())
-// app.use('/uploads', express.static('uploads'));
+const allowedOrigins = [
+  "https://your-frontend-name.vercel.app", // Vercel frontend
+  "http://localhost:3000" // local dev
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
+
+app.use(express.json());
 
 // Available Routes
-app.use('/api/auth', require('./routes/auth'))
-app.use('/api/property', require('./routes/property'))
-app.use('/api/message', require('./routes/message'))
-app.use('/api/favorites', require('./routes/favorites'))
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/property", require("./routes/property"));
+app.use("/api/message", require("./routes/message"));
+app.use("/api/favorites", require("./routes/favorites"));
+
+app.get("/", (req, res) => {
+  res.send("Backend is running 🚀");
+});
 
 app.listen(port, () => {
-  // console.log(`RishStay backend at http://localhost:${port}`)
-  console.log(`MongoDB connected successfully.`)
-})
+  console.log(`✅ Server running on port ${port}`);
+});
