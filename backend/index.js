@@ -9,18 +9,39 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 const allowedOrigins = [
-  "https://rish-stay-shashank-dagas-projects.vercel.app/", // Vercel frontend
-  "http://localhost:3000", // local dev
-  "https://rishstay.onrender.com" // production frontend domain
+  "https://rish-stay-shashank-dagas-projects.vercel.app", // ← Fixed: no trailing slash
+  "http://localhost:3000",
+  "https://rishstay.onrender.com",
+  // Add any other Vercel preview URLs if needed
+  /^https:\/\/.*\.vercel\.app$/ // Allow all Vercel preview URLs
 ];
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Check regex patterns
+    if (allowedOrigins.some(pattern => pattern instanceof RegExp && pattern.test(origin))) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
 
 app.use(express.json());
+
+// Health check endpoint (helps with cold starts)
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "OK", timestamp: new Date().toISOString() });
+});
 
 // Available Routes
 app.use("/api/auth", require("./routes/auth"));
