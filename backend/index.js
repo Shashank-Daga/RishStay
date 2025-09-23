@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv").config({ path: "../.env" });
 const connectToMongo = require("./db");
 const express = require("express");
 const cors = require("cors");
@@ -9,7 +9,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 const allowedOrigins = [
-  "https://rish-stay-shashank-dagas-projects.vercel.app", // ← Fixed: no trailing slash
+  "https://rish-stay-shashank-dagas-projects.vercel.app",
   "http://localhost:3000",
   "https://rishstay.onrender.com",
   // Add any other Vercel preview URLs if needed

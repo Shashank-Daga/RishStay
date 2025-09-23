@@ -12,6 +12,12 @@ export interface User {
   favorites?: string[] // Array of Property IDs
 }
 
+// ✅ Backend Image type
+export interface BackendImage {
+  url: string
+  public_id: string
+}
+
 // ✅ Property type
 export interface Property {
   _id: string
@@ -25,7 +31,7 @@ export interface Property {
     zipCode: string
     coordinates?: { lat: number; lng: number }
   }
-  images: string[]
+  images: BackendImage[] // ✅ Updated to match backend
   amenities: string[]
   propertyType: "apartment" | "studio"
   bedrooms: number
@@ -98,3 +104,17 @@ export interface PaginatedResponse<T> {
   data: T[]
   pagination: PaginationMeta
 }
+
+// ------------------ API Helpers ------------------
+
+// Transform backend property to frontend-friendly format
+export const transformPropertyImages = (property: Property): Property => ({
+  ...property,
+  images: property.images?.map(img =>
+    typeof img === "string" ? { url: img, public_id: "" } : img
+  ) || [],
+})
+
+// Helper to extract just URLs from BackendImage[]
+export const getImageUrls = (property: Property): string[] =>
+  property.images?.map(img => img.url) || []

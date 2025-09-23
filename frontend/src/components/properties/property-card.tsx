@@ -11,6 +11,7 @@ import Image from "next/image"
 import type { Property } from "@/lib/types"
 import { useAuth } from "@/components/auth/auth-provider"
 import { useRouter } from "next/navigation"
+import { getImageUrls } from "@/lib/api"
 
 interface PropertyCardProps {
   property: Property
@@ -55,7 +56,7 @@ export function PropertyCard({ property, onFavoriteToggle, isFavorited = false }
             </div>
           )}
           <Image
-            src={property.images?.[0] || "/placeholder.svg?height=250&width=400"}
+            src={getImageUrls(property)[0] || "/placeholder.svg?height=250&width=400"}
             alt={property.title || "Property image"}
             width={400}
             height={250}

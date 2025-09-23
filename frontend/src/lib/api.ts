@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useCallback } from "react"
-import type { Message, Property, User, PaginatedResponse } from "./types"
+import type { Message, Property, User, PaginatedResponse, BackendImage } from "./types"
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
@@ -82,13 +82,17 @@ const reviveDates = <T>(input: T): T => {
   return recurse(input) as T
 }
 
-// Utility: transform backend property images to frontend format
-const transformPropertyImages = (property: any) => {
-  return {
-    ...property,
-    images: property.images?.map((img: any) => img.url) || [], // Extract URLs for frontend
-  };
-}
+// Transform backend property images to frontend format
+const transformPropertyImages = (property: Property): Property => ({
+  ...property,
+  images: property.images?.map((img: BackendImage | string) =>
+    typeof img === "string" ? { url: img, public_id: "" } : img
+  ) || [],
+})
+
+// Utility: extract just URLs from BackendImage[]
+export const getImageUrls = (property: Property): string[] =>
+  property.images?.map(img => img.url) || []
 
 // ================== useApi Hook ==================
 export const useApi = () => {
@@ -202,6 +206,7 @@ export const useApi = () => {
       update: updateProperty,
       delete: deleteProperty,
       toggleAvailability,
+      getFeatured: getFeaturedProperties,
     }),
     [
       getAllProperties,
@@ -211,6 +216,7 @@ export const useApi = () => {
       updateProperty,
       deleteProperty,
       toggleAvailability,
+      getFeaturedProperties,
     ]
   )
 
@@ -374,53 +380,30 @@ export const useApi = () => {
     []
   )
 
-  // -------- Message API --------
-  // Corrected Message API functions - replace these in your api.ts
-
   const getSentMessages = useCallback(
-    async (
-      token: string,
-      page = 1,
-      limit = 10
-    ): Promise<Message[]> => {
-      const res = await safeFetchJson<Message[]>(  // ← Changed: expecting Message[] directly
+    async (token: string, page = 1, limit = 10): Promise<Message[]> => {
+      const res = await safeFetchJson<Message[]>(
         `${API_BASE_URL}/message/my-messages/sent?page=${page}&limit=${limit}`,
         { headers: withAuth(token) }
       )
-
-      if (!res.data) {
-        return []
-      }
-
-      // ← Fixed: res.data is the messages array directly, not res.data.data
-      return reviveDates(res.data)
+      return res.data ? reviveDates(res.data) : []
     },
     []
   )
 
   const getReceivedMessages = useCallback(
-    async (
-      token: string,
-      page = 1,
-      limit = 10
-    ): Promise<Message[]> => {
-      const res = await safeFetchJson<Message[]>(  // ← Changed: expecting Message[] directly
+    async (token: string, page = 1, limit = 10): Promise<Message[]> => {
+      const res = await safeFetchJson<Message[]>(
         `${API_BASE_URL}/message/my-messages/received?page=${page}&limit=${limit}`,
         { headers: withAuth(token) }
       )
-
-      if (!res.data) {
-        return []
-      }
-
-      // ← Fixed: res.data is the messages array directly, not res.data.data
-      return reviveDates(res.data)
+      return res.data ? reviveDates(res.data) : []
     },
     []
   )
 
   const getPropertyMessages = useCallback(
-    async (propertyId: string, token: string) => {
+    async (propertyId: string, token: string): Promise<Message[]> => {
       const res = await safeFetchJson<Message[]>(
         `${API_BASE_URL}/message/property/${propertyId}`,
         { headers: withAuth(token) }

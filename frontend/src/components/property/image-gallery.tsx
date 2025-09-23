@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog"
 import { ChevronLeft, ChevronRight, X, Maximize2 } from "lucide-react"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+import type { BackendImage } from "@/lib/types"
 
 interface ImageGalleryProps {
-  images: string[]
+  images: BackendImage[]
   title: string
 }
 
@@ -24,6 +25,8 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
     setCurrentImage((prev) => (prev - 1 + images.length) % images.length)
   }
 
+  const imageUrls = images.map(img => img.url)
+
   if (images.length === 0) {
     return (
       <div className="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
@@ -38,7 +41,7 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
       <div className="relative group">
         <div className="relative h-96 lg:h-[500px] rounded-lg overflow-hidden">
           <Image
-            src={images[currentImage] || "/placeholder.svg?height=500&width=800"}
+            src={imageUrls[currentImage] || "/placeholder.svg?height=500&width=800"}
             alt={`${title} - Image ${currentImage + 1}`}
             fill
             className="object-cover"
@@ -86,7 +89,7 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
 
               <div className="relative w-full h-full bg-black">
                 <Image
-                  src={images[currentImage] || "/placeholder.svg"}
+                  src={imageUrls[currentImage] || "/placeholder.svg"}
                   alt={`${title} - Image ${currentImage + 1}`}
                   fill
                   className="object-contain"
@@ -151,7 +154,7 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
               onClick={() => setCurrentImage(index)}
             >
               <Image
-                src={image || "/placeholder.svg?height=64&width=80"}
+                src={image.url || "/placeholder.svg?height=64&width=80"}
                 alt={`${title} - Thumbnail ${index + 1}`}
                 fill
                 className="object-cover"

@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/components/auth/auth-provider"
-import { useApi } from "@/lib/api"
+import { useApi, getImageUrls } from "@/lib/api"
 import { PlusCircle, Home, Edit, Eye } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -51,7 +51,7 @@ export default function PropertiesPage() {
     }
 
     if (user && user.role === "landlord") fetchUserProperties()
-  }, [user])
+  }, [user, propertyApi])
 
   if (authLoading || loading) {
     return (
@@ -86,66 +86,66 @@ export default function PropertiesPage() {
   }
 
   const userProperties = properties
-  const availableProperties = userProperties.filter(
-    (p: Property) => p.availability?.isAvailable
-  )
-  const rentedProperties = userProperties.filter(
-    (p: Property) => !p.availability?.isAvailable
-  )
+  const availableProperties = userProperties.filter((p) => p.availability?.isAvailable)
+  const rentedProperties = userProperties.filter((p) => !p.availability?.isAvailable)
 
-  const PropertyCardWithActions = ({ property }: { property: Property }) => (
-    <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
-      <div className="relative">
-        <Image
-          src={property.images?.[0] || "/placeholder.svg?height=250&width=400"}
-          alt={property.title}
-          width={400}
-          height={250}
-          className="w-full h-48 object-cover"
-        />
-        <div className="absolute top-4 left-4 flex gap-2">
-          {property.featured && <Badge className="bg-blue-600 text-white">Featured</Badge>}
-          <Badge
-            variant={property.availability?.isAvailable ? "default" : "secondary"}
-            className={
-              property.availability?.isAvailable
-                ? "bg-green-600 text-white"
-                : "bg-gray-600 text-white"
-            }
-          >
-            {property.availability?.isAvailable ? "Available" : "Rented"}
-          </Badge>
-        </div>
-      </div>
+  const PropertyCardWithActions = ({ property }: { property: Property }) => {
+    const mainImage = getImageUrls(property)[0] || "/placeholder.svg?height=250&width=400"
 
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-3">
-          <h3 className="text-xl font-semibold text-gray-900 line-clamp-2">{property.title}</h3>
-          <div className="text-right ml-4">
-            <div className="text-2xl font-bold text-blue-600">Rs {property.price.toLocaleString()}</div>
-            <div className="text-sm text-gray-500">per month</div>
+    return (
+      <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div className="relative">
+          <Image
+            src={mainImage}
+            alt={property.title}
+            width={400}
+            height={250}
+            className="w-full h-48 object-cover"
+          />
+          <div className="absolute top-4 left-4 flex gap-2">
+            {property.featured && <Badge className="bg-blue-600 text-white">Featured</Badge>}
+            <Badge
+              variant={property.availability?.isAvailable ? "default" : "secondary"}
+              className={
+                property.availability?.isAvailable
+                  ? "bg-green-600 text-white"
+                  : "bg-gray-600 text-white"
+              }
+            >
+              {property.availability?.isAvailable ? "Available" : "Rented"}
+            </Badge>
           </div>
         </div>
 
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{property.description}</p>
+        <div className="p-6">
+          <div className="flex items-start justify-between mb-3">
+            <h3 className="text-xl font-semibold text-gray-900 line-clamp-2">{property.title}</h3>
+            <div className="text-right ml-4">
+              <div className="text-2xl font-bold text-blue-600">Rs {property.price.toLocaleString()}</div>
+              <div className="text-sm text-gray-500">per month</div>
+            </div>
+          </div>
 
-        <div className="flex gap-2">
-          <Link href={`/properties/${property._id}`} className="flex-1">
-            <Button variant="outline" size="sm" className="w-full bg-transparent">
-              <Eye className="h-4 w-4 mr-2" />
-              View
-            </Button>
-          </Link>
-          <Link href={`/properties/update/${property._id}`} className="flex-1">
-            <Button variant="outline" size="sm" className="flex-1 bg-transparent">
-              <Edit className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
-          </Link>
+          <p className="text-gray-600 text-sm mb-4 line-clamp-2">{property.description}</p>
+
+          <div className="flex gap-2">
+            <Link href={`/properties/${property._id}`} className="flex-1">
+              <Button variant="outline" size="sm" className="w-full bg-transparent">
+                <Eye className="h-4 w-4 mr-2" />
+                View
+              </Button>
+            </Link>
+            <Link href={`/properties/update/${property._id}`} className="flex-1">
+              <Button variant="outline" size="sm" className="flex-1 bg-transparent">
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            </Link>
+          </div>
         </div>
-      </div>
-    </Card>
-  )
+      </Card>
+    )
+  }
 
   return (
     <DashboardLayout>
@@ -188,7 +188,7 @@ export default function PropertiesPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {userProperties.map((property: Property) => (
+                {userProperties.map((property) => (
                   <PropertyCardWithActions key={property._id} property={property} />
                 ))}
               </div>
@@ -205,7 +205,7 @@ export default function PropertiesPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {availableProperties.map((property: Property) => (
+                {availableProperties.map((property) => (
                   <PropertyCardWithActions key={property._id} property={property} />
                 ))}
               </div>
@@ -222,7 +222,7 @@ export default function PropertiesPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {rentedProperties.map((property: Property) => (
+                {rentedProperties.map((property) => (
                   <PropertyCardWithActions key={property._id} property={property} />
                 ))}
               </div>
