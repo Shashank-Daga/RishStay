@@ -21,7 +21,12 @@ const PropertySchema = new Schema({
   },
 
   amenities: [{ type: String, default: [] }],
-  images: [{ type: String, default: [] }],
+  images: [
+    {
+      url: { type: String, required: true },
+      public_id: { type: String, required: true },
+    }
+  ],
 
   bedrooms: { type: Number, required: true, min: 0 },
   bathrooms: { type: Number, required: true, min: 0 },

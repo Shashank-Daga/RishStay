@@ -43,8 +43,6 @@ export interface Property {
   maxGuests: number
   guestType: "Family" | "Bachelors" | "Girls" | "Boys" | null
   rules: string[]
-  checkInTime: string
-  checkOutTime: string
 }
 
 // ✅ Favorites type

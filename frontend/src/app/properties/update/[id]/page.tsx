@@ -47,8 +47,6 @@ type PropertyData = {
   maxGuests: string
   guestType: "Family" | "Bachelors" | "Girls" | "Boys"
   rules: string[]
-  checkInTime: string
-  checkOutTime: string
   isAvailable: boolean
 }
 
@@ -79,8 +77,6 @@ export default function EditPropertyPage() {
     maxGuests: "",
     guestType: "Family",
     rules: [],
-    checkInTime: "15:00",
-    checkOutTime: "11:00",
     isAvailable: true,
   })
 
@@ -126,12 +122,7 @@ export default function EditPropertyPage() {
             maxGuests: data.maxGuests?.toString() || "",
             guestType: data.guestType || "Family",
             rules: data.rules || [],
-            checkInTime: data.availability?.availableFrom
-              ? new Date(data.availability.availableFrom).toISOString().substring(11, 16)
-              : "15:00",
-            checkOutTime: data.availability?.availableTo
-              ? new Date(data.availability.availableTo).toISOString().substring(11, 16)
-              : "11:00",
+
             isAvailable: data.availability?.isAvailable ?? true,
           })
           setExistingImages(data.images || [])
@@ -268,8 +259,6 @@ export default function EditPropertyPage() {
       formData.append("guestType", propertyData.guestType)
       formData.append("availability", JSON.stringify({
         isAvailable: propertyData.isAvailable,
-        availableFrom: new Date(`1970-01-01T${propertyData.checkInTime}:00Z`),
-        availableTo: new Date(`1970-01-01T${propertyData.checkOutTime}:00Z`),
       }))
       formData.append(
         "location",

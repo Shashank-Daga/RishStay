@@ -50,8 +50,6 @@ type PropertyData = {
   maxGuests: string
   guestType: "Family" | "Bachelors" | "Girls" | "Boys"
   rules: string[]
-  checkInTime: string
-  checkOutTime: string
   isAvailable: boolean
 }
 
@@ -98,8 +96,6 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
     maxGuests: "",
     guestType: "Family",
     rules: [],
-    checkInTime: "15:00",
-    checkOutTime: "11:00",
     isAvailable: true,
   })
 
@@ -239,8 +235,6 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
         "availability",
         JSON.stringify({
           isAvailable: propertyData.isAvailable,
-          availableFrom: propertyData.checkInTime,
-          availableTo: propertyData.checkOutTime,
         })
       )
 

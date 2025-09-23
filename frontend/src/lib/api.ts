@@ -82,6 +82,14 @@ const reviveDates = <T>(input: T): T => {
   return recurse(input) as T
 }
 
+// Utility: transform backend property images to frontend format
+const transformPropertyImages = (property: any) => {
+  return {
+    ...property,
+    images: property.images?.map((img: any) => img.url) || [], // Extract URLs for frontend
+  };
+}
+
 // ================== useApi Hook ==================
 export const useApi = () => {
   // -------- Property API --------
@@ -107,7 +115,7 @@ export const useApi = () => {
       const res = await safeFetchJson<Property[]>(
         `${API_BASE_URL}/property/all?${params.toString()}`
       )
-      return res.data ? reviveDates(res.data) : []
+      return res.data ? reviveDates(res.data).map(transformPropertyImages) : []
     },
     []
   )
@@ -115,7 +123,7 @@ export const useApi = () => {
   const getPropertyById = useCallback(async (id: string): Promise<Property> => {
     const res = await safeFetchJson<Property>(`${API_BASE_URL}/property/${id}`)
     if (!res.data) throw new Error("Property not found")
-    return reviveDates(res.data)
+    return reviveDates(transformPropertyImages(res.data))
   }, [])
 
   const getMyProperties = useCallback(
@@ -124,7 +132,7 @@ export const useApi = () => {
         `${API_BASE_URL}/property/myproperties`,
         { headers: withAuth(token) }
       )
-      return res.data ? reviveDates(res.data) : []
+      return res.data ? reviveDates(res.data).map(transformPropertyImages) : []
     },
     []
   )
@@ -140,7 +148,7 @@ export const useApi = () => {
         }
       )
       if (!res.data) throw new Error(res.error || "Failed to create property")
-      return reviveDates(res.data)
+      return reviveDates(transformPropertyImages(res.data))
     },
     []
   )
@@ -156,7 +164,7 @@ export const useApi = () => {
         }
       )
       if (!res.data) throw new Error(res.error || "Failed to update property")
-      return reviveDates(res.data)
+      return reviveDates(transformPropertyImages(res.data))
     },
     []
   )
@@ -175,7 +183,14 @@ export const useApi = () => {
       { method: "PUT", headers: withAuth(token) }
     )
     if (!res.data) throw new Error(res.error || "Failed to toggle availability")
-    return reviveDates(res.data)
+    return reviveDates(transformPropertyImages(res.data))
+  }, [])
+
+  const getFeaturedProperties = useCallback(async (limit = 6): Promise<Property[]> => {
+    const res = await safeFetchJson<Property[]>(
+      `${API_BASE_URL}/property/featured?limit=${limit}`
+    )
+    return res.data ? reviveDates(res.data).map(transformPropertyImages) : []
   }, [])
 
   const propertyApi = useMemo(
