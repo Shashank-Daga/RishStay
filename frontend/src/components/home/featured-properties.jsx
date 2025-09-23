@@ -93,8 +93,12 @@ export function FeaturedProperties() {
                   >
                     <div className="relative">
                       <Image
-                        src={property.images?.[0] || "/placeholder.svg"}
-                        alt={property.title}
+                        src={
+                          property.images?.[0] && typeof property.images[0] === "string" && property.images[0].trim() !== ""
+                            ? property.images[0]
+                            : "/placeholder.svg"
+                        }
+                        alt={property.title || "Property image"}
                         width={400}
                         height={250}
                         className="w-full h-48 object-cover"
@@ -120,20 +124,18 @@ export function FeaturedProperties() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className={`absolute top-4 right-4 bg-white/80 hover:bg-white ${
-                            user?.favorites?.includes(property._id)
+                          className={`absolute top-4 right-4 bg-white/80 hover:bg-white ${user?.favorites?.includes(property._id)
                               ? "text-red-500"
                               : "text-gray-400"
-                          }`}
+                            }`}
                           onClick={(e) => {
                             e.preventDefault()
                             toggleFavorite(property._id)
                           }}
                         >
                           <Heart
-                            className={`h-4 w-4 ${
-                              user?.favorites?.includes(property._id) ? "fill-red-500" : ""
-                            }`}
+                            className={`h-4 w-4 ${user?.favorites?.includes(property._id) ? "fill-red-500" : ""
+                              }`}
                           />
                         </Button>
                       )}

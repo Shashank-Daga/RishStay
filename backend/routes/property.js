@@ -49,18 +49,31 @@ router.post(
     if (handleValidationErrors(req, res)) return;
 
     try {
-      const uploads = [];
-      for (const file of req.files) {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: "rishstay/properties",
-        });
-        uploads.push({ url: result.secure_url, public_id: result.public_id });
+      let images = [];
+
+      // Handle file uploads if files are provided
+      if (req.files && req.files.length > 0) {
+        for (const file of req.files) {
+          const result = await cloudinary.uploader.upload(file.path, {
+            folder: "rishstay/properties",
+          });
+          images.push({ url: result.secure_url, public_id: result.public_id });
+        }
+      }
+
+      // If no files uploaded but images provided in request body, use those
+      if (images.length === 0 && req.body.images) {
+        const providedImages = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
+        images = providedImages.map(img => ({
+          url: img.url,
+          public_id: img.public_id
+        }));
       }
 
       const property = new Property({
         ...req.body,
         landlord: req.user.id,
-        images: uploads,
+        images: images,
       });
 
       const savedProperty = await property.save();
