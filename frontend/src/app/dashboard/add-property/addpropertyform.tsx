@@ -221,43 +221,52 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
       const token = localStorage.getItem("auth-token")
       if (!token) throw new Error("Authentication required")
 
-      const formData = new FormData()
-      formData.append("title", propertyData.title.trim())
-      formData.append("description", propertyData.description.trim())
-      formData.append("price", propertyData.price)
-      formData.append("propertyType", propertyData.propertyType)
-      formData.append("bedrooms", propertyData.bedrooms)
-      formData.append("bathrooms", propertyData.bathrooms)
-      formData.append("area", propertyData.area)
-      formData.append("maxGuests", propertyData.maxGuests)
-      formData.append("guestType", propertyData.guestType)
-      formData.append(
-        "availability",
-        JSON.stringify({
+      // Prepare the data in the format expected by the backend
+      const submitData = {
+        title: propertyData.title.trim(),
+        description: propertyData.description.trim(),
+        price: parseFloat(propertyData.price),
+        propertyType: propertyData.propertyType,
+        bedrooms: parseInt(propertyData.bedrooms),
+        bathrooms: parseFloat(propertyData.bathrooms),
+        area: parseFloat(propertyData.area),
+        maxGuests: parseInt(propertyData.maxGuests),
+        guestType: propertyData.guestType,
+        location: {
+          address: propertyData.address.trim(),
+          city: propertyData.city.trim(),
+          state: propertyData.state.trim(),
+          zipCode: propertyData.zipCode.trim(),
+        },
+        amenities: propertyData.amenities,
+        rules: propertyData.rules,
+        availability: {
           isAvailable: propertyData.isAvailable,
-        })
-      )
-
-      formData.append("address", propertyData.address.trim())
-      formData.append("city", propertyData.city.trim())
-      formData.append("state", propertyData.state.trim())
-      formData.append("zipCode", propertyData.zipCode.trim())
-
-      propertyData.amenities.forEach((a) => formData.append("amenities[]", a))
-      propertyData.rules.forEach((r) => formData.append("rules[]", r))
-
-      imageFiles.forEach((file) => formData.append("images", file))
-      deletedImages.forEach((img) => formData.append("deletedImages[]", img))
+        },
+        images: imageFiles.length > 0 ? [] : existingImages.map(img => ({
+          url: img,
+          public_id: img.split('/').pop() || 'temp_id'
+        }))
+      }
 
       const endpoint = editingProperty
         ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/property/update/${editingProperty.id}`
         : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/property/create`
 
-      await fetch(endpoint, {
+      const response = await fetch(endpoint, {
         method: editingProperty ? "PUT" : "POST",
-        headers: { "auth-token": token },
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+          "auth-token": token
+        },
+        body: JSON.stringify(submitData),
       })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Failed to save property")
+      }
 
       toast({
         title: `Property ${editingProperty ? "updated" : "listed"} successfully`,
