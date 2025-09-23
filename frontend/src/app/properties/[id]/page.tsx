@@ -189,7 +189,7 @@ export default function PropertyDetailPage() {
   }
 
   const formatDate = (date?: string | Date) => {
-    if (!date) return "N/A"
+    // if (!date) return "N/A"
     const parsedDate = typeof date === "string" ? new Date(date) : date
     return new Intl.DateTimeFormat("en-US", {
       month: "short",

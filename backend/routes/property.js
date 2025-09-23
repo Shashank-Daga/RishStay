@@ -172,11 +172,20 @@ router.put(
         } catch {}
       }
 
-      // ✅ Arrays
-      if (req.body["amenities[]"]) {
+      // ✅ Arrays - Handle both FormData array format and JSON format
+      if (req.body.amenities) {
+        // Handle JSON format (from add property form)
+        updates.amenities = Array.isArray(req.body.amenities) ? req.body.amenities : [req.body.amenities];
+      } else if (req.body["amenities[]"]) {
+        // Handle FormData array format (from update form)
         updates.amenities = Array.isArray(req.body["amenities[]"]) ? req.body["amenities[]"] : [req.body["amenities[]"]];
       }
-      if (req.body["rules[]"]) {
+
+      if (req.body.rules) {
+        // Handle JSON format (from add property form)
+        updates.rules = Array.isArray(req.body.rules) ? req.body.rules : [req.body.rules];
+      } else if (req.body["rules[]"]) {
+        // Handle FormData array format (from update form)
         updates.rules = Array.isArray(req.body["rules[]"]) ? req.body["rules[]"] : [req.body["rules[]"]];
       }
 

@@ -529,14 +529,23 @@ export default function EditPropertyPage() {
               </CardHeader>
               <CardContent className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {propertyData.images.map((img, idx) => (
-                  <div key={idx} className="relative group">
+                  <div key={idx} className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative">
                     <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative">
-                      <Image
-                        src={img || "/placeholder.svg"}
-                        alt="Property image"
-                        fill
-                        className="object-cover"
-                      />
+                      {typeof img === "string" && img.trim() !== "" ? (
+                        <Image
+                          src={img}
+                          alt="Property image"
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <Image
+                          src="/placeholder.svg"
+                          alt="Placeholder image"
+                          fill
+                          className="object-cover"
+                        />
+                      )}
                     </div>
                     <Button
                       type="button"
