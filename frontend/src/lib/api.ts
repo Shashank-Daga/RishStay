@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useCallback } from "react"
-import type { Message, Property, User, PaginatedResponse, BackendImage } from "./types"
+import type { Message, Property, User, PaginatedResponse, BackendImage, Review } from "./types"
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
@@ -449,5 +449,72 @@ export const useApi = () => {
     ]
   )
 
-  return { propertyApi, authApi, favoritesApi, messageApi }
+  // -------- Review API --------
+  const getAllReviews = useCallback(async (): Promise<Review[]> => {
+    const res = await safeFetchJson<Review[]>(`${API_BASE_URL}/reviews`)
+    return res.data ? reviveDates(res.data) : []
+  }, [])
+
+  const getPropertyReviews = useCallback(async (propertyId: string): Promise<Review[]> => {
+    const res = await safeFetchJson<Review[]>(`${API_BASE_URL}/reviews/property/${propertyId}`)
+    return res.data ? reviveDates(res.data) : []
+  }, [])
+
+  const createReview = useCallback(
+    async (
+      reviewData: {
+        comment: string
+      },
+      token: string
+    ): Promise<Review> => {
+      const res = await safeFetchJson<Review>(`${API_BASE_URL}/reviews`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...withAuth(token) },
+        body: JSON.stringify(reviewData),
+      })
+      if (!res.data) throw new Error(res.error || "Failed to create review")
+      return reviveDates(res.data)
+    },
+    []
+  )
+
+  const updateReview = useCallback(
+    async (
+      reviewId: string,
+      reviewData: {
+        comment?: string
+      },
+      token: string
+    ): Promise<Review> => {
+      const res = await safeFetchJson<Review>(`${API_BASE_URL}/reviews/${reviewId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...withAuth(token) },
+        body: JSON.stringify(reviewData),
+      })
+      if (!res.data) throw new Error(res.error || "Failed to update review")
+      return reviveDates(res.data)
+    },
+    []
+  )
+
+  const deleteReview = useCallback(async (reviewId: string, token: string): Promise<void> => {
+    const res = await safeFetchJson<null>(`${API_BASE_URL}/reviews/${reviewId}`, {
+      method: "DELETE",
+      headers: withAuth(token),
+    })
+    if (!res.success) throw new Error(res.error || "Failed to delete review")
+  }, [])
+
+  const reviewApi = useMemo(
+    () => ({
+      getAll: getAllReviews,
+      getPropertyReviews,
+      create: createReview,
+      update: updateReview,
+      delete: deleteReview,
+    }),
+    [getAllReviews, getPropertyReviews, createReview, updateReview, deleteReview]
+  )
+
+  return { propertyApi, authApi, favoritesApi, messageApi, reviewApi }
 }

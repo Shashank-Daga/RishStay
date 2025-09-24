@@ -85,11 +85,13 @@ export interface SendMessageResponse {
 // ✅ Review type
 export interface Review {
   _id: string
-  propertyId: string
   userId: string
-  rating: number
   comment: string
+  userName: string
+  userRole: "landlord" | "tenant"
   createdAt: Date
+  updatedAt?: Date
+  user?: User
 }
 
 // ✅ Shared pagination types

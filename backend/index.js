@@ -48,6 +48,7 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/property", require("./routes/property"));
 app.use("/api/message", require("./routes/message"));
 app.use("/api/favorites", require("./routes/favorites"));
+app.use("/api/reviews", require("./routes/reviews"));
 
 app.get("/", (req, res) => {
   res.send("Backend is running 🚀");

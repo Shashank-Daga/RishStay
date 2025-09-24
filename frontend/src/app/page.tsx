@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/header";
 import { FeaturedProperties } from "@/components/home/featured-properties";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { CTASection } from "@/components/home/cta-section";
+import { ReviewsSection } from "@/components/home/reviews-section";
 
 export default function Home() {
 
@@ -17,6 +18,7 @@ export default function Home() {
         <FeaturedProperties />
         <HowItWorks />
         <CTASection />
+        <ReviewsSection />
       </main>
       <Footer />
     </div>
