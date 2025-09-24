@@ -44,11 +44,21 @@ router.post('/createUser', [
         const data = { user: { id: user.id } };
         const authtoken = jwt.sign(data, JWT_SECRET, { expiresIn: "7d" });
 
+        // ✅ Return complete user data including _id and favorites
         res.json({
             success: true,
             data: {
                 authtoken,
-                user: { id: user.id, name: user.name, email: user.email, phoneNo: user.phoneNo, role: user.role }
+                user: {
+                    _id: user._id,
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    phoneNo: user.phoneNo,
+                    role: user.role,
+                    favorites: user.favorites || [],
+                    createdAt: user.createdAt
+                }
             }
         });
 
@@ -87,11 +97,21 @@ router.post('/login', [
         const data = { user: { id: user.id } };
         const authtoken = jwt.sign(data, JWT_SECRET, { expiresIn: "7d" });
 
+        // ✅ Return complete user data including _id and favorites
         res.json({
             success: true,
             data: {
                 authtoken,
-                user: { id: user.id, name: user.name, email: user.email, phoneNo: user.phoneNo, role: user.role }
+                user: {
+                    _id: user._id,
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    phoneNo: user.phoneNo,
+                    role: user.role,
+                    favorites: user.favorites || [],
+                    createdAt: user.createdAt
+                }
             }
         });
 
@@ -109,10 +129,22 @@ router.post('/login', [
 router.post('/getuser', fetchuser, async (req, res) => {
     try {
         const userId = req.user.id; 
-        // console.log("Decoded token user:", req.user);
         const user = await User.findById(userId).select("-password");
-        // console.log("DB user:", user);
-        res.json({ success: true, data: user });
+        
+        // ✅ Ensure consistent response format
+        const responseUser = {
+            _id: user._id,
+            id: user._id.toString(), // Ensure id is also available
+            name: user.name,
+            email: user.email,
+            phoneNo: user.phoneNo,
+            role: user.role,
+            favorites: user.favorites || [],
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt
+        };
+
+        res.json({ success: true, data: responseUser });
     } catch (error) {
         console.error(error.message);
         res.status(500).json({ success: false, error: "Internal Server Error" });
@@ -154,7 +186,20 @@ router.put('/updateuser', fetchuser, [
             return res.status(404).json({ success: false, error: "User not found" });
         }
 
-        res.json({ success: true, data: updatedUser });
+        // ✅ Return consistent format
+        const responseUser = {
+            _id: updatedUser._id,
+            id: updatedUser._id.toString(),
+            name: updatedUser.name,
+            email: updatedUser.email,
+            phoneNo: updatedUser.phoneNo,
+            role: updatedUser.role,
+            favorites: updatedUser.favorites || [],
+            createdAt: updatedUser.createdAt,
+            updatedAt: updatedUser.updatedAt
+        };
+
+        res.json({ success: true, data: responseUser });
     } catch (error) {
         console.error(error.message);
         res.status(500).json({ success: false, error: "Internal Server Error" });
@@ -218,13 +263,11 @@ router.delete("/delete-account", fetchuser, async (req, res) => {
   try {
     const userId = req.user.id
 
-    // Find the user
     const user = await User.findById(userId)
     if (!user) {
       return res.status(404).json({ success: false, error: "User not found" })
     }
 
-    // Delete the user account
     await User.findByIdAndDelete(userId)
 
     res.json({

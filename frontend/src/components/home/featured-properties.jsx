@@ -21,17 +21,21 @@ export function FeaturedProperties() {
     const fetchProperties = async () => {
       try {
         setLoading(true)
+        console.log("Fetching properties...") // Debug log
+        
         const all = await propertyApi.getAll()
+        console.log("All properties:", all) // Debug log
 
-        // ✅ Filter available only
+        // Filter available only
         const available = all.filter((p) => p.availability?.isAvailable)
+        console.log("Available properties:", available) // Debug log
 
-        // ✅ Sort newest first
+        // Sort newest first
         available.sort(
           (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )
 
-        // ✅ Take top 3
+        // Take top 3
         setProperties(available.slice(0, 3))
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch properties")
@@ -42,17 +46,65 @@ export function FeaturedProperties() {
     }
 
     fetchProperties()
-  }, [])
+  }, [propertyApi])
 
-  // ✅ Helper: check if property is new (within 7 days)
+  // Helper: check if property is new (within 7 days)
   const isNewProperty = (date) => {
     const created = new Date(date)
     const diffDays = (Date.now() - created.getTime()) / (1000 * 60 * 60 * 24)
     return diffDays <= 7
   }
 
-  // ✅ Helper: check if user can favorite (tenant only)
+  // Helper: check if user can favorite (tenant only)
   const canFavorite = user && user.role === "tenant"
+
+  // Helper: get image URL from property
+  const getPropertyImageUrl = (property) => {
+    console.log("Property images:", property.images) // Debug log
+    
+    if (!property.images || property.images.length === 0) {
+      return "/placeholder.svg"
+    }
+
+    const firstImage = property.images[0]
+    
+    // Handle both object format {url, public_id} and string format
+    if (typeof firstImage === "object" && firstImage.url) {
+      return firstImage.url
+    } else if (typeof firstImage === "string") {
+      return firstImage
+    }
+    
+    return "/placeholder.svg"
+  }
+
+  // Helper: check if property is favorited
+  const isPropertyFavorited = (propertyId) => {
+    if (!user || !user.favorites) return false
+    
+    // Handle both _id and id formats
+    const userId = user._id || user.id
+    console.log("Checking favorite for:", { propertyId, userFavorites: user.favorites, userId }) // Debug log
+    
+    return user.favorites.includes(propertyId)
+  }
+
+  const handleToggleFavorite = async (propertyId) => {
+    console.log("Toggle favorite clicked for property:", propertyId) // Debug log
+    console.log("Current user:", user) // Debug log
+    
+    if (!user) {
+      console.log("No user logged in")
+      return
+    }
+
+    try {
+      await toggleFavorite(propertyId)
+      console.log("Favorite toggled successfully")
+    } catch (error) {
+      console.error("Error toggling favorite:", error)
+    }
+  }
 
   return (
     <section className="py-16 lg:py-24 bg-white">
@@ -93,15 +145,15 @@ export function FeaturedProperties() {
                   >
                     <div className="relative">
                       <Image
-                        src={
-                          property.images?.[0] && typeof property.images[0] === "string" && property.images[0].trim() !== ""
-                            ? property.images[0]
-                            : "/placeholder.svg"
-                        }
+                        src={getPropertyImageUrl(property)}
                         alt={property.title || "Property image"}
                         width={400}
                         height={250}
                         className="w-full h-48 object-cover"
+                        onError={(e) => {
+                          console.log("Image failed to load:", getPropertyImageUrl(property))
+                          e.currentTarget.src = "/placeholder.svg"
+                        }}
                       />
 
                       {/* Badges */}
@@ -124,18 +176,21 @@ export function FeaturedProperties() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className={`absolute top-4 right-4 bg-white/80 hover:bg-white ${user?.favorites?.includes(property._id)
+                          className={`absolute top-4 right-4 bg-white/80 hover:bg-white ${
+                            isPropertyFavorited(property._id)
                               ? "text-red-500"
                               : "text-gray-400"
-                            }`}
+                          }`}
                           onClick={(e) => {
                             e.preventDefault()
-                            toggleFavorite(property._id)
+                            e.stopPropagation()
+                            handleToggleFavorite(property._id)
                           }}
                         >
                           <Heart
-                            className={`h-4 w-4 ${user?.favorites?.includes(property._id) ? "fill-red-500" : ""
-                              }`}
+                            className={`h-4 w-4 ${
+                              isPropertyFavorited(property._id) ? "fill-red-500" : ""
+                            }`}
                           />
                         </Button>
                       )}
@@ -161,7 +216,7 @@ export function FeaturedProperties() {
                         </h3>
                         <div className="text-right">
                           <div className="text-2xl font-bold text-blue-600">
-                            Rs {property.price.toLocaleString()}
+                            ₹{property.price.toLocaleString()}
                           </div>
                           <div className="text-sm text-gray-500">per month</div>
                         </div>
