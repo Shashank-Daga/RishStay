@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect, useState, useCallback } from "react"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { User, Calendar, Plus } from "lucide-react"
@@ -17,11 +17,7 @@ export function ReviewsSection() {
   const { user } = useAuth()
   const { reviewApi } = useApi()
 
-  useEffect(() => {
-    loadReviews()
-  }, [])
-
-  const loadReviews = async () => {
+  const loadReviews = useCallback(async () => {
     try {
       setLoading(true)
       const fetchedReviews = await reviewApi.getAll()
@@ -31,7 +27,11 @@ export function ReviewsSection() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [reviewApi])
+
+  useEffect(() => {
+    loadReviews()
+  }, [loadReviews])
 
   const handleReviewAdded = async () => {
     await loadReviews()
@@ -130,7 +130,7 @@ export function ReviewsSection() {
                     WebkitBoxOrient: 'vertical' as const,
                     lineHeight: '1.5'
                   }}>
-                    "{review.comment}"
+                    &ldquo;{review.comment}&rdquo;
                   </p>
                   <div className="flex items-center text-sm text-gray-500">
                     <Calendar className="h-4 w-4 mr-1" />
