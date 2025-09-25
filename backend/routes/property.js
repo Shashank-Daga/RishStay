@@ -196,21 +196,53 @@ router.put(
         }
       }
 
-      // ✅ Replace images if new ones uploaded
-      if (req.files && req.files.length > 0) {
-        // Delete old images
-        for (const img of property.images) {
-          await cloudinary.uploader.destroy(img.public_id);
+      // ✅ Handle images - allow selective keeping/deleting
+      if (req.body.keepImages || req.body.deleteImages || (req.files && req.files.length > 0)) {
+        let currentImages = [...property.images]; // Start with existing images
+
+        // Handle images to delete
+        if (req.body.deleteImages) {
+          const imagesToDelete = Array.isArray(req.body.deleteImages)
+            ? req.body.deleteImages
+            : [req.body.deleteImages];
+
+          // Delete from Cloudinary
+          for (const publicId of imagesToDelete) {
+            await cloudinary.uploader.destroy(publicId);
+          }
+
+          // Remove from current images array
+          currentImages = currentImages.filter(img => !imagesToDelete.includes(img.public_id));
         }
 
-        const uploads = [];
-        for (const file of req.files) {
-          const result = await cloudinary.uploader.upload(file.path, {
-            folder: "rishstay/properties",
-          });
-          uploads.push({ url: result.secure_url, public_id: result.public_id });
+        // Handle images to keep (override currentImages if specified)
+        if (req.body.keepImages) {
+          const imagesToKeep = Array.isArray(req.body.keepImages)
+            ? req.body.keepImages
+            : [req.body.keepImages];
+
+          // Parse if it's JSON string
+          const parsedKeepImages = imagesToKeep.map(img =>
+            typeof img === 'string' ? JSON.parse(img) : img
+          );
+
+          currentImages = parsedKeepImages;
         }
-        updates.images = uploads;
+
+        // Handle new image uploads
+        if (req.files && req.files.length > 0) {
+          const uploads = [];
+          for (const file of req.files) {
+            const result = await cloudinary.uploader.upload(file.path, {
+              folder: "rishstay/properties",
+            });
+            uploads.push({ url: result.secure_url, public_id: result.public_id });
+          }
+          // Add new uploads to existing images
+          currentImages = [...currentImages, ...uploads];
+        }
+
+        updates.images = currentImages;
       }
 
       property = await Property.findByIdAndUpdate(
