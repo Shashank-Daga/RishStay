@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -21,6 +21,7 @@ export function ReviewsSection() {
     try {
       setLoading(true)
       const fetchedReviews = await reviewApi.getAll()
+      // Reverse to show oldest first (left) to newest last (right)
       setReviews(fetchedReviews)
     } catch (error) {
       console.error("Failed to load reviews:", error)
@@ -86,7 +87,7 @@ export function ReviewsSection() {
           </div>
         )}
 
-        {/* Reviews Grid */}
+        {/* Reviews Slider */}
         {reviews.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-400 mb-4">
@@ -100,45 +101,47 @@ export function ReviewsSection() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {reviews.map((review) => (
-              <Card key={review._id} className="h-full bg-white shadow-md hover:shadow-lg transition-shadow border-0">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <User className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">
-                          {review.userName}
-                        </p>
-                        <Badge
-                          variant={review.userRole === "landlord" ? "default" : "secondary"}
-                          className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-200"
-                        >
-                          {review.userRole}
-                        </Badge>
+          <div className="overflow-x-auto no-scrollbar pb-4">
+            <div className="flex space-x-6 min-w-max">
+              {reviews.map((review) => (
+                <Card key={review._id} className="w-80 flex-shrink-0 bg-white shadow-md hover:shadow-lg transition-shadow border-0">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900">
+                            {review.userName}
+                          </p>
+                          <Badge
+                            variant={review.userRole === "landlord" ? "default" : "secondary"}
+                            className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-200"
+                          >
+                            {review.userRole}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <p className="text-gray-700 mb-4 overflow-hidden text-ellipsis" style={{
-                    display: '-webkit-box',
-                    WebkitLineClamp: 4,
-                    WebkitBoxOrient: 'vertical' as const,
-                    lineHeight: '1.5'
-                  }}>
-                    &ldquo;{review.comment}&rdquo;
-                  </p>
-                  <div className="flex items-center text-sm text-gray-500">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    {formatDate(review.createdAt)}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="text-gray-700 mb-4 overflow-hidden text-ellipsis" style={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 6,
+                      WebkitBoxOrient: 'vertical' as const,
+                      lineHeight: '1.5'
+                    }}>
+                      &ldquo;{review.comment}&rdquo;
+                    </p>
+                    <div className="flex items-center text-sm text-gray-500">
+                      <Calendar className="h-4 w-4 mr-1" />
+                      {formatDate(review.createdAt)}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         )}
 

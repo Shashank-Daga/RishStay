@@ -99,10 +99,10 @@ export function ReviewForm({ onClose, onReviewAdded }: ReviewFormProps) {
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Share your experience with RishStay platform..."
                 className="mt-1 min-h-[100px] border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                maxLength={1000}
+                maxLength={200}
               />
               <p className="text-xs text-gray-500 mt-1">
-                {comment.length}/1000 characters
+                {comment.length}/200 characters
               </p>
             </div>
 

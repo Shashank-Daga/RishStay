@@ -9,7 +9,7 @@ const ReviewSchema = new mongoose.Schema({
     comment: {
         type: String,
         required: true,
-        maxlength: 1000,
+        maxlength: 200,
         trim: true
     },
     userName: {
@@ -27,6 +27,5 @@ const ReviewSchema = new mongoose.Schema({
 
 // Indexes for better query performance
 ReviewSchema.index({ createdAt: -1 });
-ReviewSchema.index({ userId: 1 }); // Ensure one review per user
 
 module.exports = mongoose.model('Review', ReviewSchema);

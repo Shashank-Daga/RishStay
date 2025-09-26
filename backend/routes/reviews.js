@@ -56,7 +56,7 @@ router.get('/property/:propertyId', async (req, res) => {
  * Private - Requires authentication
  */
 router.post('/', fetchuser, [
-    body('comment', 'Comment is required and must be less than 1000 characters').isLength({ min: 1, max: 1000 })
+    body('comment', 'Comment is required and must be less than 200 characters').isLength({ min: 1, max: 200 })
 ], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -66,12 +66,6 @@ router.post('/', fetchuser, [
     try {
         const { comment } = req.body;
         const userId = req.user.id;
-
-        // Check if user has already reviewed the platform
-        const existingReview = await Review.findOne({ userId });
-        if (existingReview) {
-            return res.status(400).json({ success: false, error: "You have already reviewed the platform" });
-        }
 
         // Get user details for the review
         const user = await User.findById(userId).select('name role');
@@ -106,7 +100,7 @@ router.post('/', fetchuser, [
  * Private - Only review owner can update
  */
 router.put('/:id', fetchuser, [
-    body('comment', 'Comment must be less than 1000 characters').optional().isLength({ max: 1000 })
+    body('comment', 'Comment must be less than 200 characters').optional().isLength({ max: 200 })
 ], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
