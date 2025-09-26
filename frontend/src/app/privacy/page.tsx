@@ -65,24 +65,24 @@ export default function PrivacyPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7]">
       <Header />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl font-bold text-[#003366] mb-4">
             Privacy Policy
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-[#6B7280]">
             Last updated: {new Date().toLocaleDateString()}
           </p>
         </div>
 
         {/* Introduction */}
-        <Card className="mb-8">
+        <Card className="mb-8 rounded-2xl">
           <CardContent className="p-6">
-            <p className="text-gray-700 leading-relaxed">
+            <p className="text-[#6B7280] leading-relaxed">
               At RishStay, we are committed to protecting your privacy and ensuring the security of your personal information.
               This Privacy Policy explains how we collect, use, and safeguard your information when you use our rental platform.
             </p>
@@ -92,21 +92,21 @@ export default function PrivacyPage() {
         {/* Policy Sections */}
         <div className="space-y-8">
           {sections.map((section, index) => (
-            <Card key={index}>
+            <Card key={index} className="rounded-2xl">
               <CardHeader>
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <section.icon className="h-5 w-5 text-blue-600" />
+                  <div className="w-10 h-10 bg-[#FFC107] rounded-xl flex items-center justify-center">
+                    <section.icon className="h-5 w-5 text-[#003366]" />
                   </div>
-                  <CardTitle className="text-xl">{section.title}</CardTitle>
+                  <CardTitle className="text-xl text-[#003366]">{section.title}</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
                   {section.content.map((item, itemIndex) => (
                     <li key={itemIndex} className="flex items-start space-x-2">
-                      <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                      <span className="text-gray-700">{item}</span>
+                      <div className="w-1.5 h-1.5 bg-[#FFC107] rounded-full mt-2 flex-shrink-0"></div>
+                      <span className="text-[#6B7280]">{item}</span>
                     </li>
                   ))}
                 </ul>
@@ -116,18 +116,18 @@ export default function PrivacyPage() {
         </div>
 
         {/* Contact Section */}
-        <Card className="mt-8">
+        <Card className="mt-8 rounded-2xl">
           <CardHeader>
-            <CardTitle className="text-xl">Contact Us About Privacy</CardTitle>
+            <CardTitle className="text-xl text-[#003366]">Contact Us About Privacy</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-700 mb-4">
+            <p className="text-[#6B7280] mb-4">
               If you have any questions about this Privacy Policy or our data practices, please contact us:
             </p>
-            <div className="space-y-2 text-gray-600">
-              <p><strong>Email:</strong> privacy@rishstay.com</p>
-              <p><strong>Phone:</strong> +91 9767663123</p>
-              <p><strong>Address:</strong> Laxman Nagar, Baner, Pune, Maharashtra 411045</p>
+            <div className="space-y-2 text-[#6B7280]">
+              <p><strong className="text-[#003366]">Email:</strong> privacy@rishstay.com</p>
+              <p><strong className="text-[#003366]">Phone:</strong> +91 9767663123</p>
+              <p><strong className="text-[#003366]">Address:</strong> Laxman Nagar, Baner, Pune, Maharashtra 411045</p>
             </div>
           </CardContent>
         </Card>

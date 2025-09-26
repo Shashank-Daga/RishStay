@@ -59,10 +59,10 @@ export function LoginForm({ onSuccess, onSwitchToSignup }: LoginFormProps) {
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md bg-white shadow-xl rounded-2xl">
       <CardHeader>
-        <CardTitle>Log In</CardTitle>
-        <CardDescription>Enter your credentials to access your account</CardDescription>
+        <CardTitle className="text-[#003366]">Log In</CardTitle>
+        <CardDescription className="text-[#6B7280]">Enter your credentials to access your account</CardDescription>
       </CardHeader>
       <CardContent>
         {errors.length > 0 && (
@@ -76,7 +76,7 @@ export function LoginForm({ onSuccess, onSwitchToSignup }: LoginFormProps) {
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-[#6B7280]">Email</Label>
             <Input
               id="email"
               type="email"
@@ -84,10 +84,11 @@ export function LoginForm({ onSuccess, onSwitchToSignup }: LoginFormProps) {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               required
+              className="focus:ring-[#FFC107] focus:border-[#FFC107]"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-[#6B7280]">Password</Label>
             <Input
               id="password"
               type="password"
@@ -95,13 +96,14 @@ export function LoginForm({ onSuccess, onSwitchToSignup }: LoginFormProps) {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               required
+              className="focus:ring-[#FFC107] focus:border-[#FFC107]"
             />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full bg-[#FFC107] hover:bg-yellow-600 text-[#003366] rounded-xl shadow-md hover:shadow-lg transform hover:scale-105" disabled={loading}>
             {loading ? "Logging in..." : "Log In"}
           </Button>
           <div className="text-center">
-            <Button type="button" variant="link" onClick={onSwitchToSignup} className="text-sm">
+            <Button type="button" variant="link" onClick={onSwitchToSignup} className="text-sm text-[#6B7280] hover:text-[#FFC107]">
               Don&apos;t have an account? Sign up
             </Button>
           </div>

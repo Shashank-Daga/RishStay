@@ -72,15 +72,15 @@ export function ReviewForm({ onClose, onReviewAdded }: ReviewFormProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md bg-white shadow-lg">
-        <CardHeader className="bg-gray-50 border-b">
+      <Card className="w-full max-w-md bg-white shadow-xl rounded-2xl">
+        <CardHeader className="bg-gradient-to-r from-[#FFE9D6] to-[#E9E6F7] border-b">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-gray-900">Share Your Experience</CardTitle>
+            <CardTitle className="text-[#003366]">Share Your Experience</CardTitle>
             <Button
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700"
+              className="h-8 w-8 p-0 text-[#6B7280] hover:text-[#003366]"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -90,7 +90,7 @@ export function ReviewForm({ onClose, onReviewAdded }: ReviewFormProps) {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Comment */}
             <div>
-              <Label htmlFor="comment" className="text-sm font-medium text-gray-700">
+              <Label htmlFor="comment" className="text-sm font-medium text-[#6B7280]">
                 Your Review *
               </Label>
               <Textarea
@@ -98,10 +98,10 @@ export function ReviewForm({ onClose, onReviewAdded }: ReviewFormProps) {
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Share your experience with RishStay platform..."
-                className="mt-1 min-h-[100px] border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 min-h-[100px] border-gray-300 focus:border-[#FFC107] focus:ring-[#FFC107]"
                 maxLength={200}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-[#6B7280] mt-1">
                 {comment.length}/200 characters
               </p>
             </div>
@@ -112,14 +112,14 @@ export function ReviewForm({ onClose, onReviewAdded }: ReviewFormProps) {
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
+                className="flex-1 border-gray-300 text-[#003366] hover:bg-gray-50 rounded-xl"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+                className="flex-1 bg-[#FFC107] hover:bg-yellow-600 text-[#003366] disabled:opacity-50 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105"
               >
                 {loading ? "Submitting..." : "Submit Review"}
               </Button>

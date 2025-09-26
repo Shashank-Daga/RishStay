@@ -47,12 +47,12 @@ export function PropertyCard({ property, onFavoriteToggle, isFavorited = false }
     new Date().getTime() - new Date(property.createdAt).getTime() <= 7 * 24 * 60 * 60 * 1000
 
   return (
-    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
+    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group rounded-2xl bg-white">
       <div className="relative">
         <div className="relative h-48 overflow-hidden">
           {isImageLoading && (
             <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-              <div className="text-gray-400">Loading...</div>
+              <div className="text-[#6B7280]">Loading...</div>
             </div>
           )}
           <Image
@@ -88,8 +88,8 @@ export function PropertyCard({ property, onFavoriteToggle, isFavorited = false }
           <Button
             variant="ghost"
             size="sm"
-            className={`absolute top-4 right-4 bg-white/80 hover:bg-white ${
-              isFavorited ? "text-red-500" : "text-gray-600"
+            className={`absolute top-4 right-4 bg-white/80 hover:bg-white rounded-full ${
+              isFavorited ? "text-red-500" : "text-[#6B7280]"
             }`}
             onClick={handleFavoriteClick}
             aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
@@ -101,7 +101,6 @@ export function PropertyCard({ property, onFavoriteToggle, isFavorited = false }
         {/* Status Badge */}
         <div className="absolute bottom-4 left-4">
           <Badge
-            variant={property.availability?.isAvailable ? "default" : "secondary"}
             className={
               property.availability?.isAvailable
                 ? "bg-green-600 text-white"
@@ -115,19 +114,19 @@ export function PropertyCard({ property, onFavoriteToggle, isFavorited = false }
 
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-3">
-          <h3 className="text-xl font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+          <h3 className="text-xl font-semibold text-[#003366] line-clamp-2 group-hover:text-[#FFC107] transition-colors">
             {property.title}
           </h3>
           <div className="text-right ml-4">
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-2xl font-bold text-[#003366]">
               Rs {property.price.toLocaleString()}
             </div>
-            <div className="text-sm text-gray-500">per month</div>
+            <div className="text-sm text-[#6B7280]">per month</div>
           </div>
         </div>
 
         {/* Property Info */}
-        <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
+        <div className="flex items-center justify-between text-xs text-[#6B7280] mb-4">
           <div className="flex items-center">
             <Calendar className="h-3 w-3 mr-1" />
             <span>
@@ -137,7 +136,7 @@ export function PropertyCard({ property, onFavoriteToggle, isFavorited = false }
         </div>
 
         <Link href={`/properties/${property._id}`}>
-          <Button className="w-full group-hover:bg-blue-700 transition-colors">
+          <Button className="w-full bg-[#FFC107] hover:bg-yellow-600 text-[#003366] rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all">
             View Details
           </Button>
         </Link>

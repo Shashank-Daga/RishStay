@@ -107,20 +107,20 @@ export function FeaturedProperties() {
   }
 
   return (
-    <section className="py-16 lg:py-24 bg-white">
+    <section className="py-16 lg:py-24 bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl lg:text-4xl font-bold text-[#003366] mb-4">
             Browse Properties
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-[#6B7280] max-w-2xl mx-auto">
             Discover the latest available rental properties in your city
           </p>
         </div>
 
         {loading && (
           <div className="text-center py-12">
-            <p className="text-gray-600">Loading properties...</p>
+            <p className="text-[#6B7280]">Loading properties...</p>
           </div>
         )}
 
@@ -133,7 +133,7 @@ export function FeaturedProperties() {
         {!loading && !error && (
           <>
             {properties.length === 0 ? (
-              <div className="text-center py-12 text-gray-600">
+              <div className="text-center py-12 text-[#6B7280]">
                 No available properties at the moment.
               </div>
             ) : (
@@ -141,7 +141,7 @@ export function FeaturedProperties() {
                 {properties.map((property) => (
                   <Card
                     key={property._id}
-                    className="overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                    className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white rounded-2xl shadow-md"
                   >
                     <div className="relative">
                       <Image
@@ -176,10 +176,10 @@ export function FeaturedProperties() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className={`absolute top-4 right-4 bg-white/80 hover:bg-white ${
+                          className={`absolute top-4 right-4 bg-white/80 hover:bg-white rounded-full ${
                             isPropertyFavorited(property._id)
                               ? "text-red-500"
-                              : "text-gray-400"
+                              : "text-[#6B7280]"
                           }`}
                           onClick={(e) => {
                             e.preventDefault()
@@ -211,30 +211,32 @@ export function FeaturedProperties() {
 
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-3">
-                        <h3 className="text-xl font-semibold text-gray-900 line-clamp-2">
+                        <h3 className="text-xl font-semibold text-[#003366] line-clamp-2 group-hover:text-[#FFC107] transition-colors">
                           {property.title}
                         </h3>
                         <div className="text-right">
-                          <div className="text-2xl font-bold text-blue-600">
+                          <div className="text-2xl font-bold text-[#003366]">
                             ₹{property.price.toLocaleString()}
                           </div>
-                          <div className="text-sm text-gray-500">per month</div>
+                          <div className="text-sm text-[#6B7280]">per month</div>
                         </div>
                       </div>
 
-                      <div className="flex items-center text-gray-600 mb-4">
+                      <div className="flex items-center text-[#6B7280] mb-4">
                         <MapPin className="h-4 w-4 mr-1" />
                         <span className="text-sm">
                           {property.location.address}, {property.location.city}
                         </span>
                       </div>
 
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                      <p className="text-[#6B7280] text-sm mb-4 line-clamp-2">
                         {property.description}
                       </p>
 
                       <Link href={`/properties/${property._id}`}>
-                        <Button className="w-full">View Details</Button>
+                        <Button className="w-full bg-[#FFC107] hover:bg-yellow-600 text-[#003366] rounded-xl shadow-md hover:shadow-lg transform hover:scale-105">
+                          View Details
+                        </Button>
                       </Link>
                     </CardContent>
                   </Card>
@@ -246,7 +248,7 @@ export function FeaturedProperties() {
 
         <div className="text-center">
           <Link href="/properties">
-            <Button variant="outline" size="lg">
+            <Button variant="outline" size="lg" className="border-[#FFC107] text-[#003366] hover:bg-[#FFC107] rounded-xl">
               View All Properties
             </Button>
           </Link>

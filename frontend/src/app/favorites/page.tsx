@@ -86,18 +86,18 @@ export default function FavoritesPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7]">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="max-w-md mx-auto">
+          <Card className="max-w-md mx-auto bg-white shadow-md rounded-2xl">
             <CardHeader className="text-center">
-              <CardTitle>Sign In Required</CardTitle>
+              <CardTitle className="text-[#003366]">Sign In Required</CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-4">
-              <p className="text-gray-600">
+              <p className="text-[#6B7280]">
                 Please sign in to view your favorite properties.
               </p>
-              <Button asChild>
+              <Button className="bg-[#FFC107] hover:bg-yellow-600 text-[#003366] rounded-xl shadow-md hover:shadow-lg transform hover:scale-105" asChild>
                 <Link href="/auth">Sign In</Link>
               </Button>
             </CardContent>
@@ -110,14 +110,14 @@ export default function FavoritesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7]">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-8 bg-[#FFE9D6] rounded w-1/4"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {Array.from({ length: 6 }).map((_, index) => (
-                <div key={index} className="bg-gray-200 h-64 rounded"></div>
+                <div key={index} className="bg-[#FFE9D6] h-64 rounded-2xl"></div>
               ))}
             </div>
           </div>
@@ -129,16 +129,16 @@ export default function FavoritesPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7]">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
             <div className="text-red-400 mb-4">
               <Heart className="h-16 w-16 mx-auto" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Favorites</h3>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()}>Try Again</Button>
+            <h3 className="text-xl font-semibold text-[#003366] mb-2">Error Loading Favorites</h3>
+            <p className="text-[#6B7280] mb-4">{error}</p>
+            <Button className="bg-[#FFC107] hover:bg-yellow-600 text-[#003366] rounded-xl shadow-md hover:shadow-lg transform hover:scale-105" onClick={() => window.location.reload()}>Try Again</Button>
           </div>
         </div>
         <Footer />
@@ -147,21 +147,21 @@ export default function FavoritesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7]">
       <Header />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
-            <Button variant="ghost" asChild>
+            <Button variant="ghost" className="text-[#003366] hover:bg-[#FFE9D6] rounded-xl" asChild>
               <Link href="/properties">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Properties
               </Link>
             </Button>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Favorite Properties</h1>
-          <p className="text-gray-600">
+          <h1 className="text-3xl font-bold text-[#003366] mb-2">My Favorite Properties</h1>
+          <p className="text-[#6B7280]">
             {properties.length === 0
               ? "You haven't saved any properties to your favorites yet."
               : `You have ${properties.length} favorite${properties.length !== 1 ? 's' : ''} saved.`
@@ -171,16 +171,16 @@ export default function FavoritesPage() {
 
         {/* Favorites List */}
         {properties.length === 0 ? (
-          <Card className="max-w-md mx-auto">
+          <Card className="max-w-md mx-auto bg-white shadow-md rounded-2xl">
             <CardContent className="text-center py-12">
-              <div className="text-gray-400 mb-4">
+              <div className="text-[#6B7280] mb-4">
                 <Heart className="h-16 w-16 mx-auto" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No Favorites Yet</h3>
-              <p className="text-gray-600 mb-6">
+              <h3 className="text-xl font-semibold text-[#003366] mb-2">No Favorites Yet</h3>
+              <p className="text-[#6B7280] mb-6">
                 Start browsing properties and save your favorites for easy access later.
               </p>
-              <Button asChild>
+              <Button className="bg-[#FFC107] hover:bg-yellow-600 text-[#003366] rounded-xl shadow-md hover:shadow-lg transform hover:scale-105" asChild>
                 <Link href="/properties">Browse Properties</Link>
               </Button>
             </CardContent>

@@ -48,27 +48,27 @@ export default function AboutPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7]">
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <Badge className="mb-4 bg-blue-100 text-blue-800">About RishStay</Badge>
-          <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+          <Badge className="mb-4 bg-[#FFC107] text-[#003366]">About RishStay</Badge>
+          <h1 className="text-4xl lg:text-5xl font-bold text-[#003366] mb-6">
             Connecting People with Perfect Homes
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-[#6B7280] max-w-3xl mx-auto">
             RishStay is revolutionizing the rental industry by creating a seamless, trustworthy platform that connects property owners with qualified tenants.
           </p>
         </div>
 
         {/* Mission */}
         <div className="mb-20">
-          <div className="bg-white rounded-lg shadow-lg p-8 md:p-12">
+          <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Mission</h2>
-              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              <h2 className="text-3xl font-bold text-[#003366] mb-4">Our Mission</h2>
+              <p className="text-lg text-[#6B7280] max-w-3xl mx-auto">
                 To create the most trusted and efficient rental platform that empowers both property owners and tenants to find their perfect match, fostering long-term relationships built on trust and transparency.
               </p>
             </div>
@@ -77,37 +77,23 @@ export default function AboutPage() {
 
         {/* Values */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+          <h2 className="text-3xl font-bold text-center text-[#003366] mb-12">
             Our Values
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {values.map((value, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-shadow">
+              <Card key={index} className="text-center hover:shadow-lg transition-shadow rounded-2xl">
                 <CardHeader>
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <value.icon className="h-8 w-8 text-blue-600" />
+                  <div className="w-16 h-16 bg-[#FFC107] rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <value.icon className="h-8 w-8 text-[#003366]" />
                   </div>
-                  <CardTitle className="text-xl">{value.title}</CardTitle>
+                  <CardTitle className="text-xl text-[#003366]">{value.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">{value.description}</p>
+                  <p className="text-[#6B7280]">{value.description}</p>
                 </CardContent>
               </Card>
             ))}
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="mb-20">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg p-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              {stats.map((stat, index) => (
-                <div key={index}>
-                  <div className="text-4xl font-bold mb-2">{stat.number}</div>
-                  <div className="text-blue-100">{stat.label}</div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
 
@@ -115,10 +101,10 @@ export default function AboutPage() {
         <div className="mb-20">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+              <h2 className="text-3xl font-bold text-[#003366] mb-6">
                 Our Story
               </h2>
-              <div className="space-y-4 text-gray-600">
+              <div className="space-y-4 text-[#6B7280]">
                 <p>
                   RishStay was founded with a simple vision: to make finding and renting properties as simple and stress-free as possible. We recognized that the traditional rental process was often complicated, time-consuming, and lacked transparency.
                 </p>
@@ -130,13 +116,13 @@ export default function AboutPage() {
                 </p>
               </div>
             </div>
-            <div className="bg-white rounded-lg shadow-lg p-8">
+            <div className="bg-white rounded-2xl shadow-lg p-8">
               <div className="text-center">
-                <MapPin className="h-16 w-16 text-blue-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Serving Communities Nationwide
+                <MapPin className="h-16 w-16 text-[#003366] mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-[#003366] mb-2">
+                  Serving Communities
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-[#6B7280]">
                   From bustling cities to quiet suburbs, we are helping people find their perfect homes everywhere.
                 </p>
               </div>
@@ -146,21 +132,21 @@ export default function AboutPage() {
 
         {/* Team */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+          <h2 className="text-3xl font-bold text-center text-[#003366] mb-12">
             Meet Our Team
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-1 gap-8 max-w-md mx-auto">
             {team.map((member, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-shadow">
+              <Card key={index} className="text-center hover:shadow-lg transition-shadow rounded-2xl">
                 <CardHeader>
-                  <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Users className="h-10 w-10 text-blue-600" />
+                  <div className="w-20 h-20 bg-[#FFC107] rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <Users className="h-10 w-10 text-[#003366]" />
                   </div>
-                  <CardTitle className="text-xl">{member.name}</CardTitle>
-                  <p className="text-blue-600 font-medium">{member.role}</p>
+                  <CardTitle className="text-xl text-[#003366]">{member.name}</CardTitle>
+                  <p className="text-[#FFC107] font-medium">{member.role}</p>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">{member.description}</p>
+                  <p className="text-[#6B7280]">{member.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -169,20 +155,20 @@ export default function AboutPage() {
 
         {/* CTA */}
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl font-bold text-[#003366] mb-4">
             Join Our Community
           </h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-[#6B7280] mb-8 max-w-2xl mx-auto">
             Whether you are looking for your next home or want to list your property, RishStay is here to help you every step of the way.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/properties">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+              <Button size="lg" className="bg-[#FFC107] hover:bg-yellow-600 text-[#003366] rounded-xl shadow-md hover:shadow-lg transform hover:scale-105">
                 Browse Properties
               </Button>
             </Link>
             <Link href="/list-property">
-              <Button size="lg" variant="outline">
+              <Button size="lg" variant="outline" className="border-[#FFC107] text-[#003366] hover:bg-[#FFC107] rounded-xl">
                 List Your Property
               </Button>
             </Link>

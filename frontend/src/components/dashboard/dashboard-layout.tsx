@@ -10,7 +10,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7]">
       <Header />
       <DashboardNav />
       <main className="lg:ml-64 pt-4 lg:pt-8">

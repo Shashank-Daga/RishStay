@@ -65,7 +65,7 @@ export default function ListPropertyPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7]">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="animate-pulse space-y-8">
@@ -82,27 +82,27 @@ export default function ListPropertyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7]">
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <Badge className="mb-4 bg-green-100 text-green-800">For Property Owners</Badge>
-          <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+          <Badge className="mb-4 bg-[#FFC107] text-[#003366]">For Property Owners</Badge>
+          <h1 className="text-4xl lg:text-5xl font-bold text-[#003366] mb-6">
             List Your Property on RishStay
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+          <p className="text-xl text-[#6B7280] max-w-3xl mx-auto mb-8">
             Join thousands of property owners who trust RishStay to find qualified tenants and maximize their rental income.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/auth">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+              <Button size="lg" className="bg-[#FFC107] hover:bg-yellow-600 text-[#003366] rounded-xl shadow-md hover:shadow-lg transform hover:scale-105">
                 Get Started as Landlord
               </Button>
             </Link>
             <Link href="/how-it-works">
-              <Button size="lg" variant="outline">
+              <Button size="lg" variant="outline" className="border-[#FFC107] text-[#003366] hover:bg-[#FFC107] rounded-xl">
                 Learn How It Works
               </Button>
             </Link>
@@ -111,20 +111,20 @@ export default function ListPropertyPage() {
 
         {/* Benefits */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+          <h2 className="text-3xl font-bold text-center text-[#003366] mb-12">
             Why Choose RishStay for Your Property?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {benefits.map((benefit, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
+              <Card key={index} className="hover:shadow-lg transition-shadow rounded-2xl">
                 <CardHeader>
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                    <benefit.icon className="h-6 w-6 text-blue-600" />
+                  <div className="w-12 h-12 bg-[#FFC107] rounded-xl flex items-center justify-center mb-4">
+                    <benefit.icon className="h-6 w-6 text-[#003366]" />
                   </div>
-                  <CardTitle className="text-lg">{benefit.title}</CardTitle>
+                  <CardTitle className="text-lg text-[#003366]">{benefit.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">{benefit.description}</p>
+                  <p className="text-[#6B7280]">{benefit.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -133,57 +133,33 @@ export default function ListPropertyPage() {
 
         {/* Process */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+          <h2 className="text-3xl font-bold text-center text-[#003366] mb-12">
             Simple 5-Step Process
           </h2>
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
               {steps.map((step, index) => (
                 <div key={index} className="text-center">
-                  <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                  <div className="w-16 h-16 bg-[#FFC107] text-[#003366] rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
                     {index + 1}
                   </div>
-                  <p className="text-gray-700 font-medium">{step}</p>
+                  <p className="text-[#6B7280] font-medium">{step}</p>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="mb-20">
-          <div className="bg-blue-600 text-white rounded-lg p-8">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold mb-4">Join Our Growing Community</h2>
-              <p className="text-xl opacity-90">Trusted by property owners across the country</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-              <div>
-                <div className="text-4xl font-bold mb-2">10,000+</div>
-                <div className="opacity-90">Properties Listed</div>
-              </div>
-              <div>
-                <div className="text-4xl font-bold mb-2">50,000+</div>
-                <div className="opacity-90">Happy Tenants</div>
-              </div>
-              <div>
-                <div className="text-4xl font-bold mb-2">95%</div>
-                <div className="opacity-90">Satisfaction Rate</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* CTA */}
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl font-bold text-[#003366] mb-4">
             Ready to List Your Property?
           </h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-[#6B7280] mb-8 max-w-2xl mx-auto">
             Start earning rental income today. Create your free landlord account and list your first property.
           </p>
           <Link href="/auth">
-            <Button size="lg" className="bg-green-600 hover:bg-green-700">
+            <Button size="lg" className="bg-[#FFC107] hover:bg-yellow-600 text-[#003366] rounded-xl shadow-md hover:shadow-lg transform hover:scale-105">
               <CheckCircle className="h-5 w-5 mr-2" />
               Start Listing Today
             </Button>

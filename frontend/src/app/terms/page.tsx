@@ -65,18 +65,16 @@ export default function TermsPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7]">
+
       <Header />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl font-bold text-[#003366] mb-4">
             Terms of Service
           </h1>
-          <p className="text-lg text-gray-600">
-            Last updated: {new Date().toLocaleDateString()}
-          </p>
         </div>
 
         {/* Introduction */}
@@ -143,23 +141,6 @@ export default function TermsPage() {
               Terms on our platform and updating the &quot;Last updated&quot; date. Your continued use of RishStay after such
               modifications constitutes acceptance of the updated Terms.
             </p>
-          </CardContent>
-        </Card>
-
-        {/* Contact */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle className="text-xl">Contact Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-700 mb-4">
-              If you have any questions about these Terms, please contact us:
-            </p>
-            <div className="space-y-2 text-gray-600">
-              <p><strong>Email:</strong> legal@rishstay.com</p>
-              <p><strong>Phone:</strong> +91 9767663123</p>
-              <p><strong>Address:</strong> Laxman Nagar, Baner, Pune, Maharashtra 411045</p>
-            </div>
           </CardContent>
         </Card>
       </main>

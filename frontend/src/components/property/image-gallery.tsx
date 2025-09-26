@@ -29,8 +29,8 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
 
   if (images.length === 0) {
     return (
-      <div className="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
-        <span className="text-gray-500">No images available</span>
+      <div className="w-full h-96 bg-[#FFE9D6] rounded-2xl flex items-center justify-center shadow-md">
+        <span className="text-[#6B7280]">No images available</span>
       </div>
     )
   }

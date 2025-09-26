@@ -98,18 +98,18 @@ export default function PropertyDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7]">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse space-y-8">
-            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-            <div className="h-96 bg-gray-200 rounded"></div>
+            <div className="h-8 bg-[#FFE9D6] rounded w-1/4"></div>
+            <div className="h-96 bg-[#FFE9D6] rounded-2xl"></div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-6">
-                <div className="h-32 bg-gray-200 rounded"></div>
-                <div className="h-48 bg-gray-200 rounded"></div>
+                <div className="h-32 bg-[#FFE9D6] rounded-2xl"></div>
+                <div className="h-48 bg-[#FFE9D6] rounded-2xl"></div>
               </div>
-              <div className="h-96 bg-gray-200 rounded"></div>
+              <div className="h-96 bg-[#FFE9D6] rounded-2xl"></div>
             </div>
           </div>
         </div>
@@ -119,16 +119,16 @@ export default function PropertyDetailPage() {
 
   if (!property) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7]">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Property Not Found</h1>
-            <p className="text-gray-600 mb-6">
+            <h1 className="text-2xl font-bold text-[#003366] mb-4">Property Not Found</h1>
+            <p className="text-[#6B7280] mb-6">
               The property you are looking for does not exist or has been removed.
             </p>
             <Link href="/properties">
-              <Button>Browse All Properties</Button>
+              <Button className="bg-[#FFC107] hover:bg-yellow-600 text-[#003366] rounded-xl shadow-md hover:shadow-lg transform hover:scale-105">Browse All Properties</Button>
             </Link>
           </div>
         </div>
@@ -201,7 +201,7 @@ export default function PropertyDetailPage() {
   const isFavorited = favorites.includes(property._id)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7]">
       <Header />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Button */}
@@ -209,7 +209,7 @@ export default function PropertyDetailPage() {
           <Button
             variant="ghost"
             onClick={() => router.back()}
-            className="text-gray-600 hover:text-gray-900"
+            className="text-[#003366] hover:bg-[#FFE9D6] rounded-xl"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Properties
@@ -220,10 +220,10 @@ export default function PropertyDetailPage() {
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
             <div>
-              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl lg:text-4xl font-bold text-[#003366] mb-2">
                 {property.title}
               </h1>
-              <div className="flex items-center text-gray-600 mb-4">
+              <div className="flex items-center text-[#6B7280] mb-4">
                 <MapPin className="h-5 w-5 mr-2" />
                 <span className="text-lg">
                   {property.location.address}, {property.location.city},{" "}
@@ -233,14 +233,14 @@ export default function PropertyDetailPage() {
             </div>
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <div className="text-3xl font-bold text-blue-600">
+                <div className="text-3xl font-bold text-[#FFC107]">
                   Rs {property.price.toLocaleString()}
                 </div>
-                <div className="text-gray-500">per month</div>
+                <div className="text-[#6B7280]">per month</div>
               </div>
               <div className="flex gap-2">
                 {user?.role === "tenant" && (
-                  <Button variant="outline" size="sm" onClick={handleFavoriteToggle}>
+                  <Button variant="outline" size="sm" onClick={handleFavoriteToggle} className="border-[#FFC107] text-[#003366] hover:bg-[#FFC107] rounded-xl">
                     <Heart
                       className={`h-4 w-4 ${
                         isFavorited ? "fill-current text-red-500" : ""
@@ -248,7 +248,7 @@ export default function PropertyDetailPage() {
                     />
                   </Button>
                 )}
-                <Button variant="outline" size="sm" onClick={handleShare}>
+                <Button variant="outline" size="sm" onClick={handleShare} className="border-[#FFC107] text-[#003366] hover:bg-[#FFC107] rounded-xl">
                   <Share2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -256,7 +256,7 @@ export default function PropertyDetailPage() {
           </div>
 
           {/* Property Stats */}
-          <div className="flex flex-wrap items-center gap-6 text-gray-600">
+          <div className="flex flex-wrap items-center gap-6 text-[#6B7280]">
             <div className="flex items-center">
               <Bed className="h-5 w-5 mr-2" />
               <span className="font-medium">
@@ -313,18 +313,18 @@ export default function PropertyDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Property Details */}
           <div className="lg:col-span-2 space-y-8">
-            <Card>
+            <Card className="bg-white shadow-md rounded-2xl">
               <CardHeader>
-                <CardTitle>About This Property</CardTitle>
+                <CardTitle className="text-[#003366]">About This Property</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 leading-relaxed">{property.description}</p>
+                <p className="text-[#6B7280] leading-relaxed">{property.description}</p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-white shadow-md rounded-2xl">
               <CardHeader>
-                <CardTitle>Amenities</CardTitle>
+                <CardTitle className="text-[#003366]">Amenities</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -332,10 +332,10 @@ export default function PropertyDetailPage() {
                     const IconComponent = amenityIcons[amenity] || Check
                     return (
                       <div key={amenity} className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                          <IconComponent className="h-4 w-4 text-green-600" />
+                        <div className="w-8 h-8 bg-[#FFE9D6] rounded-full flex items-center justify-center">
+                          <IconComponent className="h-4 w-4 text-[#FFC107]" />
                         </div>
-                        <span className="text-gray-700">{amenity}</span>
+                        <span className="text-[#6B7280]">{amenity}</span>
                       </div>
                     )
                   })}
@@ -343,79 +343,79 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-white shadow-md rounded-2xl">
               <CardHeader>
-                <CardTitle>Property Details</CardTitle>
+                <CardTitle className="text-[#003366]">Property Details</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Property Type:</span>
-                      <span className="font-medium capitalize">{property.propertyType}</span>
+                      <span className="text-[#6B7280]">Property Type:</span>
+                      <span className="font-medium text-[#003366] capitalize">{property.propertyType}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Bedrooms:</span>
-                      <span className="font-medium">
+                      <span className="text-[#6B7280]">Bedrooms:</span>
+                      <span className="font-medium text-[#003366]">
                         {property.bedrooms === 0 ? "studio" : property.bedrooms}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Bathrooms:</span>
-                      <span className="font-medium">{property.bathrooms}</span>
+                      <span className="text-[#6B7280]">Bathrooms:</span>
+                      <span className="font-medium text-[#003366]">{property.bathrooms}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Area:</span>
-                      <span className="font-medium">
+                      <span className="text-[#6B7280]">Area:</span>
+                      <span className="font-medium text-[#003366]">
                         {property.area.toLocaleString()} sqft
                       </span>
                     </div>
                   </div>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Monthly Rent:</span>
-                      <span className="font-medium">Rs {property.price.toLocaleString()}</span>
+                      <span className="text-[#6B7280]">Monthly Rent:</span>
+                      <span className="font-medium text-[#FFC107]">Rs {property.price.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Available From:</span>
-                      <span className="font-medium">
+                      <span className="text-[#6B7280]">Available From:</span>
+                      <span className="font-medium text-[#003366]">
                         {formatDate(property.availability?.availableFrom)}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Status:</span>
-                      <span className="font-medium capitalize">
+                      <span className="text-[#6B7280]">Status:</span>
+                      <span className="font-medium text-[#003366] capitalize">
                         {property.availability?.isAvailable ? "Available" : "Rented"}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Listed:</span>
-                      <span className="font-medium">{formatDate(property.createdAt)}</span>
+                      <span className="text-[#6B7280]">Listed:</span>
+                      <span className="font-medium text-[#003366]">{formatDate(property.createdAt)}</span>
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-white shadow-md rounded-2xl">
               <CardHeader>
-                <CardTitle>Location</CardTitle>
+                <CardTitle className="text-[#003366]">Location</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-gray-400 mt-0.5" />
+                    <MapPin className="h-5 w-5 text-[#6B7280] mt-0.5" />
                     <div>
-                      <p className="font-medium">{property.location.address}</p>
-                      <p className="text-gray-600">
+                      <p className="font-medium text-[#003366]">{property.location.address}</p>
+                      <p className="text-[#6B7280]">
                         {property.location.city}, {property.location.state}{" "}
                         {property.location.zipCode}
                       </p>
                     </div>
                   </div>
 
-                  <div className="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <div className="text-center text-gray-500">
+                  <div className="w-full h-64 bg-[#FFE9D6] rounded-2xl flex items-center justify-center shadow-md">
+                    <div className="text-center text-[#6B7280]">
                       <MapPin className="h-8 w-8 mx-auto mb-2" />
                       <p>Interactive map would be displayed here</p>
                       <p className="text-sm">

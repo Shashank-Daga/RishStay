@@ -65,10 +65,10 @@ export function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormProps) {
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md bg-white shadow-xl rounded-2xl">
       <CardHeader>
-        <CardTitle>Create Account</CardTitle>
-        <CardDescription>Join our platform to find or list rental properties</CardDescription>
+        <CardTitle className="text-[#003366]">Create Account</CardTitle>
+        <CardDescription className="text-[#6B7280]">Join our platform to find or list rental properties</CardDescription>
       </CardHeader>
       <CardContent>
         {errors.length > 0 && (
@@ -82,7 +82,7 @@ export function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormProps) {
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="name" className="text-[#6B7280]">Full Name</Label>
             <Input
               id="name"
               type="text"
@@ -90,10 +90,11 @@ export function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormProps) {
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your full name"
               required
+              className="focus:ring-[#FFC107] focus:border-[#FFC107]"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="phoneNo">Phone Number</Label>
+            <Label htmlFor="phoneNo" className="text-[#6B7280]">Phone Number</Label>
             <Input
               id="phoneNo"
               type="tel"
@@ -103,10 +104,11 @@ export function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormProps) {
               pattern="[0-9]{10}"
               title="Phone number must be 10 digits"
               required
+              className="focus:ring-[#FFC107] focus:border-[#FFC107]"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-[#6B7280]">Email</Label>
             <Input
               id="email"
               type="email"
@@ -114,10 +116,11 @@ export function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormProps) {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               required
+              className="focus:ring-[#FFC107] focus:border-[#FFC107]"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-[#6B7280]">Password</Label>
             <Input
               id="password"
               type="password"
@@ -125,26 +128,27 @@ export function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormProps) {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Create a password"
               required
+              className="focus:ring-[#FFC107] focus:border-[#FFC107]"
             />
           </div>
           <div className="space-y-3">
-            <Label>I am a:</Label>
+            <Label className="text-[#6B7280]">I am a:</Label>
             <RadioGroup value={role} onValueChange={(value) => setRole(value as "landlord" | "tenant")}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="tenant" id="tenant" />
-                <Label htmlFor="tenant">Tenant (Looking for a place)</Label>
+                <Label htmlFor="tenant" className="text-[#6B7280]">Tenant (Looking for a place)</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="landlord" id="landlord" />
-                <Label htmlFor="landlord">Property Owner (Listing properties)</Label>
+                <Label htmlFor="landlord" className="text-[#6B7280]">Property Owner (Listing properties)</Label>
               </div>
             </RadioGroup>
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full bg-[#FFC107] hover:bg-yellow-600 text-[#003366] rounded-xl shadow-md hover:shadow-lg transform hover:scale-105" disabled={loading}>
             {loading ? "Creating account..." : "Create Account"}
           </Button>
           <div className="text-center">
-            <Button type="button" variant="link" onClick={onSwitchToLogin} className="text-sm">
+            <Button type="button" variant="link" onClick={onSwitchToLogin} className="text-sm text-[#6B7280] hover:text-[#FFC107]">
               Already have an account? Log in
             </Button>
           </div>

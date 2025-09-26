@@ -104,18 +104,18 @@ export function PropertyList({ properties, filters, favorites = [], onFavoriteTo
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Loading Properties...</h2>
-            <p className="text-gray-600">Please wait while we fetch the latest properties</p>
+            <h2 className="text-2xl font-bold text-[#003366]">Loading Properties...</h2>
+            <p className="text-[#6B7280]">Please wait while we fetch the latest properties</p>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, index) => (
             <div key={index} className="animate-pulse">
-              <div className="bg-gray-200 h-48 rounded-lg mb-4"></div>
+              <div className="bg-[#FFE9D6] h-48 rounded-lg mb-4"></div>
               <div className="space-y-3">
-                <div className="bg-gray-200 h-4 rounded"></div>
-                <div className="bg-gray-200 h-4 rounded w-2/3"></div>
-                <div className="bg-gray-200 h-4 rounded w-1/2"></div>
+                <div className="bg-[#FFE9D6] h-4 rounded"></div>
+                <div className="bg-[#FFE9D6] h-4 rounded w-2/3"></div>
+                <div className="bg-[#FFE9D6] h-4 rounded w-1/2"></div>
               </div>
             </div>
           ))}
@@ -131,9 +131,9 @@ export function PropertyList({ properties, filters, favorites = [], onFavoriteTo
           <div className="text-red-400 mb-4">
             <Grid className="h-16 w-16 mx-auto" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Properties</h3>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={() => window.location.reload()}>Try Again</Button>
+          <h3 className="text-xl font-semibold text-[#003366] mb-2">Error Loading Properties</h3>
+          <p className="text-[#6B7280] mb-4">{error}</p>
+          <Button className="bg-[#FFC107] hover:bg-yellow-600 text-[#003366] rounded-xl shadow-md hover:shadow-lg transform hover:scale-105" onClick={() => window.location.reload()}>Try Again</Button>
         </div>
       </div>
     )
@@ -144,8 +144,8 @@ export function PropertyList({ properties, filters, favorites = [], onFavoriteTo
       {/* Results Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{filteredProperties.length} Properties Found</h2>
-          <p className="text-gray-600">
+          <h2 className="text-2xl font-bold text-[#003366]">{filteredProperties.length} Properties Found</h2>
+          <p className="text-[#6B7280]">
             {filteredProperties.length === 0
               ? "No properties match your criteria"
               : `Showing ${startIndex + 1}-${Math.min(startIndex + itemsPerPage, filteredProperties.length)} of ${
@@ -157,9 +157,9 @@ export function PropertyList({ properties, filters, favorites = [], onFavoriteTo
         <div className="flex items-center gap-4">
           {/* Items per page */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Show:</span>
+            <span className="text-sm text-[#6B7280]">Show:</span>
             <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(Number.parseInt(value))}>
-              <SelectTrigger className="w-20">
+              <SelectTrigger className="w-20 focus:ring-[#FFC107] focus:border-[#FFC107]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -172,12 +172,12 @@ export function PropertyList({ properties, filters, favorites = [], onFavoriteTo
           </div>
 
           {/* View Mode Toggle */}
-          <div className="flex items-center border rounded-lg">
+          <div className="flex items-center border border-[#FFC107] rounded-xl overflow-hidden">
             <Button
               variant={viewMode === "grid" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("grid")}
-              className="rounded-r-none"
+              className={`rounded-r-none ${viewMode === "grid" ? "bg-[#FFC107] text-[#003366]" : "text-[#6B7280] hover:bg-[#FFE9D6]"}`}
             >
               <Grid className="h-4 w-4" />
             </Button>
@@ -185,7 +185,7 @@ export function PropertyList({ properties, filters, favorites = [], onFavoriteTo
               variant={viewMode === "list" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("list")}
-              className="rounded-l-none"
+              className={`rounded-l-none ${viewMode === "list" ? "bg-[#FFC107] text-[#003366]" : "text-[#6B7280] hover:bg-[#FFE9D6]"}`}
             >
               <List className="h-4 w-4" />
             </Button>
@@ -196,11 +196,11 @@ export function PropertyList({ properties, filters, favorites = [], onFavoriteTo
       {/* Properties Grid/List */}
       {filteredProperties.length === 0 ? (
         <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
+          <div className="text-[#6B7280] mb-4">
             <Grid className="h-16 w-16 mx-auto" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Properties Found</h3>
-          <p className="text-gray-600 mb-4">Try adjusting your search criteria or filters to find more properties.</p>
+          <h3 className="text-xl font-semibold text-[#003366] mb-2">No Properties Found</h3>
+          <p className="text-[#6B7280] mb-4">Try adjusting your search criteria or filters to find more properties.</p>
         </div>
       ) : (
         <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" : "space-y-6"}>
@@ -223,6 +223,7 @@ export function PropertyList({ properties, filters, favorites = [], onFavoriteTo
             size="sm"
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
+            className="border-[#FFC107] text-[#003366] hover:bg-[#FFC107] rounded-xl"
           >
             <ChevronLeft className="h-4 w-4" />
             Previous
@@ -247,7 +248,7 @@ export function PropertyList({ properties, filters, favorites = [], onFavoriteTo
                   variant={currentPage === pageNumber ? "default" : "outline"}
                   size="sm"
                   onClick={() => handlePageChange(pageNumber)}
-                  className="w-10"
+                  className={`w-10 ${currentPage === pageNumber ? "bg-[#FFC107] text-[#003366] border-[#FFC107]" : "border-[#FFC107] text-[#003366] hover:bg-[#FFC107]"} rounded-xl`}
                 >
                   {pageNumber}
                 </Button>
@@ -260,6 +261,7 @@ export function PropertyList({ properties, filters, favorites = [], onFavoriteTo
             size="sm"
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
+            className="border-[#FFC107] text-[#003366] hover:bg-[#FFC107] rounded-xl"
           >
             Next
             <ChevronRight className="h-4 w-4" />

@@ -129,22 +129,22 @@ export function ContactForm({ property }: ContactFormProps) {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="bg-white shadow-md rounded-2xl">
         <CardHeader>
-          <CardTitle className="text-lg">Contact Owner</CardTitle>
+          <CardTitle className="text-lg text-[#003366]">Contact Owner</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Inquiry Type */}
             <div className="space-y-2">
-              <Label>I am interested in:</Label>
+              <Label className="text-[#6B7280]">I am interested in:</Label>
               <Select
                 value={inquiryType}
                 onValueChange={(value) =>
                   setInquiryType(value as "general" | "viewing" | "application" | "availability")
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="focus:ring-[#FFC107] focus:border-[#FFC107]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -159,17 +159,18 @@ export function ContactForm({ property }: ContactFormProps) {
             {/* Personal Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name *</Label>
+                <Label htmlFor="name" className="text-[#6B7280]">Full Name *</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   placeholder="Your full name"
                   required
+                  className="focus:ring-[#FFC107] focus:border-[#FFC107]"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
+                <Label htmlFor="email" className="text-[#6B7280]">Email *</Label>
                 <Input
                   id="email"
                   type="email"
@@ -177,12 +178,13 @@ export function ContactForm({ property }: ContactFormProps) {
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   placeholder="your.email@example.com"
                   required
+                  className="focus:ring-[#FFC107] focus:border-[#FFC107]"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number *</Label>
+              <Label htmlFor="phone" className="text-[#6B7280]">Phone Number *</Label>
               <Input
                 id="phone"
                 type="tel"
@@ -192,12 +194,13 @@ export function ContactForm({ property }: ContactFormProps) {
                 required
                 pattern="[0-9]{10}"
                 title="Enter a valid 10-digit phone number"
+                className="focus:ring-[#FFC107] focus:border-[#FFC107]"
               />
             </div>
 
             {/* Message Box */}
             <div className="space-y-2">
-              <Label htmlFor="message">Message *</Label>
+              <Label htmlFor="message" className="text-[#6B7280]">Message *</Label>
               <Textarea
                 id="message"
                 value={formData.message}
@@ -205,16 +208,17 @@ export function ContactForm({ property }: ContactFormProps) {
                 placeholder="Write your message to the property owner"
                 required
                 rows={4}
+                className="focus:ring-[#FFC107] focus:border-[#FFC107]"
               />
             </div>
 
             {/* Preferred Date */}
             {inquiryType === "viewing" && (
               <div className="space-y-2">
-                <Label>Preferred Viewing Date</Label>
+                <Label className="text-[#6B7280]">Preferred Viewing Date</Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left font-normal bg-transparent">
+                    <Button variant="outline" className="w-full justify-start text-left font-normal border-[#FFC107] text-[#6B7280] hover:bg-[#FFE9D6] focus:ring-[#FFC107] focus:border-[#FFC107]">
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {preferredDate ? format(preferredDate, "PPP") : "Select a date"}
                     </Button>
@@ -232,11 +236,11 @@ export function ContactForm({ property }: ContactFormProps) {
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
+            <Button type="submit" className="w-full bg-[#FFC107] hover:bg-yellow-600 text-[#003366] rounded-xl shadow-md hover:shadow-lg transform hover:scale-105" disabled={isSubmitting}>
               {isSubmitting ? "Sending..." : "Send Inquiry"}
             </Button>
 
-            <p className="text-xs text-gray-500 text-center">
+            <p className="text-xs text-[#6B7280] text-center">
               By contacting the owner, you agree to our terms of service and privacy policy.
             </p>
           </form>

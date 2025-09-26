@@ -51,11 +51,11 @@ export function ReviewsSection() {
 
   if (loading) {
     return (
-      <section className="py-16 lg:py-24 bg-gray-50">
+      <section className="py-16 lg:py-24 bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading reviews...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FFC107] mx-auto"></div>
+            <p className="mt-4 text-[#6B7280]">Loading reviews...</p>
           </div>
         </div>
       </section>
@@ -63,13 +63,13 @@ export function ReviewsSection() {
   }
 
   return (
-    <section className="py-16 lg:py-24 bg-gray-50">
+    <section className="py-16 lg:py-24 bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl lg:text-4xl font-bold text-[#003366] mb-4">
             What Our Users Say
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-[#6B7280] max-w-2xl mx-auto">
             Read reviews from our community of tenants and landlords who have found their perfect rental match through RishStay.
           </p>
         </div>
@@ -79,7 +79,7 @@ export function ReviewsSection() {
           <div className="text-center mb-8">
             <Button
               onClick={() => setShowReviewForm(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+              className="bg-[#FFC107] hover:bg-yellow-600 text-[#003366] px-6 py-2 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg transform hover:scale-105"
             >
               <Plus className="h-4 w-4 mr-2" />
               Share Your Experience
@@ -90,13 +90,13 @@ export function ReviewsSection() {
         {/* Reviews Slider */}
         {reviews.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-gray-400 mb-4">
+            <div className="text-[#6B7280] mb-4">
               <User className="h-16 w-16 mx-auto" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+            <h3 className="text-xl font-semibold text-[#003366] mb-2">
               No reviews yet
             </h3>
-            <p className="text-gray-500">
+            <p className="text-[#6B7280]">
               Be the first to share your experience with RishStay!
             </p>
           </div>
@@ -104,20 +104,20 @@ export function ReviewsSection() {
           <div className="overflow-x-auto no-scrollbar pb-4">
             <div className="flex space-x-6 min-w-max">
               {reviews.map((review) => (
-                <Card key={review._id} className="w-80 flex-shrink-0 bg-white shadow-md hover:shadow-lg transition-shadow border-0">
+                <Card key={review._id} className="w-80 flex-shrink-0 bg-white shadow-md hover:shadow-lg transition-shadow border-0 rounded-2xl">
                   <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <User className="h-5 w-5 text-blue-600" />
+                        <div className="w-10 h-10 bg-[#FFC107] rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5 text-[#003366]" />
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900">
+                          <p className="font-semibold text-[#003366]">
                             {review.userName}
                           </p>
                           <Badge
                             variant={review.userRole === "landlord" ? "default" : "secondary"}
-                            className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-200"
+                            className="text-xs"
                           >
                             {review.userRole}
                           </Badge>
@@ -126,7 +126,7 @@ export function ReviewsSection() {
                     </div>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <p className="text-gray-700 mb-4 overflow-hidden text-ellipsis" style={{
+                    <p className="text-[#6B7280] mb-4 overflow-hidden text-ellipsis" style={{
                       display: '-webkit-box',
                       WebkitLineClamp: 6,
                       WebkitBoxOrient: 'vertical' as const,
@@ -134,7 +134,7 @@ export function ReviewsSection() {
                     }}>
                       &ldquo;{review.comment}&rdquo;
                     </p>
-                    <div className="flex items-center text-sm text-gray-500">
+                    <div className="flex items-center text-sm text-[#6B7280]">
                       <Calendar className="h-4 w-4 mr-1" />
                       {formatDate(review.createdAt)}
                     </div>

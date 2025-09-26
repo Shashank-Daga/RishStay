@@ -38,16 +38,16 @@ export default function ContactPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7]">
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+          <h1 className="text-4xl lg:text-5xl font-bold text-[#003366] mb-6">
             Get in Touch
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-[#6B7280] max-w-3xl mx-auto">
             Have questions about RishStay? We are here to help! Reach out to us through any of the channels below.
           </p>
         </div>
@@ -55,10 +55,10 @@ export default function ContactPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Contact Form */}
           <div>
-            <Card>
+            <Card className="rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-2xl">Send us a Message</CardTitle>
-                <p className="text-gray-600">
+                <CardTitle className="text-2xl text-[#003366]">Send us a Message</CardTitle>
+                <p className="text-[#6B7280]">
                   Fill out the form below and we will get back to you as soon as possible.
                 </p>
               </CardHeader>
@@ -94,7 +94,7 @@ export default function ContactPage() {
                     />
                   </div>
 
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                  <Button className="w-full bg-[#FFC107] hover:bg-yellow-600 text-[#003366] rounded-xl shadow-md hover:shadow-lg transform hover:scale-105">
                     <Send className="h-4 w-4 mr-2" />
                     Send Message
                   </Button>
@@ -106,19 +106,19 @@ export default function ContactPage() {
           {/* Contact Information */}
           <div className="space-y-8">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              <h2 className="text-2xl font-bold text-[#003366] mb-6">
                 Contact Information
               </h2>
               <div className="space-y-6">
                 {contactInfo.map((info, index) => (
                   <div key={index} className="flex items-start space-x-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <info.icon className="h-6 w-6 text-blue-600" />
+                    <div className="w-12 h-12 bg-[#FFC107] rounded-xl flex items-center justify-center flex-shrink-0">
+                      <info.icon className="h-6 w-6 text-[#003366]" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">{info.title}</h3>
-                      <p className="text-blue-600 font-medium">{info.details}</p>
-                      <p className="text-gray-600 text-sm">{info.description}</p>
+                      <h3 className="font-semibold text-[#003366]">{info.title}</h3>
+                      <p className="text-[#FFC107] font-medium">{info.details}</p>
+                      <p className="text-[#6B7280] text-sm">{info.description}</p>
                     </div>
                   </div>
                 ))}
@@ -126,33 +126,33 @@ export default function ContactPage() {
             </div>
 
             {/* FAQ Section */}
-            <Card>
+            <Card className="rounded-2xl">
               <CardHeader>
-                <CardTitle>Quick Help</CardTitle>
+                <CardTitle className="text-[#003366]">Quick Help</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">
+                    <h4 className="font-semibold text-[#003366] mb-2">
                       How do I list my property?
                     </h4>
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-[#6B7280] text-sm">
                       Create a landlord account and use our simple property listing form to add your rental property.
                     </p>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">
+                    <h4 className="font-semibold text-[#003366] mb-2">
                       How do I apply for a property?
                     </h4>
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-[#6B7280] text-sm">
                       Browse properties, save your favorites, and submit applications directly through our platform.
                     </p>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">
+                    <h4 className="font-semibold text-[#003366] mb-2">
                       Is RishStay free to use?
                     </h4>
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-[#6B7280] text-sm">
                       Yes! Browsing and applying for properties is completely free for tenants.
                     </p>
                   </div>
@@ -164,15 +164,15 @@ export default function ContactPage() {
 
         {/* Map Section */}
         <div className="mt-16">
-          <Card>
+          <Card className="rounded-2xl">
             <CardHeader>
-              <CardTitle className="text-2xl">Find Us</CardTitle>
-              <p className="text-gray-600">
+              <CardTitle className="text-2xl text-[#003366]">Find Us</CardTitle>
+              <p className="text-[#6B7280]">
                 Visit our office location in Pune, Maharashtra
               </p>
             </CardHeader>
             <CardContent>
-              <div className="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">
+              <div className="w-full h-64 bg-gray-200 rounded-xl flex items-center justify-center">
                 <div className="text-center text-gray-500">
                   <MapPin className="h-12 w-12 mx-auto mb-4" />
                   <p className="font-medium">Interactive Map</p>
@@ -182,7 +182,7 @@ export default function ContactPage() {
                       href="https://www.google.com/maps/place/Laxman+Nagar,+Baner,+Pune,+Maharashtra+411045/@18.5705908,73.7665306,16z/data=!3m1!4b1!4m6!3m5!1s0x3bc2b94ab6ff4d3b:0x8af90967675eaea9!8m2!3d18.5700156!4d73.7727908!16s%2Fg%2F1tmphz6_?entry=ttu&g_ep=EgoyMDI1MDgxOS4wIKXMDSoASAFQAw%3D%3D"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
+                      className="text-[#FFC107] hover:underline"
                     >
                       View on Google Maps
                     </a>

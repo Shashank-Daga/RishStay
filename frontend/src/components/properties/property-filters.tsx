@@ -121,7 +121,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
         <Button
           variant="outline"
           onClick={() => setShowFilters(!showFilters)}
-          className="w-full justify-center"
+          className="w-full justify-center border-[#FFC107] text-[#003366] hover:bg-[#FFC107] rounded-xl"
         >
           <Filter className="h-4 w-4 mr-2" />
           {showFilters ? "Hide Filters" : "Show Filters"}
@@ -139,34 +139,34 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
             className="space-y-6 overflow-hidden"
           >
             {/* Location */}
-            <Card>
+            <Card className="bg-white shadow-md rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-lg">Location</CardTitle>
+                <CardTitle className="text-lg text-[#003366]">Location</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-2 h-4 w-4 text-gray-400" />
+                  <MapPin className="absolute left-3 top-2 h-4 w-4 text-[#6B7280]" />
                   <Input
                     placeholder="Enter Area"
                     value={filters.location}
                     onChange={(e) => updateFilters({ location: e.target.value })}
-                    className="pl-10"
+                    className="pl-10 focus:ring-[#FFC107] focus:border-[#FFC107]"
                   />
                 </div>
               </CardContent>
             </Card>
 
             {/* Property Type */}
-            <Card>
+            <Card className="bg-white shadow-md rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-lg">Property Type</CardTitle>
+                <CardTitle className="text-lg text-[#003366]">Property Type</CardTitle>
               </CardHeader>
               <CardContent>
                 <Select
                   value={filters.propertyType}
                   onValueChange={(value) => updateFilters({ propertyType: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="focus:ring-[#FFC107] focus:border-[#FFC107]">
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -181,9 +181,9 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
             </Card>
 
             {/* Price Range */}
-            <Card>
+            <Card className="bg-white shadow-md rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-lg">Price Range</CardTitle>
+                <CardTitle className="text-lg text-[#003366]">Price Range</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="px-2">
@@ -196,7 +196,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
                     className="w-full"
                   />
                 </div>
-                <div className="flex items-center justify-between text-sm text-gray-600">
+                <div className="flex items-center justify-between text-sm text-[#6B7280]">
                   <span>₹{priceRange[0].toLocaleString()}</span>
                   <span>₹{priceRange[1].toLocaleString()}</span>
                 </div>
@@ -204,18 +204,18 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
             </Card>
 
             {/* Bedrooms & Bathrooms */}
-            <Card>
+            <Card className="bg-white shadow-md rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-lg">Bedrooms & Bathrooms</CardTitle>
+                <CardTitle className="text-lg text-[#003366]">Bedrooms & Bathrooms</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label className="text-sm font-medium">Bedrooms</Label>
+                  <Label className="text-sm font-medium text-[#6B7280]">Bedrooms</Label>
                   <Select
                     value={filters.bedrooms.toString()}
                     onValueChange={(value: string) => updateFilters({ bedrooms: Number(value) })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="focus:ring-[#FFC107] focus:border-[#FFC107]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -229,12 +229,12 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium">Bathrooms</Label>
+                  <Label className="text-sm font-medium text-[#6B7280]">Bathrooms</Label>
                   <Select
                     value={filters.bathrooms.toString()}
                     onValueChange={(value: string) => updateFilters({ bathrooms: Number(value) })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="focus:ring-[#FFC107] focus:border-[#FFC107]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -250,9 +250,9 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
             </Card>
 
             {/* Amenities */}
-            <Card>
+            <Card className="bg-white shadow-md rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-lg">Amenities</CardTitle>
+                <CardTitle className="text-lg text-[#003366]">Amenities</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -263,7 +263,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
                         checked={filters.amenities.includes(amenity)}
                         onCheckedChange={(checked) => handleAmenityChange(amenity, checked)}
                       />
-                      <Label htmlFor={amenity} className="text-sm">
+                      <Label htmlFor={amenity} className="text-sm text-[#6B7280]">
                         {amenity}
                       </Label>
                     </div>
@@ -273,16 +273,16 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
             </Card>
 
             {/* Sort By */}
-            <Card>
+            <Card className="bg-white shadow-md rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-lg">Sort By</CardTitle>
+                <CardTitle className="text-lg text-[#003366]">Sort By</CardTitle>
               </CardHeader>
               <CardContent>
                 <Select
                   value={filters.sortBy}
                   onValueChange={(value) => updateFilters({ sortBy: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="focus:ring-[#FFC107] focus:border-[#FFC107]">
                     <SelectValue placeholder="Sort By" />
                   </SelectTrigger>
                   <SelectContent>
@@ -295,7 +295,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
             </Card>
 
             {/* Clear Filters */}
-            <Button variant="outline" onClick={clearFilters} className="w-full bg-transparent">
+            <Button variant="outline" onClick={clearFilters} className="w-full border-[#FFC107] text-[#003366] hover:bg-[#FFC107] rounded-xl">
               <X className="h-4 w-4 mr-2" />
               Clear All Filters
             </Button>
