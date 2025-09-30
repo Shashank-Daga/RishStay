@@ -221,7 +221,7 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
     return isNaN(parsed) ? fallback : parsed
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!validateFields()) return
@@ -311,7 +311,16 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
         body: formData,
       })
 
-      const result = await response.json()
+      let result;
+      if (response.ok) {
+        result = await response.json();
+      } else {
+        try {
+          result = await response.json();
+        } catch (e) {
+          result = { success: false, error: "Server returned an error" };
+        }
+      }
 
       if (!response.ok || !result.success) {
         throw new Error(result.error || "Failed to save property")

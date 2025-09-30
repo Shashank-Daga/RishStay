@@ -54,6 +54,17 @@ app.get("/", (req, res) => {
   res.send("Backend is running 🚀");
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error("Error occurred:", err.stack);
+  res.status(500).json({ success: false, error: "Internal Server Error" });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ success: false, error: "Route not found" });
+});
+
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
 });
