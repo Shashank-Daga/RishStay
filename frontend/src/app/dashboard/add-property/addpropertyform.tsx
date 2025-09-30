@@ -172,7 +172,7 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
   const removeImage = (index: number) => {
     const imgToRemove = propertyData.images[index]
     if (existingImages.includes(imgToRemove)) {
-      setDeletedImages((prev) => [...prev, imgToRemove])
+      setDeletedImages((prev) => [...prev, imgToRemove.split('/').pop() || 'temp_id'])
       setExistingImages((prev) => prev.filter((img) => img !== imgToRemove))
     } else {
       setImageFiles((prev) => prev.filter((_, i) => i !== index))
@@ -211,9 +211,44 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
     return true
   }
 
+  const safeParseInt = (value: string, fallback = 0) => {
+    const parsed = parseInt(value)
+    return isNaN(parsed) ? fallback : parsed
+  }
+
+  const safeParseFloat = (value: string, fallback = 0) => {
+    const parsed = parseFloat(value)
+    return isNaN(parsed) ? fallback : parsed
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
     if (!validateFields()) return
+
+    if (
+      safeParseFloat(propertyData.price) <= 0 ||
+      safeParseInt(propertyData.bedrooms) < 0 ||
+      safeParseFloat(propertyData.bathrooms) < 0 ||
+      safeParseFloat(propertyData.area) <= 0 ||
+      safeParseInt(propertyData.maxGuests) < 1
+    ) {
+      toast({
+        title: "Invalid number fields",
+        description: "Please enter valid positive numbers for price, bedrooms, bathrooms, area, and max guests.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!editingProperty && imageFiles.length === 0) {
+      toast({
+        title: "Images required",
+        description: "Please upload at least one image for the property.",
+        variant: "destructive",
+      })
+      return
+    }
 
     setIsSubmitting(true)
 
@@ -221,16 +256,15 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
       const token = localStorage.getItem("auth-token")
       if (!token) throw new Error("Authentication required")
 
-      // Prepare the data in the format expected by the backend
-      const submitData = {
+      const propertyDataToSend = {
         title: propertyData.title.trim(),
         description: propertyData.description.trim(),
-        price: parseFloat(propertyData.price),
+        price: safeParseFloat(propertyData.price),
         propertyType: propertyData.propertyType,
-        bedrooms: parseInt(propertyData.bedrooms),
-        bathrooms: parseFloat(propertyData.bathrooms),
-        area: parseFloat(propertyData.area),
-        maxGuests: parseInt(propertyData.maxGuests),
+        bedrooms: safeParseInt(propertyData.bedrooms),
+        bathrooms: safeParseFloat(propertyData.bathrooms),
+        area: safeParseFloat(propertyData.area),
+        maxGuests: safeParseInt(propertyData.maxGuests),
         guestType: propertyData.guestType,
         location: {
           address: propertyData.address.trim(),
@@ -243,10 +277,26 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
         availability: {
           isAvailable: propertyData.isAvailable,
         },
-        images: imageFiles.length > 0 ? [] : existingImages.map(img => ({
-          url: img,
-          public_id: img.split('/').pop() || 'temp_id'
+      }
+
+      const formData = new FormData()
+      formData.append("propertyData", JSON.stringify(propertyDataToSend))
+
+      imageFiles.forEach((file) => {
+        formData.append("images", file)
+      })
+
+      if (editingProperty) {
+        if (deletedImages.length > 0) {
+          deletedImages.forEach((public_id) => {
+            formData.append("deleteImages", public_id)
+          })
+        }
+        const keepImages = existingImages.map((url) => ({
+          url,
+          public_id: url.split("/").pop() || "temp_id",
         }))
+        formData.append("keepImages", JSON.stringify(keepImages))
       }
 
       const endpoint = editingProperty
@@ -256,10 +306,9 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
       const response = await fetch(endpoint, {
         method: editingProperty ? "PUT" : "POST",
         headers: {
-          "Content-Type": "application/json",
-          "auth-token": token
+          "auth-token": token,
         },
-        body: JSON.stringify(submitData),
+        body: formData,
       })
 
       const result = await response.json()
@@ -290,291 +339,291 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
   // ----------------------
   return (
     <DashboardLayout>
-          <div className="space-y-8">
-            <h1 className="text-3xl font-bold text-gray-900">
-              {editingProperty ? "Edit Property" : "Add New Property"}
-            </h1>
-            <p className="text-gray-600">
-              {editingProperty
-                ? "Update your property details"
-                : "List your property and connect with potential tenants"}
-            </p>
-    
-            <form onSubmit={handleSubmit} className="max-w-4xl space-y-8">
-              {/* BASIC INFO */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Basic Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div>
-                    <Label htmlFor="title">Title *</Label>
-                    <Input
-                      id="title"
-                      value={propertyData.title}
-                      onChange={(e) => handleInputChange("title", e.target.value)}
-                      placeholder="Name your property"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="description">Description *</Label>
-                    <Textarea
-                      id="description"
-                      value={propertyData.description}
-                      onChange={(e) => handleInputChange("description", e.target.value)}
-                      placeholder="Describe your property"
-                      rows={4}
-                      required
-                    />
-                  </div>
-    
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label>Price (Rs) *</Label>
-                      <Input
-                        type="number"
-                        value={propertyData.price}
-                        onChange={(e) => handleInputChange("price", e.target.value)}
-                        placeholder="Monthly Rent per person"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label>Property Type *</Label>
-                      <Select
-                        value={propertyData.propertyType}
-                        onValueChange={(v) => handleInputChange("propertyType", v)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="apartment">apartment</SelectItem>
-                          <SelectItem value="studio">studio</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Area (sq ft) *</Label>
-                      <Input
-                        type="number"
-                        value={propertyData.area}
-                        onChange={(e) => handleInputChange("area", e.target.value)}
-                        placeholder="Area in square feet"
-                        required
-                      />
-                    </div>
-                  </div>
-    
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                    <Label>Bedroom*</Label>
-                    <Input
-                      type="number"
-                      value={propertyData.bedrooms}
-                      onChange={(e) => handleInputChange("bedrooms", e.target.value)}
-                      placeholder="Bedrooms"
-                      required
-                    />
-                    </div>
-                    <div>
-                    <Label>Bathroom*</Label>
-                    <Input
-                      type="number"
-                      value={propertyData.bathrooms}
-                      onChange={(e) => handleInputChange("bathrooms", e.target.value)}
-                      placeholder="Bathrooms"
-                      step="0.5"
-                      required
-                    />
-                    </div>
-                    <div>
-                    <Label>Maximum Guest*</Label>
-                    <Input
-                      type="number"
-                      value={propertyData.maxGuests}
-                      onChange={(e) => handleInputChange("maxGuests", e.target.value)}
-                      placeholder="Max Guests"
-                      required
-                    />
-                    </div>
-                  </div>
-    
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label>Guest Type *</Label>
-                      <Select
-                        value={propertyData.guestType}
-                        onValueChange={(v) => handleInputChange("guestType", v)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Family">Family</SelectItem>
-                          <SelectItem value="Bachelors">Bachelors</SelectItem>
-                          <SelectItem value="Girls">Girls</SelectItem>
-                          <SelectItem value="Boys">Boys</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-    
-                    <div>
-                      <Label>Availability *</Label>
-                      <Select
-                        value={propertyData.isAvailable.toString()}
-                        onValueChange={(v) => handleInputChange("isAvailable", v === "true")}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="true">Available</SelectItem>
-                          <SelectItem value="false">Not Available</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-    
-              {/* LOCATION */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Location</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+      <div className="space-y-8">
+        <h1 className="text-3xl font-bold text-gray-900">
+          {editingProperty ? "Edit Property" : "Add New Property"}
+        </h1>
+        <p className="text-gray-600">
+          {editingProperty
+            ? "Update your property details"
+            : "List your property and connect with potential tenants"}
+        </p>
+
+        <form onSubmit={handleSubmit} className="max-w-4xl space-y-8">
+          {/* BASIC INFO */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Basic Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  value={propertyData.title}
+                  onChange={(e) => handleInputChange("title", e.target.value)}
+                  placeholder="Name your property"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">Description *</Label>
+                <Textarea
+                  id="description"
+                  value={propertyData.description}
+                  onChange={(e) => handleInputChange("description", e.target.value)}
+                  placeholder="Describe your property"
+                  rows={4}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label>Price (Rs) *</Label>
                   <Input
-                    value={propertyData.address}
-                    onChange={(e) => handleInputChange("address", e.target.value)}
-                    placeholder="Street Address"
+                    type="number"
+                    value={propertyData.price}
+                    onChange={(e) => handleInputChange("price", e.target.value)}
+                    placeholder="Monthly Rent"
                     required
                   />
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Input
-                      value={propertyData.city}
-                      onChange={(e) => handleInputChange("city", e.target.value)}
-                      placeholder="City"
-                      required
-                    />
-                    <Input
-                      value={propertyData.state}
-                      onChange={(e) => handleInputChange("state", e.target.value)}
-                      placeholder="State"
-                      required
-                    />
-                    <Input
-                      value={propertyData.zipCode}
-                      onChange={(e) => handleInputChange("zipCode", e.target.value)}
-                      placeholder="ZIP Code"
-                      required
+                </div>
+                <div>
+                  <Label>Property Type *</Label>
+                  <Select
+                    value={propertyData.propertyType}
+                    onValueChange={(v) => handleInputChange("propertyType", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="apartment">apartment</SelectItem>
+                      <SelectItem value="studio">studio</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Area (sq ft) *</Label>
+                  <Input
+                    type="number"
+                    value={propertyData.area}
+                    onChange={(e) => handleInputChange("area", e.target.value)}
+                    placeholder="Area in square feet"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label>Bedroom*</Label>
+                  <Input
+                    type="number"
+                    value={propertyData.bedrooms}
+                    onChange={(e) => handleInputChange("bedrooms", e.target.value)}
+                    placeholder="No. of Bedrooms"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>Bathroom*</Label>
+                  <Input
+                    type="number"
+                    value={propertyData.bathrooms}
+                    onChange={(e) => handleInputChange("bathrooms", e.target.value)}
+                    placeholder="No. of Bathrooms"
+                    step="0.5"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>Maximum Guest*</Label>
+                  <Input
+                    type="number"
+                    value={propertyData.maxGuests}
+                    onChange={(e) => handleInputChange("maxGuests", e.target.value)}
+                    placeholder="Max Guests allowed"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Guest Type *</Label>
+                  <Select
+                    value={propertyData.guestType}
+                    onValueChange={(v) => handleInputChange("guestType", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Family">Family</SelectItem>
+                      <SelectItem value="Bachelors">Bachelors</SelectItem>
+                      <SelectItem value="Girls">Girls</SelectItem>
+                      <SelectItem value="Boys">Boys</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Availability *</Label>
+                  <Select
+                    value={propertyData.isAvailable.toString()}
+                    onValueChange={(v) => handleInputChange("isAvailable", v === "true")}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Available</SelectItem>
+                      <SelectItem value="false">Not Available</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* LOCATION */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Location</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Input
+                value={propertyData.address}
+                onChange={(e) => handleInputChange("address", e.target.value)}
+                placeholder="Street Address"
+                required
+              />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Input
+                  value={propertyData.city}
+                  onChange={(e) => handleInputChange("city", e.target.value)}
+                  placeholder="City"
+                  required
+                />
+                <Input
+                  value={propertyData.state}
+                  onChange={(e) => handleInputChange("state", e.target.value)}
+                  placeholder="State"
+                  required
+                />
+                <Input
+                  value={propertyData.zipCode}
+                  onChange={(e) => handleInputChange("zipCode", e.target.value)}
+                  placeholder="ZIP Code"
+                  required
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* AMENITIES */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Amenities</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {amenitiesList.map((amenity) => (
+                <div key={amenity} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={amenity}
+                    checked={propertyData.amenities.includes(amenity)}
+                    onCheckedChange={(checked) => handleAmenityChange(amenity, Boolean(checked))}
+                  />
+                  <Label htmlFor={amenity} className="text-sm">
+                    {amenity}
+                  </Label>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* IMAGES */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Property Images</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {propertyData.images.map((img, idx) => (
+                <div key={idx} className="relative group">
+                  <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative">
+                    <Image
+                      src={img || "/placeholder.svg"}
+                      alt="Property image"
+                      fill
+                      className="object-cover"
                     />
                   </div>
-                </CardContent>
-              </Card>
-    
-              {/* AMENITIES */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Amenities</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {amenitiesList.map((amenity) => (
-                    <div key={amenity} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={amenity}
-                        checked={propertyData.amenities.includes(amenity)}
-                        onCheckedChange={(checked) => handleAmenityChange(amenity, Boolean(checked))}
-                      />
-                      <Label htmlFor={amenity} className="text-sm">
-                        {amenity}
-                      </Label>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-    
-              {/* IMAGES */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Property Images</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {propertyData.images.map((img, idx) => (
-                    <div key={idx} className="relative group">
-                      <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative">
-                        <Image
-                          src={img || "/placeholder.svg"}
-                          alt="Property image"
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100"
-                        onClick={() => removeImage(idx)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
                   <Button
                     type="button"
-                    variant="outline"
-                    className="aspect-square border-dashed"
-                    onClick={() => fileInputRef.current?.click()}
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100"
+                    onClick={() => removeImage(idx)}
                   >
-                    <div className="text-center">
-                      <Upload className="h-6 w-6 mx-auto mb-2 text-gray-400" />
-                      <span className="text-sm text-gray-600">Add Image</span>
-                    </div>
+                    <X className="h-3 w-3" />
                   </Button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    hidden
-                    onChange={handleImageUpload}
-                  />
-                </CardContent>
-              </Card>
-    
-              {/* RULES */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>House Rules</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    value={propertyData.rules.join("\n")}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "rules",
-                        e.target.value.split("\n").filter((r) => r.trim() !== "")
-                      )
-                    }
-                    placeholder="No smoking&#10;No pets"
-                    rows={4}
-                  />
-                </CardContent>
-              </Card>
-    
-              <div className="flex gap-4">
-                <Button type="submit" disabled={isSubmitting}>
-                  <Save className="h-4 w-4 mr-2" />
-                  {isSubmitting ? (editingProperty ? "Updating..." : "Publishing...") : editingProperty ? "Update Property" : "Publish Property"}
-                </Button>
-                <Button type="button" variant="outline" onClick={() => router.back()}>
-                  Cancel
-                </Button>
-              </div>
-            </form>
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                className="aspect-square border-dashed"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <div className="text-center">
+                  <Upload className="h-6 w-6 mx-auto mb-2 text-gray-400" />
+                  <span className="text-sm text-gray-600">Add Image</span>
+                </div>
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                hidden
+                onChange={handleImageUpload}
+              />
+            </CardContent>
+          </Card>
+
+          {/* RULES */}
+          <Card>
+            <CardHeader>
+              <CardTitle>House Rules</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                value={propertyData.rules.join("\n")}
+                onChange={(e) =>
+                  handleInputChange(
+                    "rules",
+                    e.target.value.split("\n").filter((r) => r.trim() !== "")
+                  )
+                }
+                placeholder="No smoking,&#10;No pets"
+                rows={4}
+              />
+            </CardContent>
+          </Card>
+
+          <div className="flex gap-4">
+            <Button type="submit" disabled={isSubmitting}>
+              <Save className="h-4 w-4 mr-2" />
+              {isSubmitting ? (editingProperty ? "Updating..." : "Publishing...") : editingProperty ? "Update Property" : "Publish Property"}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => router.back()}>
+              Cancel
+            </Button>
           </div>
-        </DashboardLayout>
+        </form>
+      </div>
+    </DashboardLayout>
   )
 }

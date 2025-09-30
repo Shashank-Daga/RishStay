@@ -41,7 +41,7 @@ const ownerNavItems = [
           variant="outline"
           size="sm"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="bg-white shadow-lg"
+          className="bg-[#003366] hover:bg-[#002244] text-white shadow-lg border-[#003366]"
         >
           {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </Button>
@@ -49,7 +49,7 @@ const ownerNavItems = [
 
       {/* Sidebar */}
       <nav
-        className={`fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-white border-r border-gray-200 z-40 transform transition-transform duration-300 ease-in-out shadow-lg ${
+        className={`fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-[#FFE9D6] border-r border-[#FFC107] z-40 transform transition-transform duration-300 ease-in-out shadow-lg ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
