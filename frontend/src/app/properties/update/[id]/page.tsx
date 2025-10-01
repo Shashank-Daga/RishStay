@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { useAuth } from "@/components/auth/auth-provider"
 import { useToast } from "@/hooks/use-toast"
-import { Upload, X, Save, ArrowLeft } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Upload, X, Save, ArrowLeft, Trash2 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -62,6 +63,8 @@ export default function EditPropertyPage() {
   const propertyId = params.id as string
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const [propertyData, setPropertyData] = useState<PropertyData>({
@@ -164,7 +167,7 @@ export default function EditPropertyPage() {
 
   if (loading || isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7] flex items-center justify-center">
         <div className="animate-pulse">Loading...</div>
       </div>
     )
@@ -201,20 +204,20 @@ export default function EditPropertyPage() {
   // ✅ Fixed: Proper image removal handling
   const removeExistingImage = (imageToRemove: ImageData) => {
     console.log("Removing existing image:", imageToRemove)
-    
+
     // Add to deleted list
     setDeletedImageIds(prev => [...prev, imageToRemove.public_id])
-    
+
     // Remove from existing images
     setExistingImages(prev => prev.filter(img => img.public_id !== imageToRemove.public_id))
   }
 
   const removeNewImage = (index: number) => {
     console.log("Removing new image at index:", index)
-    
+
     // Clean up preview URL
     URL.revokeObjectURL(newImagePreviews[index])
-    
+
     // Remove from arrays
     setNewImageFiles(prev => prev.filter((_, i) => i !== index))
     setNewImagePreviews(prev => prev.filter((_, i) => i !== index))
@@ -369,6 +372,45 @@ export default function EditPropertyPage() {
     }
   }
 
+  const handleDelete = async () => {
+    setIsDeleting(true)
+
+    try {
+      const token = localStorage.getItem("auth-token")
+      if (!token) throw new Error("Authentication required")
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/property/delete/${propertyId}`,
+        {
+          method: "DELETE",
+          headers: { "auth-token": token },
+        }
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || errorData.message || response.statusText)
+      }
+
+      toast({
+        title: "Property deleted successfully",
+        description: "Your property has been permanently deleted.",
+      })
+
+      router.push("/dashboard/properties")
+    } catch (error: unknown) {
+      console.error("Delete error:", error)
+      toast({
+        title: "Error deleting property",
+        description: error instanceof Error ? error.message : "An unexpected error occurred.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteDialog(false)
+    }
+  }
+
   // ✅ Combined image display
   const allImages = [
     ...existingImages.map((img, index) => ({ ...img, type: 'existing' as const, index })),
@@ -376,11 +418,11 @@ export default function EditPropertyPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <Link href="/dashboard/properties">
-            <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
+            <Button variant="ghost" className="text-[#6B7280] hover:text-[#003366]">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Properties
             </Button>
@@ -389,135 +431,204 @@ export default function EditPropertyPage() {
 
         <div className="space-y-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Edit Property</h1>
-            <p className="text-gray-600">Update your property details</p>
+            <h1 className="text-3xl font-bold text-[#003366]">Edit Property</h1>
+            <p className="text-[#6B7280]">Update your property details</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* BASIC INFO */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Basic Information</CardTitle>
+            <Card className="rounded-2xl border-2 border-[#003366]/20 shadow-lg bg-white/95 backdrop-blur">
+              <CardHeader className="border-b border-[#003366]/10 bg-gradient-to-r from-[#FFE9D6]/30 to-[#E9E6F7]/30">
+                <CardTitle className="text-[#003366] text-xl flex items-center gap-2">
+                  <div className="w-1 h-6 bg-[#FFC107] rounded-full"></div>
+                  Basic Information
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <Label htmlFor="title">Title *</Label>
+              <CardContent className="space-y-6 pt-6">
+                <div className="space-y-2">
+                  <Label htmlFor="title" className="text-[#003366] font-semibold text-sm">
+                    Property Title *
+                  </Label>
                   <Input
                     id="title"
                     value={propertyData.title}
                     onChange={(e) => handleInputChange("title", e.target.value)}
                     required
+                    placeholder="e.g., Cozy 2BHK near City Center"
+                    className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="description">Description *</Label>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description" className="text-[#003366] font-semibold text-sm">
+                    Description *
+                  </Label>
                   <Textarea
                     id="description"
                     value={propertyData.description}
                     onChange={(e) => handleInputChange("description", e.target.value)}
                     rows={4}
                     required
+                    placeholder="Describe your property's key features and amenities..."
+                    className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all resize-none bg-white"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label>Price (₹) *</Label>
-                    <Input
-                      type="number"
-                      value={propertyData.price}
-                      onChange={(e) => handleInputChange("price", e.target.value)}
-                      required
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div className="space-y-2">
+                    <Label className="text-[#003366] font-semibold text-sm">Monthly Rent (₹) *</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6B7280] font-medium">₹</span>
+                      <Input
+                        type="number"
+                        value={propertyData.price}
+                        onChange={(e) => handleInputChange("price", e.target.value)}
+                        required
+                        placeholder="15000"
+                        className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 pl-8 bg-white"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <Label>Property Type *</Label>
+
+                  <div className="space-y-2">
+                    <Label className="text-[#003366] font-semibold text-sm">Property Type *</Label>
                     <Select
                       value={propertyData.propertyType}
                       onValueChange={(v) => handleInputChange("propertyType", v)}
                     >
-                      <SelectTrigger>
-                        <SelectValue />
+                      <SelectTrigger className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white hover:bg-[#FFE9D6]/30">
+                        <SelectValue placeholder="Select type" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="apartment">Apartment</SelectItem>
-                        <SelectItem value="studio">Studio</SelectItem>
+                      <SelectContent className="bg-white border-2 border-[#003366]/20 shadow-xl rounded-lg">
+                        <SelectItem
+                          value="apartment"
+                          className="hover:bg-gradient-to-r hover:from-[#FFE9D6] hover:to-[#FFE9D6]/50 focus:bg-gradient-to-r focus:from-[#FFE9D6] focus:to-[#FFE9D6]/50 cursor-pointer py-3 text-[#003366] font-medium transition-colors"
+                        >
+                          🏢 Apartment
+                        </SelectItem>
+                        <SelectItem
+                          value="studio"
+                          className="hover:bg-gradient-to-r hover:from-[#E9E6F7] hover:to-[#E9E6F7]/50 focus:bg-gradient-to-r focus:from-[#E9E6F7] focus:to-[#E9E6F7]/50 cursor-pointer py-3 text-[#003366] font-medium transition-colors"
+                        >
+                          🏠 Studio
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <Label>Area (sq ft) *</Label>
+
+                  <div className="space-y-2">
+                    <Label className="text-[#003366] font-semibold text-sm">Area (sq ft) *</Label>
                     <Input
                       type="number"
                       value={propertyData.area}
                       onChange={(e) => handleInputChange("area", e.target.value)}
                       required
+                      placeholder="1200"
+                      className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label>Bedrooms *</Label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div className="space-y-2">
+                    <Label className="text-[#003366] font-semibold text-sm">Bedrooms *</Label>
                     <Input
                       type="number"
                       value={propertyData.bedrooms}
                       onChange={(e) => handleInputChange("bedrooms", e.target.value)}
                       required
+                      placeholder="2"
+                      className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
                     />
                   </div>
-                  <div>
-                    <Label>Bathrooms *</Label>
+
+                  <div className="space-y-2">
+                    <Label className="text-[#003366] font-semibold text-sm">Bathrooms *</Label>
                     <Input
                       type="number"
                       value={propertyData.bathrooms}
                       onChange={(e) => handleInputChange("bathrooms", e.target.value)}
                       step="0.5"
                       required
+                      placeholder="2"
+                      className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
                     />
                   </div>
-                  <div>
-                    <Label>Max Guests *</Label>
+
+                  <div className="space-y-2">
+                    <Label className="text-[#003366] font-semibold text-sm">Max Guests *</Label>
                     <Input
                       type="number"
                       value={propertyData.maxGuests}
                       onChange={(e) => handleInputChange("maxGuests", e.target.value)}
                       required
+                      placeholder="4"
+                      className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Guest Type *</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <Label className="text-[#003366] font-semibold text-sm">Preferred Guest Type *</Label>
                     <Select
                       value={propertyData.guestType}
                       onValueChange={(v) => handleInputChange("guestType", v)}
                     >
-                      <SelectTrigger>
-                        <SelectValue />
+                      <SelectTrigger className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white hover:bg-[#FFE9D6]/30">
+                        <SelectValue placeholder="Select guest type" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Family">Family</SelectItem>
-                        <SelectItem value="Bachelors">Bachelors</SelectItem>
-                        <SelectItem value="Girls">Girls</SelectItem>
-                        <SelectItem value="Boys">Boys</SelectItem>
+                      <SelectContent className="bg-white border-2 border-[#003366]/20 shadow-xl rounded-lg">
+                        <SelectItem
+                          value="Family"
+                          className="hover:bg-gradient-to-r hover:from-[#FFE9D6] hover:to-[#FFE9D6]/50 focus:bg-gradient-to-r focus:from-[#FFE9D6] focus:to-[#FFE9D6]/50 cursor-pointer py-3 text-[#003366] font-medium transition-colors"
+                        >
+                          👨‍👩‍👧‍👦 Family
+                        </SelectItem>
+                        <SelectItem
+                          value="Bachelors"
+                          className="hover:bg-gradient-to-r hover:from-[#E9E6F7] hover:to-[#E9E6F7]/50 focus:bg-gradient-to-r focus:from-[#E9E6F7] focus:to-[#E9E6F7]/50 cursor-pointer py-3 text-[#003366] font-medium transition-colors"
+                        >
+                          👥 Bachelors
+                        </SelectItem>
+                        <SelectItem
+                          value="Girls"
+                          className="hover:bg-gradient-to-r hover:from-[#FFE9D6] hover:to-[#FFE9D6]/50 focus:bg-gradient-to-r focus:from-[#FFE9D6] focus:to-[#FFE9D6]/50 cursor-pointer py-3 text-[#003366] font-medium transition-colors"
+                        >
+                          👩 Girls Only
+                        </SelectItem>
+                        <SelectItem
+                          value="Boys"
+                          className="hover:bg-gradient-to-r hover:from-[#E9E6F7] hover:to-[#E9E6F7]/50 focus:bg-gradient-to-r focus:from-[#E9E6F7] focus:to-[#E9E6F7]/50 cursor-pointer py-3 text-[#003366] font-medium transition-colors"
+                        >
+                          👨 Boys Only
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  <div>
-                    <Label>Availability *</Label>
+                  <div className="space-y-2">
+                    <Label className="text-[#003366] font-semibold text-sm">Availability Status *</Label>
                     <Select
                       value={propertyData.isAvailable.toString()}
                       onValueChange={(v) => handleInputChange("isAvailable", v === "true")}
                     >
-                      <SelectTrigger>
-                        <SelectValue />
+                      <SelectTrigger className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white hover:bg-[#FFE9D6]/30">
+                        <SelectValue placeholder="Select availability" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="true">Available</SelectItem>
-                        <SelectItem value="false">Not Available</SelectItem>
+                      <SelectContent className="bg-white border-2 border-[#003366]/20 shadow-xl rounded-lg">
+                        <SelectItem
+                          value="true"
+                          className="hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100/50 focus:bg-gradient-to-r focus:from-green-50 focus:to-green-100/50 cursor-pointer py-3 text-[#003366] font-medium transition-colors"
+                        >
+                          ✅ Available
+                        </SelectItem>
+                        <SelectItem
+                          value="false"
+                          className="hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100/50 focus:bg-gradient-to-r focus:from-red-50 focus:to-red-100/50 cursor-pointer py-3 text-[#003366] font-medium transition-colors"
+                        >
+                          ❌ Not Available
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -526,132 +637,164 @@ export default function EditPropertyPage() {
             </Card>
 
             {/* LOCATION */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Location</CardTitle>
+            <Card className="rounded-2xl border-2 border-[#003366]/20 shadow-lg bg-white/95 backdrop-blur">
+              <CardHeader className="border-b border-[#003366]/10 bg-gradient-to-r from-[#E9E6F7]/30 to-[#FFE9D6]/30">
+                <CardTitle className="text-[#003366] text-xl flex items-center gap-2">
+                  <div className="w-1 h-6 bg-[#FFC107] rounded-full"></div>
+                  Location Details
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Input
-                  value={propertyData.address}
-                  onChange={(e) => handleInputChange("address", e.target.value)}
-                  placeholder="Street Address"
-                  required
-                />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <CardContent className="space-y-5 pt-6">
+                <div className="space-y-2">
+                  <Label className="text-[#003366] font-semibold text-sm">Street Address *</Label>
                   <Input
-                    value={propertyData.city}
-                    onChange={(e) => handleInputChange("city", e.target.value)}
-                    placeholder="City"
+                    value={propertyData.address}
+                    onChange={(e) => handleInputChange("address", e.target.value)}
+                    placeholder="123 Main Street, Landmark Area"
                     required
+                    className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
                   />
-                  <Input
-                    value={propertyData.state}
-                    onChange={(e) => handleInputChange("state", e.target.value)}
-                    placeholder="State"
-                    required
-                  />
-                  <Input
-                    value={propertyData.zipCode}
-                    onChange={(e) => handleInputChange("zipCode", e.target.value)}
-                    placeholder="ZIP Code"
-                    required
-                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div className="space-y-2">
+                    <Label className="text-[#003366] font-semibold text-sm">City *</Label>
+                    <Input
+                      value={propertyData.city}
+                      onChange={(e) => handleInputChange("city", e.target.value)}
+                      placeholder="Pune"
+                      required
+                      className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[#003366] font-semibold text-sm">State *</Label>
+                    <Input
+                      value={propertyData.state}
+                      onChange={(e) => handleInputChange("state", e.target.value)}
+                      placeholder="Maharashtra"
+                      required
+                      className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[#003366] font-semibold text-sm">PIN Code *</Label>
+                    <Input
+                      value={propertyData.zipCode}
+                      onChange={(e) => handleInputChange("zipCode", e.target.value)}
+                      placeholder="411001"
+                      required
+                      className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* AMENITIES */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Amenities</CardTitle>
+            <Card className="rounded-2xl border-2 border-[#003366]/20 shadow-lg bg-white/95 backdrop-blur">
+              <CardHeader className="border-b border-[#003366]/10 bg-gradient-to-r from-[#FFE9D6]/30 to-[#E9E6F7]/30">
+                <CardTitle className="text-[#003366] text-xl flex items-center gap-2">
+                  <div className="w-1 h-6 bg-[#FFC107] rounded-full"></div>
+                  Amenities & Features
+                </CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {amenitiesList.map((amenity) => (
-                  <div key={amenity} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={amenity}
-                      checked={propertyData.amenities.includes(amenity)}
-                      onCheckedChange={(checked) => handleAmenityChange(amenity, Boolean(checked))}
-                    />
-                    <Label htmlFor={amenity} className="text-sm">
-                      {amenity}
-                    </Label>
-                  </div>
-                ))}
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {amenitiesList.map((amenity) => (
+                    <label
+                      key={amenity}
+                      className={`flex items-center space-x-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${propertyData.amenities.includes(amenity)
+                        ? 'border-[#FFC107] bg-gradient-to-br from-[#FFE9D6]/50 to-[#E9E6F7]/30'
+                        : 'border-[#003366]/10 hover:border-[#FFC107]/50 hover:bg-[#FFE9D6]/20'
+                        }`}
+                    >
+                      <Checkbox
+                        id={amenity}
+                        checked={propertyData.amenities.includes(amenity)}
+                        onCheckedChange={(checked) => handleAmenityChange(amenity, Boolean(checked))}
+                        className="border-2 border-[#003366]/30 data-[state=checked]:bg-[#FFC107] data-[state=checked]:border-[#FFC107]"
+                      />
+                      <span className="text-sm font-medium text-[#003366]">{amenity}</span>
+                    </label>
+                  ))}
+                </div>
               </CardContent>
             </Card>
 
             {/* IMAGES */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Property Images</CardTitle>
-                <p className="text-sm text-gray-600">
-                  Current images: {existingImages.length}, New images: {newImageFiles.length}
-                  {deletedImageIds.length > 0 && `, To delete: ${deletedImageIds.length}`}
+            <Card className="rounded-2xl border-2 border-[#003366]/20 shadow-lg bg-white/95 backdrop-blur">
+              <CardHeader className="border-b border-[#003366]/10 bg-gradient-to-r from-[#E9E6F7]/30 to-[#FFE9D6]/30">
+                <CardTitle className="text-[#003366] text-xl flex items-center gap-2">
+                  <div className="w-1 h-6 bg-[#FFC107] rounded-full"></div>
+                  Property Images
+                </CardTitle>
+                <p className="text-sm text-[#6B7280] mt-2">
+                  Current: {existingImages.length} | New: {newImageFiles.length}
+                  {deletedImageIds.length > 0 && ` | To delete: ${deletedImageIds.length}`}
                 </p>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {/* Existing Images */}
-                  {existingImages.map((img, idx) => (
-                    <div key={`existing-${img.public_id}`} className="group relative aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-blue-200">
+                  {existingImages.map((img) => (
+                    <div key={`existing-${img.public_id}`} className="group relative aspect-square bg-gradient-to-br from-[#FFE9D6]/20 to-[#E9E6F7]/20 rounded-xl overflow-hidden border-2 border-[#003366]/10 hover:border-[#FFC107] transition-all">
                       <Image
                         src={img.url}
-                        alt="Existing property image"
+                        alt="Property"
                         fill
                         className="object-cover"
                       />
                       <div className="absolute top-2 left-2">
-                        <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">
+                        <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded-full font-medium shadow-lg">
                           Current
                         </span>
                       </div>
                       <button
                         type="button"
                         onClick={() => removeExistingImage(img)}
-                        className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-all shadow-lg"
                       >
-                        <X className="h-3 w-3" />
+                        <X className="h-4 w-4" />
                       </button>
                     </div>
                   ))}
 
                   {/* New Images */}
                   {newImagePreviews.map((preview, idx) => (
-                    <div key={`new-${idx}`} className="group relative aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-green-200">
+                    <div key={`new-${idx}`} className="group relative aspect-square bg-gradient-to-br from-[#FFE9D6]/20 to-[#E9E6F7]/20 rounded-xl overflow-hidden border-2 border-green-200 hover:border-green-400 transition-all">
                       <Image
                         src={preview}
-                        alt="New property image"
+                        alt="New property"
                         fill
                         className="object-cover"
                       />
                       <div className="absolute top-2 left-2">
-                        <span className="text-xs bg-green-600 text-white px-2 py-1 rounded">
+                        <span className="text-xs bg-green-500 text-white px-2 py-1 rounded-full font-medium shadow-lg">
                           New
                         </span>
                       </div>
                       <button
                         type="button"
                         onClick={() => removeNewImage(idx)}
-                        className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-all shadow-lg"
                       >
-                        <X className="h-3 w-3" />
+                        <X className="h-4 w-4" />
                       </button>
                     </div>
                   ))}
 
                   {/* Upload Button */}
-                  <Button
+                  <button
                     type="button"
-                    variant="outline"
-                    className="aspect-square border-dashed border-2 hover:border-blue-500 hover:bg-blue-50"
                     onClick={() => fileInputRef.current?.click()}
+                    className="aspect-square border-2 border-dashed border-[#003366]/30 rounded-xl hover:border-[#FFC107] hover:bg-gradient-to-br hover:from-[#FFE9D6]/30 hover:to-[#E9E6F7]/30 transition-all group"
                   >
-                    <div className="text-center">
-                      <Upload className="h-6 w-6 mx-auto mb-2 text-gray-400" />
-                      <span className="text-sm text-gray-600">Add Images</span>
+                    <div className="flex flex-col items-center justify-center h-full space-y-2">
+                      <Upload className="h-8 w-8 text-[#6B7280] group-hover:text-[#FFC107] transition-colors" />
+                      <span className="text-sm font-medium text-[#003366]">Add Images</span>
                     </div>
-                  </Button>
+                  </button>
                 </div>
 
                 <input
@@ -666,11 +809,14 @@ export default function EditPropertyPage() {
             </Card>
 
             {/* RULES */}
-            <Card>
-              <CardHeader>
-                <CardTitle>House Rules</CardTitle>
+            <Card className="rounded-2xl border-2 border-[#003366]/20 shadow-lg bg-white/95 backdrop-blur">
+              <CardHeader className="border-b border-[#003366]/10 bg-gradient-to-r from-[#FFE9D6]/30 to-[#E9E6F7]/30">
+                <CardTitle className="text-[#003366] text-xl flex items-center gap-2">
+                  <div className="w-1 h-6 bg-[#FFC107] rounded-full"></div>
+                  House Rules
+                </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-6">
                 <Textarea
                   value={propertyData.rules.join("\n")}
                   onChange={(e) =>
@@ -679,30 +825,80 @@ export default function EditPropertyPage() {
                       e.target.value.split("\n").filter((r) => r.trim() !== "")
                     )
                   }
-                  placeholder="No smoking&#10;No pets"
-                  rows={4}
+                  placeholder="Enter each rule on a new line:&#10;• No smoking&#10;• No pets&#10;• No loud music after 10 PM"
+                  rows={6}
+                  className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all resize-none bg-white"
                 />
               </CardContent>
             </Card>
 
-            <div className="flex gap-4">
-              <Button 
-                type="submit" 
+            {/* ACTION BUTTONS */}
+            <div className="flex gap-4 pb-8">
+              <Button
+                type="submit"
                 disabled={isSubmitting}
-                className="px-8"
+                className="px-8 h-12 bg-gradient-to-r from-[#FFC107] to-[#FFB300] hover:from-[#FFB300] hover:to-[#FFC107] text-[#003366] font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
               >
-                <Save className="h-4 w-4 mr-2" />
+                <Save className="h-5 w-5 mr-2" />
                 {isSubmitting ? "Updating..." : "Update Property"}
               </Button>
               <Link href="/dashboard/properties">
-                <Button type="button" variant="outline" disabled={isSubmitting}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isSubmitting}
+                  className="h-12 border-2 border-[#003366]/20 hover:border-[#003366] hover:bg-[#003366]/5 text-[#003366] font-semibold"
+                >
                   Cancel
                 </Button>
               </Link>
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={isSubmitting || isDeleting}
+                onClick={() => setShowDeleteDialog(true)}
+                className="h-12 px-6 flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 ml-auto"
+              >
+                <Trash2 className="h-5 w-5" />
+                Delete Property
+              </Button>
             </div>
           </form>
         </div>
       </div>
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="sm:max-w-md rounded-2xl border-2 border-red-200 bg-gradient-to-br from-white via-red-50 to-red-100 shadow-xl">
+          <DialogHeader className="space-y-3">
+            <DialogTitle className="text-2xl font-bold text-red-700 flex items-center gap-2">
+              <Trash2 className="h-6 w-6 text-red-600" />
+              Confirm Delete
+            </DialogTitle>
+            <DialogDescription className="text-sm text-[#6B7280] leading-relaxed">
+              Are you sure you want to delete this property?{" "}
+              <span className="font-semibold text-red-600">This action cannot be undone.</span>
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="flex justify-end gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={isDeleting}
+              className="rounded-xl border-2 border-[#003366]/20 text-[#003366] hover:bg-[#E9E6F7] hover:text-[#003366] transition-all"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-md px-6"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

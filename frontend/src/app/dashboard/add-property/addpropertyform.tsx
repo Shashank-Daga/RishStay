@@ -361,138 +361,166 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
             : "List your property and connect with potential tenants"}
         </p>
 
-        <form onSubmit={handleSubmit} className="max-w-4xl space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-8 max-w-5xl mx-auto">
+
           {/* BASIC INFO */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+          <Card className="rounded-2xl border-2 border-[#003366]/20 shadow-lg bg-white/95 backdrop-blur">
+            <CardHeader className="border-b border-[#003366]/10 bg-gradient-to-r from-[#FFE9D6]/30 to-[#E9E6F7]/30">
+              <CardTitle className="text-[#003366] text-xl flex items-center gap-2">
+                <div className="w-1 h-6 bg-[#FFC107] rounded-full"></div>
+                Basic Information
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <Label htmlFor="title">Title *</Label>
+            <CardContent className="space-y-6 pt-6">
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-[#003366] font-semibold text-sm">
+                  Property Title *
+                </Label>
                 <Input
                   id="title"
                   value={propertyData.title}
                   onChange={(e) => handleInputChange("title", e.target.value)}
-                  placeholder="Name your property"
                   required
+                  placeholder="e.g., Cozy 2BHK near City Center"
+                  className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
                 />
               </div>
-              <div>
-                <Label htmlFor="description">Description *</Label>
+
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-[#003366] font-semibold text-sm">
+                  Description *
+                </Label>
                 <Textarea
                   id="description"
                   value={propertyData.description}
                   onChange={(e) => handleInputChange("description", e.target.value)}
-                  placeholder="Describe your property"
                   rows={4}
                   required
+                  placeholder="Describe your property's key features and amenities..."
+                  className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all resize-none bg-white"
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label>Price (Rs) *</Label>
-                  <Input
-                    type="number"
-                    value={propertyData.price}
-                    onChange={(e) => handleInputChange("price", e.target.value)}
-                    placeholder="Monthly Rent"
-                    required
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="space-y-2">
+                  <Label className="text-[#003366] font-semibold text-sm">Monthly Rent (₹) *</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6B7280] font-medium">₹</span>
+                    <Input
+                      type="number"
+                      value={propertyData.price}
+                      onChange={(e) => handleInputChange("price", e.target.value)}
+                      required
+                      placeholder="15000"
+                      className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 pl-8 bg-white"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label>Property Type *</Label>
+
+                <div className="space-y-2">
+                  <Label className="text-[#003366] font-semibold text-sm">Property Type *</Label>
                   <Select
                     value={propertyData.propertyType}
                     onValueChange={(v) => handleInputChange("propertyType", v)}
                   >
-                    <SelectTrigger>
-                      <SelectValue />
+                    <SelectTrigger className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white hover:bg-[#FFE9D6]/30">
+                      <SelectValue placeholder="Select type" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="apartment">apartment</SelectItem>
-                      <SelectItem value="studio">studio</SelectItem>
+                    <SelectContent className="bg-white border-2 border-[#003366]/20 shadow-xl rounded-lg">
+                      <SelectItem value="apartment" className="hover:bg-gradient-to-r hover:from-[#FFE9D6] hover:to-[#FFE9D6]/50 cursor-pointer py-3 text-[#003366] font-medium transition-colors">
+                        🏢 Apartment
+                      </SelectItem>
+                      <SelectItem value="studio" className="hover:bg-gradient-to-r hover:from-[#E9E6F7] hover:to-[#E9E6F7]/50 cursor-pointer py-3 text-[#003366] font-medium transition-colors">
+                        🏠 Studio
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <Label>Area (sq ft) *</Label>
+
+                <div className="space-y-2">
+                  <Label className="text-[#003366] font-semibold text-sm">Area (sq ft) *</Label>
                   <Input
                     type="number"
                     value={propertyData.area}
                     onChange={(e) => handleInputChange("area", e.target.value)}
-                    placeholder="Area in square feet"
                     required
+                    placeholder="1200"
+                    className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label>Bedroom*</Label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="space-y-2">
+                  <Label className="text-[#003366] font-semibold text-sm">Bedrooms *</Label>
                   <Input
                     type="number"
                     value={propertyData.bedrooms}
                     onChange={(e) => handleInputChange("bedrooms", e.target.value)}
-                    placeholder="No. of Bedrooms"
                     required
+                    placeholder="2"
+                    className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
                   />
                 </div>
-                <div>
-                  <Label>Bathroom*</Label>
+
+                <div className="space-y-2">
+                  <Label className="text-[#003366] font-semibold text-sm">Bathrooms *</Label>
                   <Input
                     type="number"
                     value={propertyData.bathrooms}
                     onChange={(e) => handleInputChange("bathrooms", e.target.value)}
-                    placeholder="No. of Bathrooms"
                     step="0.5"
                     required
+                    placeholder="2"
+                    className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
                   />
                 </div>
-                <div>
-                  <Label>Maximum Guest*</Label>
+
+                <div className="space-y-2">
+                  <Label className="text-[#003366] font-semibold text-sm">Max Guests *</Label>
                   <Input
                     type="number"
                     value={propertyData.maxGuests}
                     onChange={(e) => handleInputChange("maxGuests", e.target.value)}
-                    placeholder="Max Guests allowed"
                     required
+                    placeholder="4"
+                    className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Guest Type *</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <Label className="text-[#003366] font-semibold text-sm">Preferred Guest Type *</Label>
                   <Select
                     value={propertyData.guestType}
                     onValueChange={(v) => handleInputChange("guestType", v)}
                   >
-                    <SelectTrigger>
-                      <SelectValue />
+                    <SelectTrigger className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white hover:bg-[#FFE9D6]/30">
+                      <SelectValue placeholder="Select guest type" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Family">Family</SelectItem>
-                      <SelectItem value="Bachelors">Bachelors</SelectItem>
-                      <SelectItem value="Girls">Girls</SelectItem>
-                      <SelectItem value="Boys">Boys</SelectItem>
+                    <SelectContent className="bg-white border-2 border-[#003366]/20 shadow-xl rounded-lg">
+                      {["Family", "Bachelors", "Girls", "Boys"].map((type) => (
+                        <SelectItem key={type} value={type} className="hover:bg-gradient-to-r hover:from-[#FFE9D6] hover:to-[#E9E6F7]/30 cursor-pointer py-3 text-[#003366] font-medium transition-colors">
+                          {type}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div>
-                  <Label>Availability *</Label>
+                <div className="space-y-2">
+                  <Label className="text-[#003366] font-semibold text-sm">Availability Status *</Label>
                   <Select
                     value={propertyData.isAvailable.toString()}
                     onValueChange={(v) => handleInputChange("isAvailable", v === "true")}
                   >
-                    <SelectTrigger>
-                      <SelectValue />
+                    <SelectTrigger className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white hover:bg-[#FFE9D6]/30">
+                      <SelectValue placeholder="Select availability" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="true">Available</SelectItem>
-                      <SelectItem value="false">Not Available</SelectItem>
+                    <SelectContent className="bg-white border-2 border-[#003366]/20 shadow-xl rounded-lg">
+                      <SelectItem value="true" className="hover:bg-green-50 focus:bg-green-100 cursor-pointer py-3 text-[#003366] font-medium">✅ Available</SelectItem>
+                      <SelectItem value="false" className="hover:bg-red-50 focus:bg-red-100 cursor-pointer py-3 text-[#003366] font-medium">❌ Not Available</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -501,67 +529,96 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
           </Card>
 
           {/* LOCATION */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Location</CardTitle>
+          <Card className="rounded-2xl border-2 border-[#003366]/20 shadow-lg bg-white/95 backdrop-blur">
+            <CardHeader className="border-b border-[#003366]/10 bg-gradient-to-r from-[#E9E6F7]/30 to-[#FFE9D6]/30">
+              <CardTitle className="text-[#003366] text-xl flex items-center gap-2">
+                <div className="w-1 h-6 bg-[#FFC107] rounded-full"></div>
+                Location Details
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Input
-                value={propertyData.address}
-                onChange={(e) => handleInputChange("address", e.target.value)}
-                placeholder="Street Address"
-                required
-              />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <CardContent className="space-y-5 pt-6">
+              <div className="space-y-2">
+                <Label className="text-[#003366] font-semibold text-sm">Street Address *</Label>
                 <Input
-                  value={propertyData.city}
-                  onChange={(e) => handleInputChange("city", e.target.value)}
-                  placeholder="City"
+                  value={propertyData.address}
+                  onChange={(e) => handleInputChange("address", e.target.value)}
+                  placeholder="123 Main Street, Landmark Area"
                   required
+                  className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
                 />
-                <Input
-                  value={propertyData.state}
-                  onChange={(e) => handleInputChange("state", e.target.value)}
-                  placeholder="State"
-                  required
-                />
-                <Input
-                  value={propertyData.zipCode}
-                  onChange={(e) => handleInputChange("zipCode", e.target.value)}
-                  placeholder="ZIP Code"
-                  required
-                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="space-y-2">
+                  <Label className="text-[#003366] font-semibold text-sm">City *</Label>
+                  <Input
+                    value={propertyData.city}
+                    onChange={(e) => handleInputChange("city", e.target.value)}
+                    placeholder="Pune"
+                    required
+                    className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[#003366] font-semibold text-sm">State *</Label>
+                  <Input
+                    value={propertyData.state}
+                    onChange={(e) => handleInputChange("state", e.target.value)}
+                    placeholder="Maharashtra"
+                    required
+                    className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[#003366] font-semibold text-sm">PIN Code *</Label>
+                  <Input
+                    value={propertyData.zipCode}
+                    onChange={(e) => handleInputChange("zipCode", e.target.value)}
+                    placeholder="411001"
+                    required
+                    className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
 
           {/* AMENITIES */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Amenities</CardTitle>
+          <Card className="rounded-2xl border-2 border-[#003366]/20 shadow-lg bg-white/95 backdrop-blur">
+            <CardHeader className="border-b border-[#003366]/10 bg-gradient-to-r from-[#FFE9D6]/30 to-[#E9E6F7]/30">
+              <CardTitle className="text-[#003366] text-xl flex items-center gap-2">
+                <div className="w-1 h-6 bg-[#FFC107] rounded-full"></div>
+                Amenities
+              </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {amenitiesList.map((amenity) => (
-                <div key={amenity} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={amenity}
-                    checked={propertyData.amenities.includes(amenity)}
-                    onCheckedChange={(checked) => handleAmenityChange(amenity, Boolean(checked))}
-                  />
-                  <Label htmlFor={amenity} className="text-sm">
-                    {amenity}
-                  </Label>
-                </div>
-              ))}
+            <CardContent className="space-y-4 pt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {amenitiesList.map((amenity) => (
+                  <div key={amenity} className="flex items-center gap-2">
+                    <Checkbox
+                      id={amenity}
+                      checked={propertyData.amenities.includes(amenity)}
+                      onCheckedChange={(checked) => handleAmenityChange(amenity, Boolean(checked))}
+                      className="border-2 border-[#003366]/20 rounded-md w-5 h-5 checked:bg-[#FFC107] checked:border-[#FFC107] transition-all"
+                    />
+                    <Label htmlFor={amenity} className="text-[#003366] font-medium">
+                      {amenity}
+                    </Label>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
 
           {/* IMAGES */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Property Images</CardTitle>
+          <Card className="rounded-2xl border-2 border-[#003366]/20 shadow-lg bg-white/95 backdrop-blur">
+            <CardHeader className="border-b border-[#003366]/10 bg-gradient-to-r from-[#E9E6F7]/30 to-[#FFE9D6]/30">
+              <CardTitle className="text-[#003366] text-xl flex items-center gap-2">
+                <div className="w-1 h-6 bg-[#FFC107] rounded-full"></div>
+                Property Images
+              </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <CardContent className="space-y-4 pt-6">
               {propertyData.images.map((img, idx) => (
                 <div key={idx} className="relative group">
                   <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative">
@@ -606,11 +663,14 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
           </Card>
 
           {/* RULES */}
-          <Card>
-            <CardHeader>
-              <CardTitle>House Rules</CardTitle>
+          <Card className="rounded-2xl border-2 border-[#003366]/20 shadow-lg bg-white/95 backdrop-blur">
+            <CardHeader className="border-b border-[#003366]/10 bg-gradient-to-r from-[#FFE9D6]/30 to-[#E9E6F7]/30">
+              <CardTitle className="text-[#003366] text-xl flex items-center gap-2">
+                <div className="w-1 h-6 bg-[#FFC107] rounded-full"></div>
+                House Rules
+              </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-2 pt-6">
               <Textarea
                 value={propertyData.rules.join("\n")}
                 onChange={(e) =>
@@ -625,12 +685,20 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
             </CardContent>
           </Card>
 
-          <div className="flex gap-4">
-            <Button type="submit" disabled={isSubmitting}>
-              <Save className="h-4 w-4 mr-2" />
+          <div className="flex gap-4 pb-8">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-8 h-12 bg-gradient-to-r from-[#FFC107] to-[#FFB300] hover:from-[#FFB300] hover:to-[#FFC107] text-[#003366] font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50">
+              <Save className="h-5 w-5 mr-2" />
               {isSubmitting ? (editingProperty ? "Updating..." : "Publishing...") : editingProperty ? "Update Property" : "Publish Property"}
             </Button>
-            <Button type="button" variant="outline" onClick={() => router.back()}>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isSubmitting}
+              className="h-12 border-2 border-[#003366]/20 hover:border-[#003366] hover:bg-[#003366]/5 text-[#003366] font-semibold"
+              onClick={() => router.back()}>
               Cancel
             </Button>
           </div>

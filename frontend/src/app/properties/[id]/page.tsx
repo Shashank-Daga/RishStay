@@ -275,12 +275,14 @@ export default function PropertyDetailPage() {
               <Square className="h-5 w-5 mr-2" />
               <span className="font-medium">{property.area.toLocaleString()} sqft</span>
             </div>
-            <div className="flex items-center">
-              <Calendar className="h-5 w-5 mr-2" />
-              <span className="font-medium">
-                Available {formatDate(property.availability?.availableFrom)}
-              </span>
-            </div>
+            {property.availability?.isAvailable && (
+              <div className="flex items-center">
+                <Calendar className="h-5 w-5 mr-2" />
+                <span className="font-medium">
+                  Available {formatDate(property.availability?.availableFrom)}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Status and Type Badges */}
@@ -376,12 +378,14 @@ export default function PropertyDetailPage() {
                       <span className="text-[#6B7280]">Monthly Rent:</span>
                       <span className="font-medium text-[#FFC107]">Rs {property.price.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-[#6B7280]">Available From:</span>
-                      <span className="font-medium text-[#003366]">
-                        {formatDate(property.availability?.availableFrom)}
-                      </span>
-                    </div>
+                    {property.availability?.isAvailable && (
+                      <div className="flex justify-between">
+                        <span className="text-[#6B7280]">Available From:</span>
+                        <span className="font-medium text-[#003366]">
+                          {formatDate(property.availability?.availableFrom)}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-[#6B7280]">Status:</span>
                       <span className="font-medium text-[#003366] capitalize">

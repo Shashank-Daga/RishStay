@@ -1,10 +1,12 @@
 const express = require('express');
 const User = require('../models/User');
+const Property = require('../models/Property');
 const router = express.Router();
 const { validationResult, body } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fetchuser = require('../middleware/fetchuser');
+const cloudinary = require('../config/cloudinary');
 
 if (!process.env.JWT_SECRET) {
     console.warn("⚠️ JWT_SECRET is not set in environment variables. Using fallback secret.");
@@ -268,6 +270,24 @@ router.delete("/delete-account", fetchuser, async (req, res) => {
       return res.status(404).json({ success: false, error: "User not found" })
     }
 
+    // Find all properties associated with this user (landlord)
+    const userProperties = await Property.find({ landlord: userId })
+
+    // Delete images from Cloudinary for all properties
+    for (const property of userProperties) {
+      for (const img of property.images) {
+        try {
+          await cloudinary.uploader.destroy(img.public_id)
+        } catch (error) {
+          console.error(`Failed to delete image ${img.public_id} from Cloudinary:`, error)
+        }
+      }
+    }
+
+    // Delete all properties associated with this user (landlord)
+    await Property.deleteMany({ landlord: userId })
+
+    // Delete the user account
     await User.findByIdAndDelete(userId)
 
     res.json({

@@ -125,14 +125,18 @@ export function PropertyCard({ property, onFavoriteToggle, isFavorited = false }
           </div>
         </div>
 
-        {/* Property Info */}
-        <div className="flex items-center justify-between text-xs text-[#6B7280] mb-4">
-          <div className="flex items-center">
-            <Calendar className="h-3 w-3 mr-1" />
-            <span>
-              Available {formatDate(property.availability?.availableFrom)}
-            </span>
-          </div>
+        {/* Property Info - Only show available from date if property is available */}
+        <div className={`flex items-center justify-between text-xs text-[#6B7280] mb-4 ${property.availability?.isAvailable ? "" : "min-h-[20px]"}`}>
+          {property.availability?.isAvailable ? (
+            <div className="flex items-center">
+              <Calendar className="h-3 w-3 mr-1" />
+              <span>
+                Available {formatDate(property.availability?.availableFrom)}
+              </span>
+            </div>
+          ) : (
+            <div className="invisible">Placeholder</div>
+          )}
         </div>
 
         <Link href={`/properties/${property._id}`}>
