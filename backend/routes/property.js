@@ -37,7 +37,7 @@ router.post(
     console.log("Body keys:", Object.keys(req.body));
 
     try {
-      // ✅ Parse propertyData from JSON string
+      // Parse propertyData from JSON string
       let propertyData;
       try {
         propertyData = JSON.parse(req.body.propertyData);
@@ -47,7 +47,7 @@ router.post(
         return res.status(400).json({ success: false, error: "Invalid property data format" });
       }
 
-      // ✅ Validate required fields
+      // Validate required fields
       const requiredFields = [
         "title", "description", "price", "propertyType", "bedrooms",
         "bathrooms", "area", "maxGuests", "guestType", "location"
@@ -94,23 +94,31 @@ router.post(
         return res.status(400).json({ success: false, error: "Max guests must be at least 1" });
       }
 
-      // ✅ Upload files to Cloudinary
-      const uploads = [];
-      if (req.files && req.files.length > 0) {
-        console.log(`Uploading ${req.files.length} files to Cloudinary...`);
-        for (const file of req.files) {
-          console.log(`Uploading file: ${file.originalname}`);
-          const result = await cloudinary.uploader.upload(file.path, {
-            folder: "rishstay/properties",
-          });
-          uploads.push({ url: result.secure_url, public_id: result.public_id });
-          console.log(`Uploaded: ${result.public_id}`);
-        }
-      } else {
+      // ✅ FIX: Multer with CloudinaryStorage already uploaded the files
+      // Extract the uploaded image data from req.files
+      if (!req.files || req.files.length === 0) {
         return res.status(400).json({ success: false, error: "At least one image is required" });
       }
 
-      // ✅ Create property with uploaded images
+      console.log(`Processing ${req.files.length} uploaded files...`);
+      console.log("Sample file object:", JSON.stringify(req.files[0], null, 2));
+      
+      const uploads = req.files.map(file => {
+        // CloudinaryStorage can put data in different places depending on version
+        const url = file.path || file.secure_url || file.url;
+        const publicId = file.filename || file.public_id;
+        
+        if (!url || !publicId) {
+          console.error("Invalid file structure:", file);
+          throw new Error("Failed to get image URL or public_id from uploaded file");
+        }
+        
+        return { url, public_id: publicId };
+      });
+
+      console.log("Processed uploads:", uploads);
+
+      // Create property with uploaded images
       const property = new Property({
         title: propertyData.title,
         description: propertyData.description,
@@ -126,7 +134,7 @@ router.post(
         rules: propertyData.rules || [],
         availability: propertyData.availability || { isAvailable: true },
         landlord: req.user.id,
-        images: uploads, // Only uploaded files
+        images: uploads,
       });
 
       const savedProperty = await property.save();
@@ -135,12 +143,16 @@ router.post(
       res.json({ success: true, data: savedProperty });
     } catch (error) {
       console.error("Create property error:", error);
-      res.status(500).json({ success: false, error: error.message || "Internal Server Error" });
+      res.status(500).json({ 
+        success: false, 
+        error: error.message || "Internal Server Error",
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
     }
   }
 );
 
-// Route 2: Get all properties (GET /api/property/all) — No login required
+// Route 2: Get all properties (GET /api/property/all) – No login required
 router.get("/all", async (req, res) => {
   try {
     const { address, propertyType, minPrice, maxPrice, bedrooms, guests, guestType, page, limit } = req.query;
@@ -169,22 +181,22 @@ router.get("/all", async (req, res) => {
     res.json({ success: true, data: properties });
   } catch (error) {
     console.error(error.message);
-    res.status(500).json({ success: false, error: "Internal Server Error" });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Route 3: Get logged-in user's properties (GET /api/property/myproperties) — Login required
+// Route 3: Get logged-in user's properties (GET /api/property/myproperties) – Login required
 router.get("/myproperties", fetchuser, async (req, res) => {
   try {
     const properties = await Property.find({ landlord: req.user.id }).sort({ createdAt: -1 });
     res.json({ success: true, data: properties });
   } catch (error) {
     console.error(error.message);
-    res.status(500).json({ success: false, error: "Internal Server Error" });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Route 4: Get single property by ID (GET /api/property/:id) — No login required
+// Route 4: Get single property by ID (GET /api/property/:id) – No login required
 router.get("/:id", async (req, res) => {
   try {
     const property = await Property.findById(req.params.id)
@@ -193,7 +205,7 @@ router.get("/:id", async (req, res) => {
     res.json({ success: true, data: property });
   } catch (error) {
     console.error(error.message);
-    res.status(500).json({ success: false, error: "Internal Server Error" });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -217,7 +229,7 @@ router.put(
 
       const updates = {};
 
-      // ✅ Handle different form data structures
+      // Handle different form data structures
       if (req.body.propertyData) {
         // Format from addpropertyform.tsx (create/edit combined)
         try {
@@ -290,7 +302,7 @@ router.put(
         }
       }
 
-      // ✅ Handle images
+      // Handle images
       let finalImages = [...property.images];
 
       // Delete specified images
@@ -328,18 +340,17 @@ router.put(
         finalImages = parsedKeepImages;
       }
 
-      // Upload new images
+      // ✅ FIX: Handle new image uploads (already uploaded by multer)
       if (req.files && req.files.length > 0) {
-        console.log(`Uploading ${req.files.length} new files...`);
+        console.log(`Processing ${req.files.length} new uploaded files...`);
         
-        for (const file of req.files) {
-          console.log(`Uploading new file: ${file.originalname}`);
-          const result = await cloudinary.uploader.upload(file.path, {
-            folder: "rishstay/properties",
-          });
-          finalImages.push({ url: result.secure_url, public_id: result.public_id });
-          console.log(`New upload: ${result.public_id}`);
-        }
+        const newUploads = req.files.map(file => ({
+          url: file.path, // CloudinaryStorage puts the URL in file.path
+          public_id: file.filename // CloudinaryStorage puts public_id in file.filename
+        }));
+
+        console.log("New uploads:", newUploads);
+        finalImages = [...finalImages, ...newUploads];
       }
 
       // Update images if any image operations occurred
@@ -359,12 +370,16 @@ router.put(
       res.json({ success: true, data: property });
     } catch (error) {
       console.error("Update property error:", error);
-      res.status(500).json({ success: false, error: error.message || "Internal Server Error" });
+      res.status(500).json({ 
+        success: false, 
+        error: error.message || "Internal Server Error",
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
     }
   }
 );
 
-// Route 6: Delete a property (DELETE /api/property/delete/:id) — Login required
+// Route 6: Delete a property (DELETE /api/property/delete/:id) – Login required
 router.delete("/delete/:id", fetchuser, async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
@@ -381,11 +396,11 @@ router.delete("/delete/:id", fetchuser, async (req, res) => {
     res.json({ success: true, message: "Property deleted successfully" });
   } catch (error) {
     console.error(error.message);
-    res.status(500).json({ success: false, error: "Internal Server Error" });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Route 7: Toggle property availability (PUT /api/property/toggle-availability/:id) — Login required
+// Route 7: Toggle property availability (PUT /api/property/toggle-availability/:id) – Login required
 router.put("/toggle-availability/:id", fetchuser, async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
@@ -399,7 +414,7 @@ router.put("/toggle-availability/:id", fetchuser, async (req, res) => {
     res.json({ success: true, data: property });
   } catch (error) {
     console.error(error.message);
-    res.status(500).json({ success: false, error: "Internal Server Error" });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
