@@ -196,12 +196,17 @@ router.get("/myproperties", fetchuser, async (req, res) => {
   }
 });
 
-// Route 4: Get single property by ID (GET /api/property/:id) – No login required
-router.get("/:id", async (req, res) => {
+// Route 4: Toggle property availability (PUT /api/property/toggle-availability/:id) – Login required
+router.put("/toggle-availability/:id", fetchuser, async (req, res) => {
   try {
-    const property = await Property.findById(req.params.id)
-      .populate("landlord", "name email phoneNo");
+    const property = await Property.findById(req.params.id);
     if (!property) return res.status(404).json({ success: false, error: "Property not found" });
+    if (property.landlord.toString() !== req.user.id)
+      return res.status(403).json({ success: false, error: "Not authorized" });
+
+    property.availability.isAvailable = !property.availability.isAvailable;
+    await property.save();
+
     res.json({ success: true, data: property });
   } catch (error) {
     console.error(error.message);
@@ -400,17 +405,12 @@ router.delete("/delete/:id", fetchuser, async (req, res) => {
   }
 });
 
-// Route 7: Toggle property availability (PUT /api/property/toggle-availability/:id) – Login required
-router.put("/toggle-availability/:id", fetchuser, async (req, res) => {
+// Route 7: Get single property by ID (GET /api/property/:id) – No login required
+router.get("/:id", async (req, res) => {
   try {
-    const property = await Property.findById(req.params.id);
+    const property = await Property.findById(req.params.id)
+      .populate("landlord", "name email phoneNo");
     if (!property) return res.status(404).json({ success: false, error: "Property not found" });
-    if (property.landlord.toString() !== req.user.id)
-      return res.status(403).json({ success: false, error: "Not authorized" });
-
-    property.availability.isAvailable = !property.availability.isAvailable;
-    await property.save();
-
     res.json({ success: true, data: property });
   } catch (error) {
     console.error(error.message);
