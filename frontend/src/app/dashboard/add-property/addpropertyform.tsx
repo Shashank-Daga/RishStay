@@ -108,7 +108,7 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
   // ----------------------
   useEffect(() => {
     if (editingId) {
-      ;(async () => {
+      ; (async () => {
         try {
           const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/property/${editingId}`)
           const data = await res.json()
@@ -221,7 +221,7 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
     return isNaN(parsed) ? fallback : parsed
   }
 
-    const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!validateFields()) return
@@ -256,6 +256,7 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
       const token = localStorage.getItem("auth-token")
       if (!token) throw new Error("Authentication required")
 
+      // ✅ FIX: Don't include images array in propertyData
       const propertyDataToSend = {
         title: propertyData.title.trim(),
         description: propertyData.description.trim(),
@@ -277,11 +278,13 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
         availability: {
           isAvailable: propertyData.isAvailable,
         },
+        // ✅ NO images field here - let backend handle file uploads
       }
 
       const formData = new FormData()
       formData.append("propertyData", JSON.stringify(propertyDataToSend))
 
+      // Add actual image files
       imageFiles.forEach((file) => {
         formData.append("images", file)
       })

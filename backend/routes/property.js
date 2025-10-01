@@ -25,7 +25,7 @@ const allowedUpdateFields = [
 
 // -------------------- ROUTES --------------------
 
-// Route 1: Create a property (POST /api/property/create) — Login required
+// Route 1: Create a property (POST /api/property/create) – Login required
 router.post(
   "/create",
   fetchuser,
@@ -35,7 +35,6 @@ router.post(
     console.log("User ID:", req.user.id);
     console.log("Files received:", req.files?.length || 0);
     console.log("Body keys:", Object.keys(req.body));
-    console.log("PropertyData:", req.body.propertyData);
 
     try {
       // ✅ Parse propertyData from JSON string
@@ -95,7 +94,7 @@ router.post(
         return res.status(400).json({ success: false, error: "Max guests must be at least 1" });
       }
 
-      // ✅ FIXED: Only handle actual file uploads, ignore any image data in propertyData
+      // ✅ Upload files to Cloudinary
       const uploads = [];
       if (req.files && req.files.length > 0) {
         console.log(`Uploading ${req.files.length} files to Cloudinary...`);
@@ -111,10 +110,23 @@ router.post(
         return res.status(400).json({ success: false, error: "At least one image is required" });
       }
 
+      // ✅ Create property with uploaded images
       const property = new Property({
-        ...propertyData,
+        title: propertyData.title,
+        description: propertyData.description,
+        price: propertyData.price,
+        propertyType: propertyData.propertyType,
+        bedrooms: propertyData.bedrooms,
+        bathrooms: propertyData.bathrooms,
+        area: propertyData.area,
+        maxGuests: propertyData.maxGuests,
+        guestType: propertyData.guestType,
+        location: propertyData.location,
+        amenities: propertyData.amenities || [],
+        rules: propertyData.rules || [],
+        availability: propertyData.availability || { isAvailable: true },
         landlord: req.user.id,
-        images: uploads, // ✅ Only use uploaded files
+        images: uploads, // Only uploaded files
       });
 
       const savedProperty = await property.save();
@@ -123,7 +135,7 @@ router.post(
       res.json({ success: true, data: savedProperty });
     } catch (error) {
       console.error("Create property error:", error);
-      res.status(500).json({ success: false, error: "Internal Server Error" });
+      res.status(500).json({ success: false, error: error.message || "Internal Server Error" });
     }
   }
 );
@@ -185,7 +197,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Route 5: Update a property (PUT /api/property/update/:id) — Login required
+// Route 5: Update a property (PUT /api/property/update/:id) – Login required
 router.put(
   "/update/:id",
   fetchuser,
@@ -205,42 +217,45 @@ router.put(
 
       const updates = {};
 
-      // ✅ Handle propertyData if it exists (from add property form structure)
+      // ✅ Handle different form data structures
       if (req.body.propertyData) {
+        // Format from addpropertyform.tsx (create/edit combined)
         try {
           const propertyData = JSON.parse(req.body.propertyData);
           console.log("Parsed propertyData:", propertyData);
 
-          // Map propertyData fields to updates
-          const fieldMappings = {
-            title: 'title',
-            description: 'description',
-            price: 'price',
-            propertyType: 'propertyType',
-            bedrooms: 'bedrooms',
-            bathrooms: 'bathrooms',
-            area: 'area',
-            maxGuests: 'maxGuests',
-            guestType: 'guestType',
-            location: 'location',
-            amenities: 'amenities',
-            rules: 'rules',
-            availability: 'availability'
-          };
-
-          for (const [key, field] of Object.entries(fieldMappings)) {
-            if (propertyData[key] !== undefined) {
-              updates[field] = propertyData[key];
-            }
-          }
+          updates.title = propertyData.title;
+          updates.description = propertyData.description;
+          updates.price = propertyData.price;
+          updates.propertyType = propertyData.propertyType;
+          updates.bedrooms = propertyData.bedrooms;
+          updates.bathrooms = propertyData.bathrooms;
+          updates.area = propertyData.area;
+          updates.maxGuests = propertyData.maxGuests;
+          updates.guestType = propertyData.guestType;
+          updates.location = propertyData.location;
+          updates.amenities = propertyData.amenities || [];
+          updates.rules = propertyData.rules || [];
+          updates.availability = propertyData.availability || { isAvailable: true };
         } catch (error) {
           console.error("Error parsing propertyData:", error);
           return res.status(400).json({ success: false, error: "Invalid property data format" });
         }
       } else {
-        // ✅ Handle individual FormData fields (from edit property form structure)
+        // Format from page.tsx edit form (individual FormData fields)
         
-        // Handle JSON fields
+        // Simple string/number fields
+        if (req.body.title !== undefined) updates.title = req.body.title;
+        if (req.body.description !== undefined) updates.description = req.body.description;
+        if (req.body.price !== undefined) updates.price = parseFloat(req.body.price);
+        if (req.body.propertyType !== undefined) updates.propertyType = req.body.propertyType;
+        if (req.body.bedrooms !== undefined) updates.bedrooms = parseInt(req.body.bedrooms);
+        if (req.body.bathrooms !== undefined) updates.bathrooms = parseFloat(req.body.bathrooms);
+        if (req.body.area !== undefined) updates.area = parseFloat(req.body.area);
+        if (req.body.maxGuests !== undefined) updates.maxGuests = parseInt(req.body.maxGuests);
+        if (req.body.guestType !== undefined) updates.guestType = req.body.guestType;
+
+        // JSON fields
         if (req.body.availability) {
           try {
             updates.availability = typeof req.body.availability === "string" 
@@ -261,7 +276,7 @@ router.put(
           }
         }
 
-        // Handle arrays
+        // Arrays - handle both formats
         if (req.body.amenities) {
           updates.amenities = Array.isArray(req.body.amenities) ? req.body.amenities : [req.body.amenities];
         } else if (req.body["amenities[]"]) {
@@ -273,19 +288,12 @@ router.put(
         } else if (req.body["rules[]"]) {
           updates.rules = Array.isArray(req.body["rules[]"]) ? req.body["rules[]"] : [req.body["rules[]"]];
         }
-
-        // Handle simple fields
-        for (let key of allowedUpdateFields) {
-          if (req.body[key] !== undefined && !["availability", "location", "amenities", "rules"].includes(key)) {
-            updates[key] = req.body[key];
-          }
-        }
       }
 
-      // ✅ Handle images properly - avoid duplicates
-      let finalImages = [...property.images]; // Start with existing images
+      // ✅ Handle images
+      let finalImages = [...property.images];
 
-      // Handle images to delete
+      // Delete specified images
       if (req.body.deleteImages) {
         const imagesToDelete = Array.isArray(req.body.deleteImages)
           ? req.body.deleteImages
@@ -293,7 +301,6 @@ router.put(
 
         console.log("Deleting images:", imagesToDelete);
 
-        // Delete from Cloudinary
         for (const publicId of imagesToDelete) {
           try {
             await cloudinary.uploader.destroy(publicId);
@@ -303,19 +310,17 @@ router.put(
           }
         }
 
-        // Remove from current images array
         finalImages = finalImages.filter(img => !imagesToDelete.includes(img.public_id));
       }
 
-      // Handle images to keep (override if specified)
+      // Keep specified images (if provided)
       if (req.body.keepImages) {
         const imagesToKeep = Array.isArray(req.body.keepImages)
           ? req.body.keepImages
           : [req.body.keepImages];
 
-        console.log("Keeping images:", imagesToKeep.length);
+        console.log("Keeping images count:", imagesToKeep.length);
 
-        // Parse if it's JSON string
         const parsedKeepImages = imagesToKeep.map(img =>
           typeof img === 'string' ? JSON.parse(img) : img
         );
@@ -323,30 +328,27 @@ router.put(
         finalImages = parsedKeepImages;
       }
 
-      // ✅ Handle new image uploads - ONLY upload actual files
+      // Upload new images
       if (req.files && req.files.length > 0) {
         console.log(`Uploading ${req.files.length} new files...`);
-        const newUploads = [];
         
         for (const file of req.files) {
           console.log(`Uploading new file: ${file.originalname}`);
           const result = await cloudinary.uploader.upload(file.path, {
             folder: "rishstay/properties",
           });
-          newUploads.push({ url: result.secure_url, public_id: result.public_id });
+          finalImages.push({ url: result.secure_url, public_id: result.public_id });
           console.log(`New upload: ${result.public_id}`);
         }
-        
-        // Add new uploads to existing images
-        finalImages = [...finalImages, ...newUploads];
       }
 
-      // Only update images if there were image-related operations
+      // Update images if any image operations occurred
       if (req.body.deleteImages || req.body.keepImages || (req.files && req.files.length > 0)) {
         updates.images = finalImages;
         console.log(`Final image count: ${finalImages.length}`);
       }
 
+      // Perform update
       property = await Property.findByIdAndUpdate(
         req.params.id,
         { $set: { ...updates, updatedAt: Date.now() } },
@@ -357,7 +359,7 @@ router.put(
       res.json({ success: true, data: property });
     } catch (error) {
       console.error("Update property error:", error);
-      res.status(500).json({ success: false, error: "Internal Server Error" });
+      res.status(500).json({ success: false, error: error.message || "Internal Server Error" });
     }
   }
 );
