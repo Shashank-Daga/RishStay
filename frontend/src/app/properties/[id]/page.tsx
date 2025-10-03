@@ -7,6 +7,7 @@ import { Footer } from "@/components/layout/footer"
 import { ImageGallery } from "@/components/property/image-gallery"
 import { ContactForm } from "@/components/property/contact-form"
 import { SimilarProperties } from "@/components/property/similar-properties"
+import { RoomCard } from "@/components/property/RoomCard"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -32,6 +33,7 @@ import {
   TreePine,
   Utensils,
   LucideIcon,
+  Home,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -173,11 +175,6 @@ export default function PropertyDetailPage() {
         })
       } catch (error) {
         console.error("Error sharing property:", error)
-        toast({
-          title: "Error",
-          description: "Failed to share property link.",
-          variant: "destructive",
-        })
       }
     } else {
       await navigator.clipboard.writeText(window.location.href)
@@ -189,7 +186,7 @@ export default function PropertyDetailPage() {
   }
 
   const formatDate = (date?: string | Date) => {
-    // if (!date) return "N/A"
+    if (!date) return "N/A"
     const parsedDate = typeof date === "string" ? new Date(date) : date
     return new Intl.DateTimeFormat("en-US", {
       month: "short",
@@ -199,6 +196,8 @@ export default function PropertyDetailPage() {
   }
 
   const isFavorited = favorites.includes(property._id)
+  const availableRooms = property.rooms?.filter(r => r.status === "available").length || 0
+  const totalRooms = property.rooms?.length || 0
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FFE9D6] to-[#E9E6F7]">
@@ -275,6 +274,14 @@ export default function PropertyDetailPage() {
               <Square className="h-5 w-5 mr-2" />
               <span className="font-medium">{property.area.toLocaleString()} sqft</span>
             </div>
+            {totalRooms > 0 && (
+              <div className="flex items-center">
+                <Home className="h-5 w-5 mr-2" />
+                <span className="font-medium">
+                  {availableRooms}/{totalRooms} rooms available
+                </span>
+              </div>
+            )}
             {property.availability?.isAvailable && (
               <div className="flex items-center">
                 <Calendar className="h-5 w-5 mr-2" />
@@ -323,6 +330,32 @@ export default function PropertyDetailPage() {
                 <p className="text-[#6B7280] leading-relaxed">{property.description}</p>
               </CardContent>
             </Card>
+
+            {/* ROOMS SECTION */}
+            {property.rooms && property.rooms.length > 0 && (
+              <Card className="bg-white shadow-md rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="text-[#003366] text-2xl">Property Rooms</CardTitle>
+                  <p className="text-[#6B7280] text-sm mt-2">
+                    This property has {totalRooms} room{totalRooms !== 1 ? 's' : ''} 
+                    {availableRooms > 0 && ` - ${availableRooms} available for rent`}
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {property.rooms.map((room, index) => (
+                      <RoomCard
+                        key={index}
+                        room={room}
+                        propertyId={property._id}
+                        propertyTitle={property.title}
+                        isLandlord={false}
+                      />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             <Card className="bg-white shadow-md rounded-2xl">
               <CardHeader>

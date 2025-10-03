@@ -33,6 +33,15 @@ const amenitiesList = [
 // ----------------------
 // Types
 // ----------------------
+type Room = {
+  roomName: string
+  rent: string
+  size: string
+  amenities: string[]
+  status: "available" | "booked"
+  description: string
+}
+
 type PropertyData = {
   title: string
   description: string
@@ -51,6 +60,7 @@ type PropertyData = {
   guestType: "Family" | "Bachelors" | "Girls" | "Boys"
   rules: string[]
   isAvailable: boolean
+  rooms: Room[]
 }
 
 type PropertyAvailability = {
@@ -75,6 +85,7 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
   const [editingProperty, setEditingProperty] = useState<EditingPropertyData | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [rooms, setRooms] = useState<Room[]>([])
 
   // ----------------------
   // Initial State
@@ -97,6 +108,7 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
     guestType: "Family",
     rules: [],
     isAvailable: true,
+    rooms: [],
   })
 
   const [imageFiles, setImageFiles] = useState<File[]>([]) // new uploads
@@ -108,7 +120,7 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
   // ----------------------
   useEffect(() => {
     if (editingId) {
-      ; (async () => {
+      (async () => {
         try {
           const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/property/${editingId}`)
           const data = await res.json()
@@ -116,6 +128,7 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
             setEditingProperty(data)
             setPropertyData({ ...data, images: [...data.images] })
             setExistingImages([...data.images])
+            setRooms(data.rooms || [])
           }
         } catch (err) {
           console.error("Failed to load property:", err)
@@ -256,7 +269,7 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
       const token = localStorage.getItem("auth-token")
       if (!token) throw new Error("Authentication required")
 
-      // ✅ FIX: Don't include images array in propertyData
+      // Prepare property data to send
       const propertyDataToSend = {
         title: propertyData.title.trim(),
         description: propertyData.description.trim(),
@@ -278,7 +291,17 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
         availability: {
           isAvailable: propertyData.isAvailable,
         },
-        // ✅ NO images field here - let backend handle file uploads
+        // Rooms with validation and trimming
+        rooms: rooms
+          .map(room => ({
+            roomName: room.roomName.trim(),
+            rent: parseFloat(room.rent) || 0,
+            size: parseFloat(room.size) || 0,
+            amenities: room.amenities,
+            status: room.status,
+            description: room.description.trim()
+          }))
+          .filter(room => room.roomName && room.rent > 0 && room.size > 0)
       }
 
       const formData = new FormData()
@@ -344,6 +367,27 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const addRoom = () => {
+    setRooms([...rooms, {
+      roomName: "",
+      rent: "",
+      size: "",
+      amenities: [],
+      status: "available",
+      description: ""
+    }])
+  }
+
+  const updateRoom = (index: number, field: keyof Room, value: string | string[]) => {
+    const updatedRooms = [...rooms]
+    updatedRooms[index] = { ...updatedRooms[index], [field]: value }
+    setRooms(updatedRooms)
+  }
+
+  const removeRoom = (index: number) => {
+    setRooms(rooms.filter((_, i) => i !== index))
   }
 
   // ----------------------
@@ -685,6 +729,95 @@ export function AddPropertyForm({ editingId }: { editingId?: string }) {
             </CardContent>
           </Card>
 
+          {/* ROOMS */}
+          <Card className="rounded-2xl border-2 border-[#003366]/20 shadow-lg bg-white/95 backdrop-blur">
+            <CardHeader className="border-b border-[#003366]/10 bg-gradient-to-r from-[#FFE9D6]/30 to-[#E9E6F7]/30">
+              <CardTitle className="text-[#003366] text-xl flex items-center gap-2">
+                <div className="w-1 h-6 bg-[#FFC107] rounded-full"></div>
+                Property Rooms
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-6">
+              {rooms.map((room, index) => (
+                <div key={index} className="border rounded-lg p-4 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-semibold">Room {index + 1}</h4>
+                    <Button type="button" variant="destructive" size="sm" onClick={() => removeRoom(index)}>
+                      Remove Room
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input
+                      placeholder="Room Name"
+                      value={room.roomName}
+                      onChange={(e) => updateRoom(index, "roomName", e.target.value)}
+                    />
+                    <Input
+                      type="number"
+                      placeholder="Monthly Rent (₹)"
+                      value={room.rent}
+                      onChange={(e) => updateRoom(index, "rent", e.target.value)}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input
+                      type="number"
+                      placeholder="Size (sq ft)"
+                      value={room.size}
+                      onChange={(e) => updateRoom(index, "size", e.target.value)}
+                    />
+                    <Select
+                      value={room.status}
+                      onValueChange={(v) => updateRoom(index, "status", v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="available">Available</SelectItem>
+                        <SelectItem value="booked">Booked</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Textarea
+                    placeholder="Room description"
+                    value={room.description}
+                    onChange={(e) => updateRoom(index, "description", e.target.value)}
+                    rows={2}
+                  />
+
+                  <div className="space-y-2">
+                    <Label>Room Amenities</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {amenitiesList.map((amenity) => (
+                        <div key={amenity} className="flex items-center gap-2">
+                          <Checkbox
+                            checked={room.amenities.includes(amenity)}
+                            onCheckedChange={(checked) => {
+                              const newAmenities = checked
+                                ? [...room.amenities, amenity]
+                                : room.amenities.filter(a => a !== amenity)
+                              updateRoom(index, "amenities", newAmenities)
+                            }}
+                          />
+                          <Label className="text-sm">{amenity}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <Button type="button" variant="outline" onClick={addRoom} className="w-full">
+                + Add Room
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* SUBMIT */}
           <div className="flex gap-4 pb-8">
             <Button
               type="submit"

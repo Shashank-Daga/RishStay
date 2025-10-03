@@ -18,6 +18,16 @@ export interface BackendImage {
   public_id: string
 }
 
+// ✅ Room type
+export interface Room {
+  roomName: string
+  rent: number
+  size: number
+  amenities: string[]
+  status: "available" | "booked"
+  description: string
+}
+
 // ✅ Property type
 export interface Property {
   _id: string
@@ -49,6 +59,7 @@ export interface Property {
   maxGuests: number
   guestType: "Family" | "Bachelors" | "Girls" | "Boys" | null
   rules: string[]
+  rooms: Room[]
 }
 
 // ✅ Favorites type

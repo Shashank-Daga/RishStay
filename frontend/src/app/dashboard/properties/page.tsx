@@ -7,20 +7,26 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useAuth } from "@/components/auth/auth-provider"
 import { useApi, getImageUrls } from "@/lib/api"
-import { PlusCircle, Home, Edit, Eye } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { PlusCircle, Home, Edit, Eye, Building } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { Property } from "@/lib/types"
+import { RoomCard } from "@/components/property/RoomCard"
 
 export default function PropertiesPage() {
   const { propertyApi } = useApi()
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
+  const { toast } = useToast()
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
+  const [isRoomsDialogOpen, setIsRoomsDialogOpen] = useState(false)
 
   // Redirect non-landlord users
   useEffect(() => {
@@ -52,6 +58,61 @@ export default function PropertiesPage() {
 
     if (user && user.role === "landlord") fetchUserProperties()
   }, [user, propertyApi])
+
+  // Toggle room status
+  const handleRoomStatusToggle = async (propertyId: string, roomIndex: number) => {
+    try {
+      const token = localStorage.getItem("auth-token")
+      if (!token) throw new Error("Authentication required")
+
+      const property = properties.find(p => p._id === propertyId)
+      if (!property) return
+
+      const updatedRooms = [...(property.rooms || [])]
+      updatedRooms[roomIndex] = {
+        ...updatedRooms[roomIndex],
+        status: updatedRooms[roomIndex].status === "available" ? "booked" : "available"
+      }
+
+      // Send update to backend
+      const formData = new FormData()
+      formData.append("rooms", JSON.stringify(updatedRooms))
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/property/update/${propertyId}`,
+        {
+          method: "PUT",
+          headers: { "auth-token": token },
+          body: formData,
+        }
+      )
+
+      if (!response.ok) throw new Error("Failed to update room status")
+
+      const result = await response.json()
+      
+      // Update local state
+      setProperties(prev => prev.map(p => 
+        p._id === propertyId ? { ...p, rooms: updatedRooms } : p
+      ))
+
+      if (selectedProperty?._id === propertyId) {
+        setSelectedProperty({ ...selectedProperty, rooms: updatedRooms })
+      }
+
+      toast({
+        title: "Room status updated",
+        description: `${updatedRooms[roomIndex].roomName} is now ${updatedRooms[roomIndex].status}`,
+      })
+    } catch (error) {
+      console.error("Error toggling room status:", error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update room status",
+        variant: "destructive",
+      })
+    }
+  }
 
   if (authLoading || loading) {
     return (
@@ -91,6 +152,8 @@ export default function PropertiesPage() {
 
   const PropertyCardWithActions = ({ property }: { property: Property }) => {
     const mainImage = getImageUrls(property)[0] || "/placeholder.svg?height=250&width=400"
+    const totalRooms = property.rooms?.length || 0
+    const availableRooms = property.rooms?.filter(r => r.status === "available").length || 0
 
     return (
       <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
@@ -115,6 +178,13 @@ export default function PropertiesPage() {
               {property.availability?.isAvailable ? "Available" : "Rented"}
             </Badge>
           </div>
+          {totalRooms > 0 && (
+            <div className="absolute top-4 right-4">
+              <Badge className="bg-[#FFC107] text-[#003366]">
+                {availableRooms}/{totalRooms} Rooms
+              </Badge>
+            </div>
+          )}
         </div>
 
         <div className="p-6">
@@ -128,7 +198,7 @@ export default function PropertiesPage() {
 
           <p className="text-[#6B7280] text-sm mb-4 line-clamp-2">{property.description}</p>
 
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <Link href={`/properties/${property._id}`} className="flex-1">
               <Button variant="outline" size="sm" className="w-full bg-transparent">
                 <Eye className="h-4 w-4 mr-2" />
@@ -136,12 +206,27 @@ export default function PropertiesPage() {
               </Button>
             </Link>
             <Link href={`/properties/update/${property._id}`} className="flex-1">
-              <Button variant="outline" size="sm" className="flex-1 bg-transparent">
+              <Button variant="outline" size="sm" className="w-full bg-transparent">
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </Button>
             </Link>
           </div>
+
+          {totalRooms > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full mt-2 border-[#FFC107] text-[#003366] hover:bg-[#FFC107]"
+              onClick={() => {
+                setSelectedProperty(property)
+                setIsRoomsDialogOpen(true)
+              }}
+            >
+              <Building className="h-4 w-4 mr-2" />
+              Manage Rooms
+            </Button>
+          )}
         </div>
       </Card>
     )
@@ -170,7 +255,6 @@ export default function PropertiesPage() {
             <TabsTrigger value="rented">Rented ({rentedProperties.length})</TabsTrigger>
           </TabsList>
 
-          {/* All */}
           <TabsContent value="all" className="space-y-6">
             {userProperties.length === 0 ? (
               <div className="text-center py-12">
@@ -195,7 +279,6 @@ export default function PropertiesPage() {
             )}
           </TabsContent>
 
-          {/* Available */}
           <TabsContent value="available" className="space-y-6">
             {availableProperties.length === 0 ? (
               <div className="text-center py-12">
@@ -212,7 +295,6 @@ export default function PropertiesPage() {
             )}
           </TabsContent>
 
-          {/* Rented */}
           <TabsContent value="rented" className="space-y-6">
             {rentedProperties.length === 0 ? (
               <div className="text-center py-12">
@@ -230,6 +312,35 @@ export default function PropertiesPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Room Management Dialog */}
+      <Dialog open={isRoomsDialogOpen} onOpenChange={setIsRoomsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-[#003366] text-2xl">
+              Manage Rooms - {selectedProperty?.title}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedProperty && selectedProperty.rooms && selectedProperty.rooms.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+              {selectedProperty.rooms.map((room, index) => (
+                <RoomCard
+                  key={index}
+                  room={room}
+                  propertyId={selectedProperty._id}
+                  propertyTitle={selectedProperty.title}
+                  isLandlord={true}
+                  onStatusToggle={() => handleRoomStatusToggle(selectedProperty._id, index)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-[#6B7280]">
+              <p>No rooms configured for this property</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   )
 }

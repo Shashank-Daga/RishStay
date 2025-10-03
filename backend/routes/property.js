@@ -20,7 +20,7 @@ const handleValidationErrors = (req, res) => {
 const allowedUpdateFields = [
   "title", "description", "price", "location", "propertyType", "bedrooms",
   "bathrooms", "area", "maxGuests", "guestType", "amenities", "rules",
-  "availability"
+  "availability", "rooms"
 ];
 
 // -------------------- ROUTES --------------------
@@ -133,6 +133,7 @@ router.post(
         amenities: propertyData.amenities || [],
         rules: propertyData.rules || [],
         availability: propertyData.availability || { isAvailable: true },
+        rooms: propertyData.rooms || [],
         landlord: req.user.id,
         images: uploads,
       });
@@ -254,6 +255,7 @@ router.put(
           updates.amenities = propertyData.amenities || [];
           updates.rules = propertyData.rules || [];
           updates.availability = propertyData.availability || { isAvailable: true };
+          updates.rooms = propertyData.rooms || [];
         } catch (error) {
           console.error("Error parsing propertyData:", error);
           return res.status(400).json({ success: false, error: "Invalid property data format" });

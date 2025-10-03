@@ -63,6 +63,17 @@ export function PropertyList({ properties, filters, favorites = [], onFavoriteTo
         if (!hasAllAmenities) return false
       }
 
+      // NEW: Room filters
+      if (filters.hasAvailableRooms) {
+        const hasAvailableRooms = property.rooms?.some(room => room.status === "available")
+        if (!hasAvailableRooms) return false
+      }
+
+      if (filters.minRooms && filters.minRooms > 0) {
+        const roomCount = property.rooms?.length || 0
+        if (roomCount < filters.minRooms) return false
+      }
+
       return true
     })
 

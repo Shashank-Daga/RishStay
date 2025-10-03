@@ -59,6 +59,7 @@ export function HeroSection() {
                                 <SelectContent>
                                     <SelectItem value="apartment">Apartment</SelectItem>
                                     <SelectItem value="studio">Studio</SelectItem>
+                                    <SelectItem value="studio">Shared Room</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

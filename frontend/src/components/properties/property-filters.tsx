@@ -25,6 +25,8 @@ export interface PropertyFilters {
   bathrooms: number
   amenities: string[]
   sortBy: string
+  hasAvailableRooms?: boolean // New filter
+  minRooms?: number // New filter
 }
 
 const amenitiesList = [
@@ -39,7 +41,7 @@ const amenitiesList = [
 ]
 
 const propertyTypes = [
-  { value: "all", label: "Any" },  // ← Fixed: use "all" instead of empty string
+  { value: "all", label: "Any" },
   { value: "apartment", label: "Apartment" },
   { value: "studio", label: "Studio" }
 ]
@@ -48,13 +50,15 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
   const [filters, setFilters] = useState<PropertyFilters>(
     initialFilters || {
       location: "",
-      propertyType: "all", // ← Fixed: use "all" instead of empty string
+      propertyType: "all",
       minPrice: 0,
       maxPrice: 10000,
       bedrooms: 1,
       bathrooms: 1,
       amenities: [],
       sortBy: "newest",
+      hasAvailableRooms: false,
+      minRooms: 0,
     }
   )
 
@@ -65,16 +69,13 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
     const updated = { ...filters, ...newFilters }
     setFilters(updated)
     
-    // ✅ Process the filters before sending to parent
     const processedFilters = processFiltersForAPI(updated)
     onFiltersChange(processedFilters)
   }
 
-  // ✅ Helper function to process filters for API consumption
   const processFiltersForAPI = (filters: PropertyFilters): PropertyFilters => {
     return {
       ...filters,
-      // Convert "all" propertyType to empty string so API shows all types
       propertyType: filters.propertyType === "all" ? "" : filters.propertyType,
     }
   }
@@ -95,24 +96,26 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
   const clearFilters = () => {
     const cleared: PropertyFilters = {
       location: "",
-      propertyType: "all", // ← Fixed: use "all" instead of empty string
+      propertyType: "all",
       minPrice: 0,
       maxPrice: 10000,
       bedrooms: 1,
       bathrooms: 1,
       amenities: [],
       sortBy: "newest",
+      hasAvailableRooms: false,
+      minRooms: 0,
     }
     setFilters(cleared)
     setPriceRange([0, 10000])
     
-    // ✅ Process and send cleared filters
     const processedFilters = processFiltersForAPI(cleared)
     onFiltersChange(processedFilters)
   }
 
   const maxBedrooms = 6
   const maxBathrooms = 4
+  const maxRooms = 10
 
   return (
     <div className="space-y-6">
@@ -241,6 +244,47 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
                       {Array.from({ length: maxBathrooms }, (_, i) => (
                         <SelectItem key={i + 1} value={(i + 1).toString()}>
                           {i + 1}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* NEW: Room Filters */}
+            <Card className="bg-white shadow-md rounded-2xl border-2 border-[#FFC107]/30">
+              <CardHeader>
+                <CardTitle className="text-lg text-[#003366]">Room Options</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="hasAvailableRooms"
+                    checked={filters.hasAvailableRooms}
+                    onCheckedChange={(checked) => 
+                      updateFilters({ hasAvailableRooms: Boolean(checked) })
+                    }
+                  />
+                  <Label htmlFor="hasAvailableRooms" className="text-sm text-[#6B7280]">
+                    Only show properties with available rooms
+                  </Label>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-[#6B7280]">Minimum Rooms</Label>
+                  <Select
+                    value={filters.minRooms?.toString() || "0"}
+                    onValueChange={(value: string) => updateFilters({ minRooms: Number(value) })}
+                  >
+                    <SelectTrigger className="focus:ring-[#FFC107] focus:border-[#FFC107]">
+                      <SelectValue placeholder="Any" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Any</SelectItem>
+                      {Array.from({ length: maxRooms }, (_, i) => (
+                        <SelectItem key={i + 1} value={(i + 1).toString()}>
+                          {i + 1}+ rooms
                         </SelectItem>
                       ))}
                     </SelectContent>

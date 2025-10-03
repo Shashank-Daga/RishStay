@@ -60,6 +60,17 @@ const PropertySchema = new Schema({
   },
 
   rules: { type: [String], default: [] },
+  rooms: [
+    {
+      roomName: { type: String, required: true },
+      rent: { type: Number, required: true, min: 0 },
+      size: { type: Number, required: true, min: 0 },
+      amenities: [{ type: String, default: [] }],
+      status: { type: String, enum: ["available", "booked"], default: "available" },
+      description: { type: String, default: "" },
+      _id: false,
+    }
+  ],
 }, {
   timestamps: true
 });
