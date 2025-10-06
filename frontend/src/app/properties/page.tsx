@@ -36,11 +36,18 @@ export default function PropertiesPage() {
     const fetchProperties = async () => {
       try {
         setLoading(true)
-        const filterPayload: any = {};
+        const filterPayload: {
+          city?: string
+          propertyType?: "apartment" | "studio"
+          minPrice?: number
+          maxPrice?: number
+          bedrooms?: number
+          bathrooms?: number
+        } = {};
 
         if (filters.location) filterPayload.city = filters.location;
         if (["apartment", "studio"].includes(filters.propertyType))
-          filterPayload.propertyType = filters.propertyType;
+          filterPayload.propertyType = filters.propertyType as "apartment" | "studio";
 
         if (filters.minPrice !== 0 || filters.maxPrice !== 100000) {
           filterPayload.minPrice = filters.minPrice;
