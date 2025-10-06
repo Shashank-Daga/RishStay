@@ -214,7 +214,7 @@ export function PropertyList({ properties, filters, favorites = [], onFavoriteTo
           <p className="text-[#6B7280] mb-4">Try adjusting your search criteria or filters to find more properties.</p>
         </div>
       ) : (
-        <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" : "space-y-6"}>
+        <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6" : "space-y-6"}>
           {paginatedProperties.map((property) => (
             <PropertyCard
               key={property._id}

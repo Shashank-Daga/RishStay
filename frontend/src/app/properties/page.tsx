@@ -24,7 +24,7 @@ export default function PropertiesPage() {
     location: searchParams.get("location") || "",
     propertyType: searchParams.get("type") || "",
     minPrice: Number(searchParams.get("minPrice") || 0),
-    maxPrice: Number(searchParams.get("maxPrice") || 10000),
+    maxPrice: Number(searchParams.get("maxPrice") || 100000),
     bedrooms: Number(searchParams.get("bedrooms") || 1),
     bathrooms: Number(searchParams.get("bathrooms") || 1),
     amenities: searchParams.get("amenities")?.split(",").filter(Boolean) || [],
@@ -36,14 +36,22 @@ export default function PropertiesPage() {
     const fetchProperties = async () => {
       try {
         setLoading(true)
-        const data = await propertyApi.getAll({
-          city: filters.location,
-          propertyType: (["apartment", "studio"].includes(filters.propertyType) ? filters.propertyType as "apartment" | "studio" : undefined),
-          minPrice: filters.minPrice,
-          maxPrice: filters.maxPrice,
-          bedrooms: filters.bedrooms,
-          bathrooms: filters.bathrooms,
-        })
+        const filterPayload: any = {};
+
+        if (filters.location) filterPayload.city = filters.location;
+        if (["apartment", "studio"].includes(filters.propertyType))
+          filterPayload.propertyType = filters.propertyType;
+
+        if (filters.minPrice !== 0 || filters.maxPrice !== 100000) {
+          filterPayload.minPrice = filters.minPrice;
+          filterPayload.maxPrice = filters.maxPrice;
+        }
+
+        if (filters.bedrooms > 0) filterPayload.bedrooms = filters.bedrooms;
+        if (filters.bathrooms > 0) filterPayload.bathrooms = filters.bathrooms;
+
+        const data = await propertyApi.getAll(filterPayload);
+
         setProperties(data)
         setError(null)
       } catch (err) {
@@ -75,7 +83,7 @@ export default function PropertiesPage() {
     if (newFilters.location) params.set("location", newFilters.location)
     if (newFilters.propertyType) params.set("type", newFilters.propertyType)
     if (newFilters.minPrice > 0) params.set("minPrice", newFilters.minPrice.toString())
-    if (newFilters.maxPrice < 10000) params.set("maxPrice", newFilters.maxPrice.toString())
+    if (newFilters.maxPrice < 100000) params.set("maxPrice", newFilters.maxPrice.toString())
     if (newFilters.bedrooms) params.set("bedrooms", newFilters.bedrooms.toString())
     if (newFilters.bathrooms) params.set("bathrooms", newFilters.bathrooms.toString())
     if (newFilters.amenities.length > 0) params.set("amenities", newFilters.amenities.join(","))

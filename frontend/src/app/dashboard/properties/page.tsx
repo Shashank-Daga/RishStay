@@ -15,7 +15,7 @@ import { PlusCircle, Home, Edit, Eye, Building } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { Property } from "@/lib/types"
-import { RoomCard } from "@/components/property/RoomCard"
+import { RoomCard } from "@/components/property/room-card"
 
 export default function PropertiesPage() {
   const { propertyApi } = useApi()

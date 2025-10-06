@@ -52,7 +52,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
       location: "",
       propertyType: "all",
       minPrice: 0,
-      maxPrice: 10000,
+      maxPrice: 100000,
       bedrooms: 1,
       bathrooms: 1,
       amenities: [],
@@ -98,7 +98,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
       location: "",
       propertyType: "all",
       minPrice: 0,
-      maxPrice: 10000,
+      maxPrice: 100000,
       bedrooms: 1,
       bathrooms: 1,
       amenities: [],
@@ -107,7 +107,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
       minRooms: 0,
     }
     setFilters(cleared)
-    setPriceRange([0, 10000])
+    setPriceRange([0, 100000])
     
     const processedFilters = processFiltersForAPI(cleared)
     onFiltersChange(processedFilters)
@@ -193,7 +193,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
                   <Slider
                     value={priceRange}
                     onValueChange={handlePriceChange}
-                    max={10000}
+                    max={100000}
                     min={0}
                     step={100}
                     className="w-full"
