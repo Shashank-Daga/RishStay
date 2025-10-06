@@ -39,8 +39,6 @@ export function ReviewsSection() {
     setShowReviewForm(false)
   }
 
-
-
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
@@ -101,8 +99,8 @@ export function ReviewsSection() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto no-scrollbar pb-4">
-            <div className="flex space-x-6 min-w-max">
+          <div className="grid gap-6 justify-center sm:grid-cols-2 lg:grid-cols-3">
+            {/* <div className="flex space-x-6 min-w-max"> */}
               {reviews.map((review) => (
                 <Card key={review._id} className="w-80 flex-shrink-0 bg-white shadow-md hover:shadow-lg transition-shadow border-0 rounded-2xl">
                   <CardHeader className="pb-4">
@@ -141,7 +139,7 @@ export function ReviewsSection() {
                   </CardContent>
                 </Card>
               ))}
-            </div>
+            {/* </div> */}
           </div>
         )}
 

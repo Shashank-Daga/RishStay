@@ -56,10 +56,13 @@ export function HeroSection() {
                                 <SelectTrigger className="border-gray-300 focus:ring-2 focus:ring-[#FFC107]">
                                     <SelectValue placeholder="Any Type" />
                                 </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="apartment">Apartment</SelectItem>
-                                    <SelectItem value="studio">Studio</SelectItem>
-                                    <SelectItem value="studio">Shared Room</SelectItem>
+                                <SelectContent className="bg-white border-2 border-[#003366]/20 shadow-xl rounded-lg">
+                                    <SelectItem value="apartment" 
+                                    className="hover:bg-gradient-to-r hover:from-[#FFE9D6] hover:to-[#FFE9D6]/50 focus:bg-gradient-to-r focus:from-[#FFE9D6] focus:to-[#FFE9D6]/50 cursor-pointer py-3 text-[#003366] font-medium transition-colors">Apartment</SelectItem>
+                                    <SelectItem value="studio"
+                                    className="hover:bg-gradient-to-r hover:from-[#FFE9D6] hover:to-[#FFE9D6]/50 focus:bg-gradient-to-r focus:from-[#FFE9D6] focus:to-[#FFE9D6]/50 cursor-pointer py-3 text-[#003366] font-medium transition-colors">Studio</SelectItem>
+                                    <SelectItem value="studio"
+                                    className="hover:bg-gradient-to-r hover:from-[#FFE9D6] hover:to-[#FFE9D6]/50 focus:bg-gradient-to-r focus:from-[#FFE9D6] focus:to-[#FFE9D6]/50 cursor-pointer py-3 text-[#003366] font-medium transition-colors">Shared Room</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -70,11 +73,15 @@ export function HeroSection() {
                                 <SelectTrigger className="border-gray-300 focus:ring-2 focus:ring-[#FFC107]">
                                     <SelectValue placeholder="Any Price" />
                                 </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="0-1500">Under Rs.5,500</SelectItem>
-                                    <SelectItem value="1500-2500">Rs.5,500 - Rs.7,000</SelectItem>
-                                    <SelectItem value="2500-4000">Rs.7,000 - Rs.8,500</SelectItem>
-                                    <SelectItem value="4000+">Rs.8,500+</SelectItem>
+                                <SelectContent className="bg-white border-2 border-[#003366]/20 shadow-xl rounded-lg">
+                                    <SelectItem value="0-1500"
+                                    className="hover:bg-gradient-to-r hover:from-[#FFE9D6] hover:to-[#FFE9D6]/50 focus:bg-gradient-to-r focus:from-[#FFE9D6] focus:to-[#FFE9D6]/50 cursor-pointer py-3 text-[#003366] font-medium transition-colors">Under Rs.5,500</SelectItem>
+                                    <SelectItem value="1500-2500"
+                                    className="hover:bg-gradient-to-r hover:from-[#FFE9D6] hover:to-[#FFE9D6]/50 focus:bg-gradient-to-r focus:from-[#FFE9D6] focus:to-[#FFE9D6]/50 cursor-pointer py-3 text-[#003366] font-medium transition-colors">Rs.5,500 - Rs.7,000</SelectItem>
+                                    <SelectItem value="2500-4000"
+                                    className="hover:bg-gradient-to-r hover:from-[#FFE9D6] hover:to-[#FFE9D6]/50 focus:bg-gradient-to-r focus:from-[#FFE9D6] focus:to-[#FFE9D6]/50 cursor-pointer py-3 text-[#003366] font-medium transition-colors">Rs.7,000 - Rs.8,500</SelectItem>
+                                    <SelectItem value="4000+"
+                                    className="hover:bg-gradient-to-r hover:from-[#FFE9D6] hover:to-[#FFE9D6]/50 focus:bg-gradient-to-r focus:from-[#FFE9D6] focus:to-[#FFE9D6]/50 cursor-pointer py-3 text-[#003366] font-medium transition-colors">Rs.8,500+</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

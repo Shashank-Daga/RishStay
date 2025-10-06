@@ -23,11 +23,9 @@ const amenitiesList = [
   "Pet Friendly",
   "Laundry",
   "Garden",
-  "Internet Included",
+  "WiFi",
   "Pool",
   "Balcony",
-  "Fireplace",
-  "Hardwood Floors",
 ]
 
 // ----------------------
