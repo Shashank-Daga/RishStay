@@ -1,5 +1,5 @@
 // src/app/dashboard/add-property/page.tsx
-import { AddPropertyForm } from "./addpropertyform"
+import AddPropertyForm from "./addpropertyform"
 
 export default async function AddPropertyPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
   // If you want to support editing, get the property ID from searchParams

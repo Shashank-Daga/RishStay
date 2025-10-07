@@ -242,7 +242,7 @@ export default function PropertyDetailPage() {
                     <Heart
                       className={`h-4 w-4 ${
                         isFavorited ? "fill-current text-red-500" : ""
-                      }`}
+                        }`}
                     />
                   </Button>
                 )}
@@ -336,7 +336,7 @@ export default function PropertyDetailPage() {
                 <CardHeader>
                   <CardTitle className="text-[#003366] text-2xl">Property Rooms</CardTitle>
                   <p className="text-[#6B7280] text-sm mt-2">
-                    This property has {totalRooms} room{totalRooms !== 1 ? 's' : ''} 
+                    This property has {totalRooms} room{totalRooms !== 1 ? 's' : ''}
                     {availableRooms > 0 && ` - ${availableRooms} available for rent`}
                   </p>
                 </CardHeader>
@@ -450,15 +450,6 @@ export default function PropertyDetailPage() {
                     </div>
                   </div>
 
-                  <div className="w-full h-64 bg-[#FFE9D6] rounded-2xl flex items-center justify-center shadow-md">
-                    <div className="text-center text-[#6B7280]">
-                      <MapPin className="h-8 w-8 mx-auto mb-2" />
-                      <p>Interactive map would be displayed here</p>
-                      <p className="text-sm">
-                        Integration with Google Maps or similar service
-                      </p>
-                    </div>
-                  </div>
                 </div>
               </CardContent>
             </Card>

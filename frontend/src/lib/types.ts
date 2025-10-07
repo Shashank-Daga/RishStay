@@ -39,7 +39,6 @@ export interface Property {
     city: string
     state: string
     zipCode: string
-    coordinates?: { lat: number; lng: number }
   }
   images: BackendImage[] // ✅ Updated to match backend
   amenities: string[]
