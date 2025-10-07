@@ -1,21 +1,22 @@
+"use client"
+
 import React from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Button } from "@/components/ui/button"
-import { type PropertyData } from "../addpropertyform"
+import type { PropertyData } from "../addpropertyform"
 
 type Props = {
   propertyData: PropertyData
-  onChange: (field: keyof PropertyData, value: any) => void
-  onAmenityChange: (amenity: string, checked: boolean) => void
-  onShowRooms: () => void
-  showRooms: boolean
+  onChange: <K extends keyof PropertyData>(field: K, value: PropertyData[K]) => void
+  onAmenityChange?: (amenity: string, checked: boolean) => void
+  onShowRooms?: () => void
+  showRooms?: boolean
 }
 
-export function BasicInfoSection({ propertyData, onChange, onAmenityChange, onShowRooms, showRooms }: Props) {
+export function BasicInfoSection({ propertyData, onChange }: Props) {
   return (
     <Card className="rounded-2xl border-2 border-[#003366]/20 shadow-lg bg-white/95 backdrop-blur">
       <CardHeader className="border-b border-[#003366]/10 bg-gradient-to-r from-[#FFE9D6]/30 to-[#E9E6F7]/30">
@@ -25,6 +26,7 @@ export function BasicInfoSection({ propertyData, onChange, onAmenityChange, onSh
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6 pt-6">
+        {/* Property Title */}
         <div className="space-y-2">
           <Label htmlFor="title" className="text-[#003366] font-semibold text-sm">Property Title *</Label>
           <Input
@@ -37,6 +39,7 @@ export function BasicInfoSection({ propertyData, onChange, onAmenityChange, onSh
           />
         </div>
 
+        {/* Description */}
         <div className="space-y-2">
           <Label htmlFor="description" className="text-[#003366] font-semibold text-sm">Description *</Label>
           <Textarea
@@ -50,6 +53,7 @@ export function BasicInfoSection({ propertyData, onChange, onAmenityChange, onSh
           />
         </div>
 
+        {/* Rent, Type, Area */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div className="space-y-2">
             <Label className="text-[#003366] font-semibold text-sm">Monthly Rent (₹) *</Label>
@@ -70,7 +74,7 @@ export function BasicInfoSection({ propertyData, onChange, onAmenityChange, onSh
             <Label className="text-[#003366] font-semibold text-sm">Property Type *</Label>
             <Select
               value={propertyData.propertyType}
-              onValueChange={(v) => onChange("propertyType", v)}
+              onValueChange={(v) => onChange("propertyType", v as "apartment" | "studio")}
             >
               <SelectTrigger className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white hover:bg-[#FFE9D6]/30">
                 <SelectValue placeholder="Select type" />
@@ -95,6 +99,7 @@ export function BasicInfoSection({ propertyData, onChange, onAmenityChange, onSh
           </div>
         </div>
 
+        {/* Bedrooms, Bathrooms, Max Guests */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div className="space-y-2">
             <Label className="text-[#003366] font-semibold text-sm">Bedrooms *</Label>
@@ -134,12 +139,13 @@ export function BasicInfoSection({ propertyData, onChange, onAmenityChange, onSh
           </div>
         </div>
 
+        {/* Guest Type & Availability */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="space-y-2">
             <Label className="text-[#003366] font-semibold text-sm">Preferred Guest Type *</Label>
             <Select
               value={propertyData.guestType}
-              onValueChange={(v) => onChange("guestType", v)}
+              onValueChange={(v) => onChange("guestType", v as "Family" | "Bachelors" | "Girls" | "Boys")}
             >
               <SelectTrigger className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white hover:bg-[#FFE9D6]/30">
                 <SelectValue placeholder="Select guest type" />

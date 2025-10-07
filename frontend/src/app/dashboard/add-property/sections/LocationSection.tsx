@@ -6,7 +6,7 @@ import type { PropertyData } from "../addpropertyform"
 
 type Props = {
   propertyData: PropertyData
-  onChange: (field: keyof PropertyData, value: any) => void
+  onChange: <K extends keyof PropertyData>(field: K, value: PropertyData[K]) => void
 }
 
 export function LocationSection({ propertyData, onChange }: Props) {
@@ -41,6 +41,7 @@ export function LocationSection({ propertyData, onChange }: Props) {
               className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
             />
           </div>
+
           <div className="space-y-2">
             <Label className="text-[#003366] font-semibold text-sm">State *</Label>
             <Input
@@ -51,6 +52,7 @@ export function LocationSection({ propertyData, onChange }: Props) {
               className="border-2 border-[#003366]/20 focus:border-[#FFC107] focus:ring-2 focus:ring-[#FFC107]/20 transition-all h-11 bg-white"
             />
           </div>
+
           <div className="space-y-2">
             <Label className="text-[#003366] font-semibold text-sm">PIN Code *</Label>
             <Input

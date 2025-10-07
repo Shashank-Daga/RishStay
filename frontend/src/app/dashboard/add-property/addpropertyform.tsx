@@ -141,9 +141,10 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
   // ----------------------
   // Handlers
   // ----------------------
-  const handleInputChange = (field: keyof PropertyData, value: string | boolean | string[]) => {
+  const handleInputChange = <K extends keyof PropertyData>(field: K, value: PropertyData[K]) => {
     setPropertyData((prev) => ({ ...prev, [field]: value }))
   }
+
 
   const handleAmenityChange = (amenity: string, checked: boolean) => {
     const newAmenities = checked

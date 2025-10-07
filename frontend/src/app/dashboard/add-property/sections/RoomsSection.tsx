@@ -12,7 +12,7 @@ type Props = {
   rooms: Room[]
   onAdd: () => void
   onRemove: (index: number) => void
-  onUpdate: (index: number, field: keyof Room, value: any) => void
+  onUpdate: <K extends keyof Room>(index: number, field: K, value: Room[K]) => void
 }
 
 const amenitiesList = [
@@ -70,7 +70,7 @@ export function RoomsSection({ rooms, onAdd, onRemove, onUpdate }: Props) {
               />
               <Select
                 value={room.status}
-                onValueChange={(v) => onUpdate(index, "status", v)}
+                onValueChange={(v) => onUpdate(index, "status", v as "available" | "booked")}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Status" />
