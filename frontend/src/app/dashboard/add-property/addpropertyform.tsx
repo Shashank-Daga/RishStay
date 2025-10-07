@@ -16,7 +16,7 @@ import { RulesSection } from "./sections/RulesSection"
 import { RoomsSection } from "./sections/RoomsSection"
 
 // ----------------------
-// Types (exported for sections)
+// Types
 // ----------------------
 export type Room = {
   roomName: string
@@ -40,7 +40,7 @@ export type PropertyData = {
   state: string
   zipCode: string
   amenities: string[]
-  images: string[] // preview URLs
+  images: string[]
   maxGuests: string
   guestType: "Family" | "Bachelors" | "Girls" | "Boys"
   rules: string[]
@@ -74,7 +74,7 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
   const [showRoomsSection, setShowRoomsSection] = useState(false)
 
   // ----------------------
-  // Initial State
+  // Property State
   // ----------------------
   const [propertyData, setPropertyData] = useState<PropertyData>({
     title: "",
@@ -97,9 +97,9 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
     rooms: [],
   })
 
-  const [imageFiles, setImageFiles] = useState<File[]>([]) // new uploads
-  const [existingImages, setExistingImages] = useState<string[]>([]) // URLs of existing images
-  const [deletedImages, setDeletedImages] = useState<string[]>([]) // images removed by user
+  const [imageFiles, setImageFiles] = useState<File[]>([])
+  const [existingImages, setExistingImages] = useState<string[]>([])
+  const [deletedImages, setDeletedImages] = useState<string[]>([])
 
   // ----------------------
   // Load property if editing
@@ -109,15 +109,13 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
       (async () => {
         try {
           const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/property/${editingId}`)
-          const data = await res.json()
+          const data: EditingPropertyData = await res.json()
           if (res.ok) {
             setEditingProperty(data)
             setPropertyData({ ...data, images: [...data.images] })
             setExistingImages([...data.images])
             setRooms(data.rooms || [])
-            if (data.rooms && data.rooms.length > 0) {
-              setShowRoomsSection(true)
-            }
+            if (data.rooms && data.rooms.length > 0) setShowRoomsSection(true)
           }
         } catch (err) {
           console.error("Failed to load property:", err)
@@ -130,13 +128,13 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
   // Redirect non-landlords
   // ----------------------
   useEffect(() => {
-    if (!loading && (!user || (user as any).role !== "landlord")) {
+    if (!loading && (!user || (user as { role?: string }).role !== "landlord")) {
       router.push("/dashboard")
     }
   }, [user, loading, router])
 
   if (loading) return <DashboardLayout>Loading...</DashboardLayout>
-  if (!user || (user as any).role !== "landlord") return null
+  if (!user || (user as { role?: string }).role !== "landlord") return null
 
   // ----------------------
   // Handlers
@@ -144,7 +142,6 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
   const handleInputChange = <K extends keyof PropertyData>(field: K, value: PropertyData[K]) => {
     setPropertyData((prev) => ({ ...prev, [field]: value }))
   }
-
 
   const handleAmenityChange = (amenity: string, checked: boolean) => {
     const newAmenities = checked
@@ -161,10 +158,7 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
     const newPreviews = newFiles.map((file) => URL.createObjectURL(file))
 
     setImageFiles((prev) => [...prev, ...newFiles])
-    setPropertyData((prev) => ({
-      ...prev,
-      images: [...prev.images, ...newPreviews],
-    }))
+    setPropertyData((prev) => ({ ...prev, images: [...prev.images, ...newPreviews] }))
 
     toast({
       title: "Images uploaded",
@@ -178,39 +172,24 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
       setDeletedImages((prev) => [...prev, imgToRemove.split('/').pop() || 'temp_id'])
       setExistingImages((prev) => prev.filter((img) => img !== imgToRemove))
     } else {
-      // imageFiles indexes may not correspond exactly to propertyData.images order;
-      // since we only need to remove the file at the same visual index, find and remove matching object URLs
       setImageFiles((prev) => {
         const copy = [...prev]
-        // try to match by object url (not always possible) -> just remove based on index offset
         copy.splice(index - (propertyData.images.length - prev.length), 1)
         return copy
       })
     }
-    setPropertyData((prev) => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index),
-    }))
+    setPropertyData((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
   }
 
-  const validateFields = () => {
+  const validateFields = (): boolean => {
     const required: (keyof PropertyData)[] = [
-      "title",
-      "description",
-      "price",
-      "propertyType",
-      "area",
-      "address",
-      "city",
-      "state",
-      "zipCode",
-      "bedrooms",
-      "bathrooms",
-      "maxGuests",
+      "title", "description", "price", "propertyType", "area",
+      "address", "city", "state", "zipCode", "bedrooms",
+      "bathrooms", "maxGuests"
     ]
     for (const field of required) {
-      // @ts-ignore
-      if (!propertyData[field]) {
+      const value = propertyData[field]
+      if (value === "" || value === undefined || value === null) {
         toast({
           title: "Missing required fields",
           description: `Please fill in the "${field}" field.`,
@@ -234,7 +213,6 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
     if (!validateFields()) return
 
     if (
@@ -267,7 +245,6 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
       const token = localStorage.getItem("auth-token")
       if (!token) throw new Error("Authentication required")
 
-      // Prepare property data to send
       const propertyDataToSend = {
         title: propertyData.title.trim(),
         description: propertyData.description.trim(),
@@ -286,36 +263,25 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
         },
         amenities: propertyData.amenities,
         rules: propertyData.rules,
-        availability: {
-          isAvailable: propertyData.isAvailable,
-        },
-        // Rooms with validation and trimming
+        availability: { isAvailable: propertyData.isAvailable },
         rooms: rooms
-          .map(room => ({
+          .map((room) => ({
             roomName: room.roomName.trim(),
             rent: parseFloat(room.rent) || 0,
             size: parseFloat(room.size) || 0,
             amenities: room.amenities,
             status: room.status,
-            description: room.description.trim()
+            description: room.description.trim(),
           }))
-          .filter(room => room.roomName && room.rent > 0 && room.size > 0)
+          .filter((room) => room.roomName && room.rent > 0 && room.size > 0),
       }
 
       const formData = new FormData()
       formData.append("propertyData", JSON.stringify(propertyDataToSend))
-
-      // Add actual image files
-      imageFiles.forEach((file) => {
-        formData.append("images", file)
-      })
+      imageFiles.forEach((file) => formData.append("images", file))
 
       if (editingProperty) {
-        if (deletedImages.length > 0) {
-          deletedImages.forEach((public_id) => {
-            formData.append("deleteImages", public_id)
-          })
-        }
+        deletedImages.forEach((public_id) => formData.append("deleteImages", public_id))
         const keepImages = existingImages.map((url) => ({
           url,
           public_id: url.split("/").pop() || "temp_id",
@@ -329,26 +295,12 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
 
       const response = await fetch(endpoint, {
         method: editingProperty ? "PUT" : "POST",
-        headers: {
-          "auth-token": token,
-        },
+        headers: { "auth-token": token },
         body: formData,
       })
 
-      let result;
-      if (response.ok) {
-        result = await response.json();
-      } else {
-        try {
-          result = await response.json();
-        } catch (e) {
-          result = { success: false, error: "Server returned an error" };
-        }
-      }
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || "Failed to save property")
-      }
+      const result = await response.json()
+      if (!response.ok || !result.success) throw new Error(result.error || "Failed to save property")
 
       toast({
         title: `Property ${editingProperty ? "updated" : "listed"} successfully`,
@@ -356,37 +308,27 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
       })
       router.push("/dashboard/properties")
     } catch (error) {
-      console.error(error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "An error occurred.",
         variant: "destructive",
       })
+      console.error(error)
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const addRoom = () => {
-    setRooms([...rooms, {
-      roomName: "",
-      rent: "",
-      size: "",
-      amenities: [],
-      status: "available",
-      description: ""
-    }])
-  }
-
+  // ----------------------
+  // Room Handlers
+  // ----------------------
+  const addRoom = () => setRooms([...rooms, { roomName: "", rent: "", size: "", amenities: [], status: "available", description: "" }])
   const updateRoom = (index: number, field: keyof Room, value: string | string[]) => {
     const updatedRooms = [...rooms]
     updatedRooms[index] = { ...updatedRooms[index], [field]: value }
     setRooms(updatedRooms)
   }
-
-  const removeRoom = (index: number) => {
-    setRooms(rooms.filter((_, i) => i !== index))
-  }
+  const removeRoom = (index: number) => setRooms(rooms.filter((_, i) => i !== index))
 
   // ----------------------
   // Render
@@ -394,14 +336,8 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        <h1 className="text-3xl font-bold text-gray-900">
-          {editingProperty ? "Edit Property" : "Add New Property"}
-        </h1>
-        <p className="text-gray-600">
-          {editingProperty
-            ? "Update your property details"
-            : "List your property and connect with potential tenants"}
-        </p>
+        <h1 className="text-3xl font-bold text-gray-900">{editingProperty ? "Edit Property" : "Add New Property"}</h1>
+        <p className="text-gray-600">{editingProperty ? "Update your property details" : "List your property and connect with potential tenants"}</p>
 
         <form onSubmit={handleSubmit} className="space-y-8 max-w-5xl mx-auto">
           <BasicInfoSection
@@ -414,22 +350,11 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
 
           <LocationSection propertyData={propertyData} onChange={handleInputChange} />
 
-          <AmenitiesSection
-            amenities={propertyData.amenities}
-            onToggle={handleAmenityChange}
-          />
+          <AmenitiesSection amenities={propertyData.amenities} onToggle={handleAmenityChange} />
 
-          <ImagesSection
-            images={propertyData.images}
-            onUpload={handleImageUpload}
-            onRemove={removeImage}
-            fileInputRef={fileInputRef}
-          />
+          <ImagesSection images={propertyData.images} onUpload={handleImageUpload} onRemove={removeImage} fileInputRef={fileInputRef} />
 
-          <RulesSection
-            rules={propertyData.rules}
-            onChange={(rules) => handleInputChange("rules", rules)}
-          />
+          <RulesSection rules={propertyData.rules} onChange={(rules) => handleInputChange("rules", rules)} />
 
           {!showRoomsSection && (
             <Button type="button" variant="outline" onClick={() => setShowRoomsSection(true)} className="w-full">
@@ -437,20 +362,14 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
             </Button>
           )}
 
-          {showRoomsSection && (
-            <RoomsSection
-              rooms={rooms}
-              onAdd={addRoom}
-              onRemove={removeRoom}
-              onUpdate={updateRoom}
-            />
-          )}
+          {showRoomsSection && <RoomsSection rooms={rooms} onAdd={addRoom} onRemove={removeRoom} onUpdate={updateRoom} />}
 
           <div className="flex gap-4 pb-8">
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="px-8 h-12 bg-gradient-to-r from-[#FFC107] to-[#FFB300] hover:from-[#FFB300] hover:to-[#FFC107] text-[#003366] font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50">
+              className="px-8 h-12 bg-gradient-to-r from-[#FFC107] to-[#FFB300] hover:from-[#FFB300] hover:to-[#FFC107] text-[#003366] font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+            >
               <Save className="h-5 w-5 mr-2" />
               {isSubmitting ? (editingProperty ? "Updating..." : "Publishing...") : editingProperty ? "Update Property" : "Publish Property"}
             </Button>
@@ -459,7 +378,8 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
               variant="outline"
               disabled={isSubmitting}
               className="h-12 border-2 border-[#003366]/20 hover:border-[#003366] hover:bg-[#003366]/5 text-[#003366] font-semibold"
-              onClick={() => router.back()}>
+              onClick={() => router.back()}
+            >
               Cancel
             </Button>
           </div>
