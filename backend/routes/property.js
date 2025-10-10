@@ -219,7 +219,9 @@ router.get("/all", async (req, res) => {
     let query = {};
 
     if (address) query["location.address"] = new RegExp(address.trim(), "i");
-    if (propertyType) query.propertyType = propertyType;
+    if (propertyType) {
+      query.propertyType = propertyType;
+    }
     if (minPrice || maxPrice) {
       query.price = {};
       if (minPrice) query.price.$gte = Number(minPrice);

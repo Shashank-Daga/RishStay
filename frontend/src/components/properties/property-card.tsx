@@ -5,7 +5,7 @@ import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MapPin, Bed, Bath, Square, Heart, Calendar } from "lucide-react"
+import { MapPin, Bed, Bath, Square, Heart, Calendar, Home } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import type { Property } from "@/lib/types"
@@ -125,19 +125,34 @@ export function PropertyCard({ property, onFavoriteToggle, isFavorited = false }
           </div>
         </div>
 
-        {/* Property Info - Only show available from date if property is available */}
-        <div className={`flex items-center justify-between text-xs text-[#6B7280] mb-4 ${property.availability?.isAvailable ? "" : "min-h-[20px]"}`}>
-          {property.availability?.isAvailable ? (
-            <div className="flex items-center">
-              <Calendar className="h-3 w-3 mr-1" />
-              <span>
-                Available {formatDate(property.availability?.availableFrom)}
-              </span>
-            </div>
-          ) : (
-            <div className="invisible">Placeholder</div>
-          )}
+        {/* Property Info - Show available rooms and available from date */}
+        <div className="flex items-center justify-between text-xs text-[#6B7280] mb-4">
+          <div className="flex items-center gap-4">
+            {property.rooms && property.rooms.length > 0 && (
+              <div className="flex items-center">
+                <Home className="h-3 w-3 mr-1" />
+                <span>
+                  {property.rooms.filter(r => r.status === "available").length}/{property.rooms.length} rooms available
+                </span>
+              </div>
+            )}
+            {property.availability?.isAvailable && (
+              <div className="flex items-center">
+                <Calendar className="h-3 w-3 mr-1" />
+                <span>
+                  Available {formatDate(property.availability?.availableFrom)}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* Guest Type */}
+        {property.guestType && (
+          <div className="text-xs text-[#6B7280] font-medium mb-4">
+            Preferred for: {property.guestType}
+          </div>
+        )}
 
         <Link href={`/properties/${property._id}`}>
           <Button className="w-full bg-[#FFC107] hover:bg-yellow-600 text-[#003366] rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all">

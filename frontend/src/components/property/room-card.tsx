@@ -286,7 +286,7 @@ export function RoomCard({
                       <Select
                         value={tenantForm.foodPreference || undefined}
                         onValueChange={(val) =>
-                          setTenantForm({ ...tenantForm, foodPreference: val as any })
+                          setTenantForm({ ...tenantForm, foodPreference: val as "Vegetarian" | "Non-Vegetarian" | "Eggetarian" })
                         }
                       >
                         <SelectTrigger className="border-[#FFC107]/60 focus:border-[#FFC107] focus:ring-[#FFC107]/60 rounded-lg">
