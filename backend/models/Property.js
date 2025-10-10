@@ -68,6 +68,11 @@ const PropertySchema = new Schema({
       amenities: [{ type: String, default: [] }],
       status: { type: String, enum: ["available", "booked"], default: "available" },
       description: { type: String, default: "" },
+      tenant: {
+        profession: { type: String },
+        foodPreference: { type: String, enum: ["Vegetarian", "Non-Vegetarian", "Eggetarian"] },
+        _id: false,
+      },
       _id: false,
     }
   ],

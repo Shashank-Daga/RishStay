@@ -26,6 +26,10 @@ export interface Room {
   amenities: string[]
   status: "available" | "booked"
   description: string
+  tenant?: {
+    profession: string
+    foodPreference: "Vegetarian" | "Non-Vegetarian" | "Eggetarian"
+  }
 }
 
 // ✅ Property type

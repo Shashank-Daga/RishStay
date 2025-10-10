@@ -70,7 +70,13 @@ export function RoomsSection({ rooms, onAdd, onRemove, onUpdate }: Props) {
               />
               <Select
                 value={room.status}
-                onValueChange={(v) => onUpdate(index, "status", v as "available" | "booked")}
+                onValueChange={(v) => {
+                  const newStatus = v as "available" | "booked"
+                  onUpdate(index, "status", newStatus)
+                  if (newStatus === "available") {
+                    onUpdate(index, "tenant", undefined)
+                  }
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Status" />
@@ -81,6 +87,48 @@ export function RoomsSection({ rooms, onAdd, onRemove, onUpdate }: Props) {
                 </SelectContent>
               </Select>
             </div>
+
+            {room.status === "booked" && (
+              <div className="space-y-4 border-t pt-4">
+                <h5 className="font-medium text-[#003366]">Tenant Information</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    placeholder="Tenant Name"
+                    value={room.tenant?.profession || ""}
+                    onChange={(e) => onUpdate(index, "tenant", {
+                      profession: room.tenant?.profession || "",
+                      foodPreference: room.tenant?.foodPreference || "Vegetarian"
+                    })}
+                  />
+                  <Input
+                    placeholder="Profession"
+                    value={room.tenant?.profession || ""}
+                    onChange={(e) => onUpdate(index, "tenant", {
+                      profession: e.target.value,
+                      foodPreference: room.tenant?.foodPreference || "Vegetarian"
+                    })}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Select
+                    value={room.tenant?.foodPreference || "Vegetarian"}
+                    onValueChange={(v) => onUpdate(index, "tenant", {
+                      profession: room.tenant?.profession || "",
+                      foodPreference: v as "Vegetarian" | "Non-Vegetarian" | "Eggetarian"
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Food Preference" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-2 border-[#003366]/20 shadow-xl rounded-lg">
+                      <SelectItem value="Vegetarian">Vegetarian</SelectItem>
+                      <SelectItem value="Non-Vegetarian">Non-Vegetarian</SelectItem>
+                      <SelectItem value="Eggetarian">Eggetarian</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
 
             <Textarea
               placeholder="Room description"

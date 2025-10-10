@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast"
 import { PlusCircle, Home, Edit, Eye, Building } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { Property } from "@/lib/types"
+import { Property, Room } from "@/lib/types"
 import { RoomCard } from "@/components/property/room-card"
 
 export default function PropertiesPage() {
@@ -59,8 +59,8 @@ export default function PropertiesPage() {
     if (user && user.role === "landlord") fetchUserProperties()
   }, [user, propertyApi])
 
-  // Toggle room status
-  const handleRoomStatusToggle = async (propertyId: string, roomIndex: number) => {
+  // Update room
+  const handleRoomUpdate = async (propertyId: string, roomIndex: number, updatedRoom: Room) => {
     try {
       const token = localStorage.getItem("auth-token")
       if (!token) throw new Error("Authentication required")
@@ -69,10 +69,7 @@ export default function PropertiesPage() {
       if (!property) return
 
       const updatedRooms = [...(property.rooms || [])]
-      updatedRooms[roomIndex] = {
-        ...updatedRooms[roomIndex],
-        status: updatedRooms[roomIndex].status === "available" ? "booked" : "available"
-      }
+      updatedRooms[roomIndex] = updatedRoom
 
       // Send update to backend
       const formData = new FormData()
@@ -87,7 +84,7 @@ export default function PropertiesPage() {
         }
       )
 
-      if (!response.ok) throw new Error("Failed to update room status")
+      if (!response.ok) throw new Error("Failed to update room")
 
       const result = await response.json()
       
@@ -101,14 +98,14 @@ export default function PropertiesPage() {
       }
 
       toast({
-        title: "Room status updated",
-        description: `${updatedRooms[roomIndex].roomName} is now ${updatedRooms[roomIndex].status}`,
+        title: "Room updated",
+        description: `${updatedRoom.roomName} is now ${updatedRoom.status}`,
       })
     } catch (error) {
-      console.error("Error toggling room status:", error)
+      console.error("Error updating room:", error)
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update room status",
+        description: error instanceof Error ? error.message : "Failed to update room",
         variant: "destructive",
       })
     }
@@ -315,14 +312,14 @@ export default function PropertiesPage() {
 
       {/* Room Management Dialog */}
       <Dialog open={isRoomsDialogOpen} onOpenChange={setIsRoomsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto rounded-2xl">
+        <DialogContent className="max-w-2xl sm:max-w-4xl max-h-[80vh] overflow-y-auto rounded-xl bg-white shadow-xl border border-gray-200 p-6">
           <DialogHeader>
-            <DialogTitle className="text-[#003366] text-2xl">
+            <DialogTitle className="text-[#003366] text-2xl font-bold mb-4">
               Manage Rooms - {selectedProperty?.title}
             </DialogTitle>
           </DialogHeader>
           {selectedProperty && selectedProperty.rooms && selectedProperty.rooms.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-6">
               {selectedProperty.rooms.map((room, index) => (
                 <RoomCard
                   key={index}
@@ -330,12 +327,12 @@ export default function PropertiesPage() {
                   propertyId={selectedProperty._id}
                   propertyTitle={selectedProperty.title}
                   isLandlord={true}
-                  onStatusToggle={() => handleRoomStatusToggle(selectedProperty._id, index)}
+                  onRoomUpdate={(updatedRoom) => handleRoomUpdate(selectedProperty._id, index, updatedRoom)}
                 />
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-[#6B7280]">
+            <div className="text-center py-12 text-[#6B7280] px-4">
               <p>No rooms configured for this property</p>
             </div>
           )}

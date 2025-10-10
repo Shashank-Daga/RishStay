@@ -28,6 +28,10 @@ export type Room = {
   amenities: string[]
   status: "available" | "booked"
   description: string
+  tenant?: {
+    profession: string
+    foodPreference: "Vegetarian" | "Non-Vegetarian" | "Eggetarian"
+  }
 }
 
 export type PropertyData = {
@@ -318,6 +322,7 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
             amenities: room.amenities,
             status: room.status,
             description: room.description.trim(),
+            tenant: room.tenant,
           }))
           .filter((room) => room.roomName && room.rent >= 0 && room.size >= 0),
         youtubeUrl: propertyData.youtubeUrl.trim(),
@@ -371,7 +376,7 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
   // Room Handlers
   // ----------------------
   const addRoom = () => setRooms([...rooms, { roomName: "", rent: "", size: "", amenities: [], status: "available", description: "" }])
-  const updateRoom = (index: number, field: keyof Room, value: string | string[]) => {
+  const updateRoom = <K extends keyof Room>(index: number, field: K, value: Room[K]) => {
     const updatedRooms = [...rooms]
     updatedRooms[index] = { ...updatedRooms[index], [field]: value }
     setRooms(updatedRooms)

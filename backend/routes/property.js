@@ -313,7 +313,27 @@ router.put(
           updates.amenities = propertyData.amenities || [];
           updates.rules = propertyData.rules || [];
           updates.availability = propertyData.availability || { isAvailable: true };
-          updates.rooms = propertyData.rooms || [];
+          // Process rooms with tenant validation
+          const processedRooms = (propertyData.rooms || []).map(room => {
+            const processedRoom = { ...room };
+
+            if (room.status === "booked") {
+              // Validate tenant fields for booked rooms
+              if (!room.tenant || !room.tenant.profession || !room.tenant.foodPreference) {
+                throw new Error("Tenant profession, and food preference are required for booked rooms");
+              }
+              if (!["Vegetarian", "Non-Vegetarian", "Eggetarian"].includes(room.tenant.foodPreference)) {
+                throw new Error("Invalid food preference for tenant");
+              }
+            } else if (room.status === "available") {
+              // Remove tenant data for available rooms
+              processedRoom.tenant = undefined;
+            }
+
+            return processedRoom;
+          });
+
+          updates.rooms = processedRooms;
           updates.youtubeUrl = propertyData.youtubeUrl || "";
           updates.googleMapsUrl = propertyData.googleMapsUrl || "";
         } catch (error) {
@@ -366,6 +386,43 @@ router.put(
           updates.rules = Array.isArray(req.body.rules) ? req.body.rules : [req.body.rules];
         } else if (req.body["rules[]"]) {
           updates.rules = Array.isArray(req.body["rules[]"]) ? req.body["rules[]"] : [req.body["rules[]"]];
+        }
+
+        // Rooms update
+        if (req.body.rooms) {
+          try {
+            const roomsData = typeof req.body.rooms === "string" ? JSON.parse(req.body.rooms) : req.body.rooms;
+            
+            // Validate rooms
+            for (const room of roomsData) {
+              if (!room.roomName || room.roomName.trim() === '') {
+                throw new Error("Room name is required");
+              }
+              if (room.rent < 0) {
+                throw new Error("Room rent cannot be negative");
+              }
+              if (room.size < 0) {
+                throw new Error("Room size cannot be negative");
+              }
+              if (room.status === "booked") {
+                // Validate tenant fields for booked rooms
+                if (!room.tenant || !room.tenant.profession || !room.tenant.foodPreference) {
+                  throw new Error("Tenant profession and food preference are required for booked rooms");
+                }
+                if (!["Vegetarian", "Non-Vegetarian", "Eggetarian"].includes(room.tenant.foodPreference)) {
+                  throw new Error("Invalid food preference for tenant");
+                }
+              } else if (room.status === "available") {
+                // Remove tenant data for available rooms
+                room.tenant = undefined;
+              }
+            }
+
+            updates.rooms = roomsData;
+          } catch (error) {
+            console.error("Error parsing or validating rooms:", error);
+            return res.status(400).json({ success: false, error: error.message || "Invalid rooms data" });
+          }
         }
 
         // String fields
