@@ -59,6 +59,8 @@ export interface Property {
   guestType: "Family" | "Bachelors" | "Girls" | "Boys" | null
   rules: string[]
   rooms: Room[]
+  youtubeUrl?: string
+  googleMapsUrl?: string
 }
 
 // ✅ Favorites type

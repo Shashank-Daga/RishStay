@@ -68,7 +68,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
   const updateFilters = (newFilters: Partial<PropertyFilters>) => {
     const updated = { ...filters, ...newFilters }
     setFilters(updated)
-    
+
     const processedFilters = processFiltersForAPI(updated)
     onFiltersChange(processedFilters)
   }
@@ -108,7 +108,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
     }
     setFilters(cleared)
     setPriceRange([0, 100000])
-    
+
     const processedFilters = processFiltersForAPI(cleared)
     onFiltersChange(processedFilters)
   }
@@ -172,7 +172,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
                   <SelectTrigger className="focus:ring-[#FFC107] focus:border-[#FFC107]">
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white border-2 border-[#003366]/20 shadow-xl rounded-lg">
                     {propertyTypes.map((type) => (
                       <SelectItem key={type.value} value={type.value}>
                         {type.label}
@@ -186,22 +186,32 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
             {/* Price Range */}
             <Card className="bg-white shadow-md rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-lg text-[#003366]">Price Range</CardTitle>
+                <CardTitle className="text-lg font-semibold text-[#003366]">
+                  Price Range
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="px-2">
+
+              <CardContent className="space-y-6">
+                {/* Slider */}
+                <div className="px-3">
                   <Slider
                     value={priceRange}
                     onValueChange={handlePriceChange}
                     max={100000}
                     min={0}
-                    step={100}
-                    className="w-full"
+                    step={500}
+                    className="w-full cursor-pointer"
                   />
                 </div>
-                <div className="flex items-center justify-between text-sm text-[#6B7280]">
-                  <span>₹{priceRange[0].toLocaleString()}</span>
-                  <span>₹{priceRange[1].toLocaleString()}</span>
+
+                {/* Range Labels */}
+                <div className="flex items-center justify-between px-1 text-sm font-medium text-[#374151]">
+                  <span className="bg-gray-100 px-2 py-1 rounded-md shadow-sm">
+                    ₹{priceRange[0].toLocaleString()}
+                  </span>
+                  <span className="bg-gray-100 px-2 py-1 rounded-md shadow-sm">
+                    ₹{priceRange[1].toLocaleString()}
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -221,7 +231,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
                     <SelectTrigger className="focus:ring-[#FFC107] focus:border-[#FFC107]">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border-2 border-[#003366]/20 shadow-xl rounded-lg">
                       {Array.from({ length: maxBedrooms }, (_, i) => (
                         <SelectItem key={i + 1} value={(i + 1).toString()}>
                           {i + 1}
@@ -240,7 +250,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
                     <SelectTrigger className="focus:ring-[#FFC107] focus:border-[#FFC107]">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border-2 border-[#003366]/20 shadow-xl rounded-lg">
                       {Array.from({ length: maxBathrooms }, (_, i) => (
                         <SelectItem key={i + 1} value={(i + 1).toString()}>
                           {i + 1}
@@ -253,7 +263,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
             </Card>
 
             {/* NEW: Room Filters */}
-            <Card className="bg-white shadow-md rounded-2xl border-2 border-[#FFC107]/30">
+            <Card className="bg-white shadow-md rounded-2xl">
               <CardHeader>
                 <CardTitle className="text-lg text-[#003366]">Room Options</CardTitle>
               </CardHeader>
@@ -262,7 +272,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
                   <Checkbox
                     id="hasAvailableRooms"
                     checked={filters.hasAvailableRooms}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       updateFilters({ hasAvailableRooms: Boolean(checked) })
                     }
                   />
@@ -280,7 +290,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
                     <SelectTrigger className="focus:ring-[#FFC107] focus:border-[#FFC107]">
                       <SelectValue placeholder="Any" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border-2 border-[#003366]/20 shadow-xl rounded-lg">
                       <SelectItem value="0">Any</SelectItem>
                       {Array.from({ length: maxRooms }, (_, i) => (
                         <SelectItem key={i + 1} value={(i + 1).toString()}>
@@ -329,7 +339,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
                   <SelectTrigger className="focus:ring-[#FFC107] focus:border-[#FFC107]">
                     <SelectValue placeholder="Sort By" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white border-2 border-[#003366]/20 shadow-xl rounded-lg">
                     <SelectItem value="newest">Newest</SelectItem>
                     <SelectItem value="price-low">Price: Low to High</SelectItem>
                     <SelectItem value="price-high">Price: High to Low</SelectItem>

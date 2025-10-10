@@ -34,6 +34,9 @@ import {
   Utensils,
   LucideIcon,
   Home,
+  Play,
+  Map,
+  ExternalLink,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -231,7 +234,7 @@ export default function PropertyDetailPage() {
             </div>
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <div className="text-3xl font-bold text-[#FFC107]">
+                <div className="text-3xl font-bold text-[#003366]">
                   Rs {property.price.toLocaleString()}
                 </div>
                 <div className="text-[#6B7280]">per month</div>
@@ -329,6 +332,43 @@ export default function PropertyDetailPage() {
                 <p className="text-[#6B7280] leading-relaxed">{property.description}</p>
               </CardContent>
             </Card>
+
+            {/* Media Links Section */}
+            {(property.youtubeUrl || property.googleMapsUrl) && (
+              <Card className="bg-white shadow-md rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="text-[#003366]">Media Links</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-4">
+                    {property.youtubeUrl && (
+                      <a
+                        href={property.youtubeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                      >
+                        <Play className="h-4 w-4" />
+                        Watch Video
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                    {property.googleMapsUrl && (
+                      <a
+                        href={property.googleMapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                      >
+                        <Map className="h-4 w-4" />
+                        View on Map
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* ROOMS SECTION */}
             {property.rooms && property.rooms.length > 0 && (

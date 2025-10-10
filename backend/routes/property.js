@@ -20,12 +20,14 @@ const handleValidationErrors = (req, res) => {
 const allowedUpdateFields = [
   "title", "description", "price", "location", "propertyType", "bedrooms",
   "bathrooms", "area", "maxGuests", "guestType", "amenities", "rules",
-  "availability", "rooms"
+  "availability", "rooms", "youtubeUrl", "googleMapsUrl"
 ];
 
 // -------------------- ROUTES --------------------
 
 // Route 1: Create a property (POST /api/property/create) – Login required
+// Replace the create route in property.js with this fixed version:
+
 router.post(
   "/create",
   fetchuser,
@@ -35,6 +37,11 @@ router.post(
     console.log("User ID:", req.user.id);
     console.log("Files received:", req.files?.length || 0);
     console.log("Body keys:", Object.keys(req.body));
+
+    // Log the first file to see its structure
+    if (req.files && req.files.length > 0) {
+      console.log("First file structure:", JSON.stringify(req.files[0], null, 2));
+    }
 
     try {
       // Parse propertyData from JSON string
@@ -94,26 +101,58 @@ router.post(
         return res.status(400).json({ success: false, error: "Max guests must be at least 1" });
       }
 
-      // ✅ FIX: Multer with CloudinaryStorage already uploaded the files
-      // Extract the uploaded image data from req.files
+      // Validate rooms
+      if (propertyData.rooms && propertyData.rooms.length > 0) {
+        for (const room of propertyData.rooms) {
+          if (!room.roomName || room.roomName.trim() === '') {
+            return res.status(400).json({ success: false, error: "Room name is required" });
+          }
+          if (room.rent < 0) {
+            return res.status(400).json({ success: false, error: "Room rent cannot be negative" });
+          }
+          if (room.size < 0) {
+            return res.status(400).json({ success: false, error: "Room size cannot be negative" });
+          }
+        }
+      }
+
+      // Filter rooms to match frontend (rent >= 0, size >= 0, roomName present)
+      const filteredRooms = (propertyData.rooms || []).filter(room =>
+        room.roomName && room.roomName.trim() !== '' && room.rent >= 0 && room.size >= 0
+      );
+
+      // Validate images
       if (!req.files || req.files.length === 0) {
         return res.status(400).json({ success: false, error: "At least one image is required" });
       }
 
       console.log(`Processing ${req.files.length} uploaded files...`);
-      console.log("Sample file object:", JSON.stringify(req.files[0], null, 2));
-      
-      const uploads = req.files.map(file => {
-        // CloudinaryStorage can put data in different places depending on version
-        const url = file.path || file.secure_url || file.url;
-        const publicId = file.filename || file.public_id;
-        
-        if (!url || !publicId) {
-          console.error("Invalid file structure:", file);
-          throw new Error("Failed to get image URL or public_id from uploaded file");
+
+      // ✅ FIX: Handle different possible structures from multer-storage-cloudinary
+      const uploads = req.files.map((file, index) => {
+        console.log(`Processing file ${index + 1}:`, {
+          path: file.path,
+          filename: file.filename,
+          fieldname: file.fieldname,
+          keys: Object.keys(file)
+        });
+
+        // Try different possible locations for URL and public_id
+        let url = file.path || file.url || file.secure_url;
+        let public_id = file.filename || file.public_id;
+
+        // If still not found, check if it's in a nested cloudinary object
+        if (!url && file.cloudinary) {
+          url = file.cloudinary.secure_url || file.cloudinary.url;
+          public_id = file.cloudinary.public_id;
         }
-        
-        return { url, public_id: publicId };
+
+        if (!url || !public_id) {
+          console.error(`Invalid file structure for file ${index + 1}:`, file);
+          throw new Error(`Failed to get image URL or public_id from uploaded file ${index + 1}`);
+        }
+
+        return { url, public_id };
       });
 
       console.log("Processed uploads:", uploads);
@@ -133,19 +172,38 @@ router.post(
         amenities: propertyData.amenities || [],
         rules: propertyData.rules || [],
         availability: propertyData.availability || { isAvailable: true },
-        rooms: propertyData.rooms || [],
+        rooms: filteredRooms,
         landlord: req.user.id,
         images: uploads,
+        youtubeUrl: propertyData.youtubeUrl || "",
+        googleMapsUrl: propertyData.googleMapsUrl || "",
       });
 
       const savedProperty = await property.save();
       console.log("Property saved successfully:", savedProperty._id);
-      
+
       res.json({ success: true, data: savedProperty });
     } catch (error) {
       console.error("Create property error:", error);
-      res.status(500).json({ 
-        success: false, 
+      
+      // Clean up uploaded files on error
+      if (req.files && req.files.length > 0) {
+        console.log("Cleaning up uploaded files due to error...");
+        for (const file of req.files) {
+          try {
+            const public_id = file.filename || file.public_id || (file.cloudinary && file.cloudinary.public_id);
+            if (public_id) {
+              await cloudinary.uploader.destroy(public_id);
+              console.log(`Cleaned up: ${public_id}`);
+            }
+          } catch (cleanupError) {
+            console.error("Failed to cleanup file:", cleanupError);
+          }
+        }
+      }
+
+      res.status(500).json({
+        success: false,
         error: error.message || "Internal Server Error",
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
@@ -256,13 +314,15 @@ router.put(
           updates.rules = propertyData.rules || [];
           updates.availability = propertyData.availability || { isAvailable: true };
           updates.rooms = propertyData.rooms || [];
+          updates.youtubeUrl = propertyData.youtubeUrl || "";
+          updates.googleMapsUrl = propertyData.googleMapsUrl || "";
         } catch (error) {
           console.error("Error parsing propertyData:", error);
           return res.status(400).json({ success: false, error: "Invalid property data format" });
         }
       } else {
         // Format from page.tsx edit form (individual FormData fields)
-        
+
         // Simple string/number fields
         if (req.body.title !== undefined) updates.title = req.body.title;
         if (req.body.description !== undefined) updates.description = req.body.description;
@@ -277,18 +337,18 @@ router.put(
         // JSON fields
         if (req.body.availability) {
           try {
-            updates.availability = typeof req.body.availability === "string" 
-              ? JSON.parse(req.body.availability) 
+            updates.availability = typeof req.body.availability === "string"
+              ? JSON.parse(req.body.availability)
               : req.body.availability;
           } catch (error) {
             console.error("Error parsing availability:", error);
           }
         }
-        
+
         if (req.body.location) {
           try {
-            updates.location = typeof req.body.location === "string" 
-              ? JSON.parse(req.body.location) 
+            updates.location = typeof req.body.location === "string"
+              ? JSON.parse(req.body.location)
               : req.body.location;
           } catch (error) {
             console.error("Error parsing location:", error);
@@ -307,6 +367,10 @@ router.put(
         } else if (req.body["rules[]"]) {
           updates.rules = Array.isArray(req.body["rules[]"]) ? req.body["rules[]"] : [req.body["rules[]"]];
         }
+
+        // String fields
+        if (req.body.youtubeUrl !== undefined) updates.youtubeUrl = req.body.youtubeUrl;
+        if (req.body.googleMapsUrl !== undefined) updates.googleMapsUrl = req.body.googleMapsUrl;
       }
 
       // Handle images
@@ -350,7 +414,7 @@ router.put(
       // ✅ FIX: Handle new image uploads (already uploaded by multer)
       if (req.files && req.files.length > 0) {
         console.log(`Processing ${req.files.length} new uploaded files...`);
-        
+
         const newUploads = req.files.map(file => ({
           url: file.path, // CloudinaryStorage puts the URL in file.path
           public_id: file.filename // CloudinaryStorage puts public_id in file.filename
@@ -377,8 +441,8 @@ router.put(
       res.json({ success: true, data: property });
     } catch (error) {
       console.error("Update property error:", error);
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         error: error.message || "Internal Server Error",
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });

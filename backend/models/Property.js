@@ -71,6 +71,8 @@ const PropertySchema = new Schema({
       _id: false,
     }
   ],
+  youtubeUrl: { type: String, default: "" },
+  googleMapsUrl: { type: String, default: "" },
 }, {
   timestamps: true
 });

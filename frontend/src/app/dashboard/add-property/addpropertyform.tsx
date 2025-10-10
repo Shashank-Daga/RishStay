@@ -8,12 +8,15 @@ import { Save } from "lucide-react"
 import { useAuth } from "@/components/auth/auth-provider"
 import { useToast } from "@/hooks/use-toast"
 
+import { BackendImage } from "@/lib/types"
+
 import { BasicInfoSection } from "./sections/BasicInfoSection"
 import { LocationSection } from "./sections/LocationSection"
 import { AmenitiesSection } from "./sections/AmenitiesSection"
 import { ImagesSection } from "./sections/ImagesSection"
 import { RulesSection } from "./sections/RulesSection"
 import { RoomsSection } from "./sections/RoomsSection"
+import MediaSection from "./sections/MediaSection"
 
 // ----------------------
 // Types
@@ -46,6 +49,8 @@ export type PropertyData = {
   rules: string[]
   isAvailable: boolean
   rooms: Room[]
+  youtubeUrl: string
+  googleMapsUrl: string
 }
 
 type PropertyAvailability = {
@@ -54,8 +59,9 @@ type PropertyAvailability = {
   availableTo?: string
 }
 
-export type EditingPropertyData = PropertyData & {
+export type EditingPropertyData = Omit<PropertyData, 'images'> & {
   id: string
+  images: BackendImage[]
   availability?: PropertyAvailability
 }
 
@@ -95,10 +101,12 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
     rules: [],
     isAvailable: true,
     rooms: [],
+    youtubeUrl: "",
+    googleMapsUrl: "",
   })
 
   const [imageFiles, setImageFiles] = useState<File[]>([])
-  const [existingImages, setExistingImages] = useState<string[]>([])
+  const [existingImages, setExistingImages] = useState<BackendImage[]>([])
   const [deletedImages, setDeletedImages] = useState<string[]>([])
 
   // ----------------------
@@ -112,8 +120,8 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
           const data: EditingPropertyData = await res.json()
           if (res.ok) {
             setEditingProperty(data)
-            setPropertyData({ ...data, images: [...data.images] })
-            setExistingImages([...data.images])
+            setPropertyData({ ...data, images: data.images.map(img => img.url) })
+            setExistingImages(data.images)
             setRooms(data.rooms || [])
             if (data.rooms && data.rooms.length > 0) setShowRoomsSection(true)
           }
@@ -155,6 +163,42 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
     if (!files) return
 
     const newFiles = Array.from(files)
+
+    // Validate file types
+    for (const file of newFiles) {
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Only image files are allowed.",
+          variant: "destructive",
+        })
+        return
+      }
+    }
+
+    // Validate file sizes (5MB max)
+    for (const file of newFiles) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Each image must be less than 5MB.",
+          variant: "destructive",
+        })
+        return
+      }
+    }
+
+    // Check total image count (max 10)
+    const currentTotal = existingImages.length + imageFiles.length + newFiles.length
+    if (currentTotal > 10) {
+      toast({
+        title: "Too many images",
+        description: "Maximum 10 images allowed.",
+        variant: "destructive",
+      })
+      return
+    }
+
     const newPreviews = newFiles.map((file) => URL.createObjectURL(file))
 
     setImageFiles((prev) => [...prev, ...newFiles])
@@ -168,13 +212,15 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
 
   const removeImage = (index: number) => {
     const imgToRemove = propertyData.images[index]
-    if (existingImages.includes(imgToRemove)) {
-      setDeletedImages((prev) => [...prev, imgToRemove.split('/').pop() || 'temp_id'])
-      setExistingImages((prev) => prev.filter((img) => img !== imgToRemove))
+    const existingImg = existingImages.find(img => img.url === imgToRemove)
+    if (existingImg) {
+      setDeletedImages((prev) => [...prev, existingImg.public_id])
+      setExistingImages((prev) => prev.filter((img) => img.url !== imgToRemove))
     } else {
       setImageFiles((prev) => {
+        const newIndex = index - existingImages.length
         const copy = [...prev]
-        copy.splice(index - (propertyData.images.length - prev.length), 1)
+        copy.splice(newIndex, 1)
         return copy
       })
     }
@@ -273,7 +319,9 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
             status: room.status,
             description: room.description.trim(),
           }))
-          .filter((room) => room.roomName && room.rent > 0 && room.size > 0),
+          .filter((room) => room.roomName && room.rent >= 0 && room.size >= 0),
+        youtubeUrl: propertyData.youtubeUrl.trim(),
+        googleMapsUrl: propertyData.googleMapsUrl.trim(),
       }
 
       const formData = new FormData()
@@ -282,9 +330,9 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
 
       if (editingProperty) {
         deletedImages.forEach((public_id) => formData.append("deleteImages", public_id))
-        const keepImages = existingImages.map((url) => ({
-          url,
-          public_id: url.split("/").pop() || "temp_id",
+        const keepImages = existingImages.map((img) => ({
+          url: img.url,
+          public_id: img.public_id,
         }))
         formData.append("keepImages", JSON.stringify(keepImages))
       }
@@ -353,6 +401,13 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
           <AmenitiesSection amenities={propertyData.amenities} onToggle={handleAmenityChange} />
 
           <ImagesSection images={propertyData.images} onUpload={handleImageUpload} onRemove={removeImage} fileInputRef={fileInputRef} />
+
+          <MediaSection
+            youtubeUrl={propertyData.youtubeUrl}
+            googleMapsUrl={propertyData.googleMapsUrl}
+            onYoutubeUrlChange={(value) => handleInputChange("youtubeUrl", value)}
+            onGoogleMapsUrlChange={(value) => handleInputChange("googleMapsUrl", value)}
+          />
 
           <RulesSection rules={propertyData.rules} onChange={(rules) => handleInputChange("rules", rules)} />
 

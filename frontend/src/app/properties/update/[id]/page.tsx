@@ -46,6 +46,8 @@ type PropertyData = {
   guestType: "Family" | "Bachelors" | "Girls" | "Boys"
   rules: string[]
   isAvailable: boolean
+  youtubeUrl: string
+  googleMapsUrl: string
 }
 
 interface ImageData {
@@ -82,6 +84,8 @@ export default function EditPropertyPage() {
     guestType: "Family",
     rules: [],
     isAvailable: true,
+    youtubeUrl: "",
+    googleMapsUrl: "",
   })
 
   // ✅ Fixed: Separate tracking for existing and new images
@@ -132,6 +136,8 @@ export default function EditPropertyPage() {
             guestType: data.guestType || "Family",
             rules: data.rules || [],
             isAvailable: data.availability?.isAvailable ?? true,
+            youtubeUrl: data.youtubeUrl || "",
+            googleMapsUrl: data.googleMapsUrl || "",
           })
 
           // ✅ Set existing images properly
@@ -260,6 +266,8 @@ export default function EditPropertyPage() {
     return true
   }
 
+  // Replace the handleSubmit function in page.tsx with this fixed version:
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validateFields()) return
@@ -278,7 +286,7 @@ export default function EditPropertyPage() {
 
       const formData = new FormData()
 
-      // ✅ Add property fields directly (not as JSON)
+      // âœ… Add property fields directly (not as JSON)
       formData.append("title", propertyData.title.trim())
       formData.append("description", propertyData.description.trim())
       formData.append("price", propertyData.price)
@@ -298,24 +306,38 @@ export default function EditPropertyPage() {
         zipCode: propertyData.zipCode.trim(),
       }))
 
-      // ✅ Add arrays in FormData format
+      // âœ… Add arrays in FormData format
       propertyData.amenities.forEach((a) => formData.append("amenities[]", a))
       propertyData.rules.forEach((r) => formData.append("rules[]", r))
 
-      // ✅ Add new image files
+      // âœ… Add URLs if present
+      if (propertyData.youtubeUrl) {
+        formData.append("youtubeUrl", propertyData.youtubeUrl.trim())
+      }
+      if (propertyData.googleMapsUrl) {
+        formData.append("googleMapsUrl", propertyData.googleMapsUrl.trim())
+      }
+
+      // âœ… Add new image files
       newImageFiles.forEach((file) => {
         console.log("Adding new image file:", file.name)
         formData.append("images", file)
       })
 
-      // ✅ Add images to delete (public_ids)
+      // âœ… FIX: Only send images to delete that exist in the original images
       deletedImageIds.forEach((publicId) => {
         console.log("Marking image for deletion:", publicId)
         formData.append("deleteImages", publicId)
       })
 
-      // ✅ Add existing images to keep
-      existingImages.forEach((img) => {
+      // âœ… FIX: Only send existing images that weren't deleted
+      // Filter out any images that are in the deletedImageIds array
+      const imagesToKeep = existingImages.filter(
+        img => !deletedImageIds.includes(img.public_id)
+      )
+
+      console.log("Images to keep:", imagesToKeep.length)
+      imagesToKeep.forEach((img) => {
         formData.append("keepImages", JSON.stringify(img))
       })
 

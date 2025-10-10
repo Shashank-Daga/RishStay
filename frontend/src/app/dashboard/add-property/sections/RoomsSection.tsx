@@ -75,9 +75,9 @@ export function RoomsSection({ rooms, onAdd, onRemove, onUpdate }: Props) {
                 <SelectTrigger>
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white border-2 border-[#003366]/20 shadow-xl rounded-lg">
                   <SelectItem value="available">Available</SelectItem>
-                  <SelectItem value="booked">Booked</SelectItem>
+                  <SelectItem value="booked">Not Available</SelectItem>
                 </SelectContent>
               </Select>
             </div>
