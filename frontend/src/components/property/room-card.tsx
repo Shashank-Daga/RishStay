@@ -122,7 +122,7 @@ export function RoomCard({
   }
 
   const handleMakeAvailable = () => {
-    const updatedRoom = { ...room, status: "available" as const, tenant: undefined }
+    const updatedRoom = { ...room, status: "available" as const, tenants: [] }
     onRoomUpdate?.(updatedRoom)
     toast({
       title: "Room Updated",
@@ -143,10 +143,10 @@ export function RoomCard({
     const updatedRoom = {
       ...room,
       status: "booked" as const,
-      tenant: {
+      tenants: [{
         profession: tenantForm.profession,
         foodPreference: tenantForm.foodPreference!,
-      },
+      }],
     }
     onRoomUpdate?.(updatedRoom)
     setIsTenantDialogOpen(false)
@@ -218,25 +218,28 @@ export function RoomCard({
           </div>
         )}
 
-        {room.status === "booked" && room.tenant && (
+        {room.status === "booked" && room.tenants && room.tenants.length > 0 && (
           <div className="space-y-2 border-t border-[#003366]/10 pt-4">
             <h4 className="text-sm font-semibold text-[#003366]">
-              Current Tenant
+              Current Tenants ({room.tenants.length})
             </h4>
-            <div className="space-y-1 text-sm">
-              <div className="flex justify-between">
-                <span className="text-[#6B7280]">Profession:</span>
-                <span className="font-medium text-[#003366]">
-                  {room.tenant.profession}
-                </span>
+            {room.tenants.map((tenant, index) => (
+              <div key={index} className="space-y-1 text-sm border rounded p-2 bg-gray-50">
+                <div className="font-medium text-[#003366]">Tenant {index + 1}</div>
+                <div className="flex justify-between">
+                  <span className="text-[#6B7280]">Profession:</span>
+                  <span className="font-medium text-[#003366]">
+                    {tenant.profession}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#6B7280]">Food Preference:</span>
+                  <span className="font-medium text-[#003366]">
+                    {tenant.foodPreference}
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[#6B7280]">Food Preference:</span>
-                <span className="font-medium text-[#003366]">
-                  {room.tenant.foodPreference}
-                </span>
-              </div>
-            </div>
+            ))}
           </div>
         )}
 

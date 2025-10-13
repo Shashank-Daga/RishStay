@@ -5,16 +5,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { PropertyData } from "../addpropertyform"
 
 const amenitiesList = [
-  "Air Conditioning",
-  "Dishwasher",
+  "2 Wheeler Parking",
+  "4 Wheeler Parking",
+  "Power Backup",
   "Gym",
-  "Parking",
-  "Pet Friendly",
-  "Laundry",
   "Garden",
-  "WiFi",
   "Pool",
-  "Balcony",
+  "Wifi",
+  "24x7 Security",
+  "CCTV",
+  "Housekeeping",
+  "Gyser",
+  "TV",
+  "Washing Machine",
+  "Kitchen with Utensils",
 ]
 
 type Props = {

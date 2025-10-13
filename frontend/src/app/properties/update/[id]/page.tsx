@@ -17,16 +17,20 @@ import Image from "next/image"
 import Link from "next/link"
 
 const amenitiesList = [
-  "Air Conditioning",
-  "Dishwasher",
+  "2 Wheeler Parking",
+  "4 Wheeler Parking",
+  "Power Backup",
   "Gym",
-  "Parking",
-  "Pet Friendly",
-  "Laundry",
   "Garden",
-  "WiFi",
   "Pool",
-  "Balcony",
+  "Wifi",
+  "24x7 Security",
+  "CCTV",
+  "Housekeeping",
+  "Gyser",
+  "TV",
+  "Washing Machine",
+  "Kitchen with Utensils",
 ]
 
 type PropertyData = {
@@ -103,7 +107,7 @@ export default function EditPropertyPage() {
         const token = localStorage.getItem("auth-token")
         if (!token) throw new Error("Authentication required")
 
-        console.log("Fetching property:", propertyId)
+        // console.log("Fetching property:", propertyId)
 
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/property/${propertyId}`,
@@ -117,7 +121,7 @@ export default function EditPropertyPage() {
         const property = await response.json()
         if (property.success) {
           const data = property.data
-          console.log("Property data:", data)
+          // console.log("Property data:", data)
 
           setPropertyData({
             title: data.title || "",
@@ -142,7 +146,7 @@ export default function EditPropertyPage() {
 
           // ✅ Set existing images properly
           setExistingImages(data.images || [])
-          console.log("Existing images:", data.images)
+          // console.log("Existing images:", data.images)
         }
       } catch (error: unknown) {
         if (error instanceof Error) {
@@ -207,7 +211,7 @@ export default function EditPropertyPage() {
 
   // ✅ Fixed: Proper image removal handling
   const removeExistingImage = (imageToRemove: ImageData) => {
-    console.log("Removing existing image:", imageToRemove)
+    // console.log("Removing existing image:", imageToRemove)
 
     // Add to deleted list
     setDeletedImageIds(prev => [...prev, imageToRemove.public_id])
@@ -217,7 +221,7 @@ export default function EditPropertyPage() {
   }
 
   const removeNewImage = (index: number) => {
-    console.log("Removing new image at index:", index)
+    // console.log("Removing new image at index:", index)
 
     // Clean up preview URL
     URL.revokeObjectURL(newImagePreviews[index])
@@ -278,11 +282,11 @@ export default function EditPropertyPage() {
       const token = localStorage.getItem("auth-token")
       if (!token) throw new Error("Authentication required")
 
-      console.log("Submitting update with:", {
-        existingImages: existingImages.length,
-        newImages: newImageFiles.length,
-        deletedImages: deletedImageIds.length
-      })
+      // console.log("Submitting update with:", {
+      //   existingImages: existingImages.length,
+      //   newImages: newImageFiles.length,
+      //   deletedImages: deletedImageIds.length
+      // })
 
       const formData = new FormData()
 
@@ -320,13 +324,13 @@ export default function EditPropertyPage() {
 
       // âœ… Add new image files
       newImageFiles.forEach((file) => {
-        console.log("Adding new image file:", file.name)
+        // console.log("Adding new image file:", file.name)
         formData.append("images", file)
       })
 
       // âœ… FIX: Only send images to delete that exist in the original images
       deletedImageIds.forEach((publicId) => {
-        console.log("Marking image for deletion:", publicId)
+        // console.log("Marking image for deletion:", publicId)
         formData.append("deleteImages", publicId)
       })
 
@@ -336,13 +340,13 @@ export default function EditPropertyPage() {
         img => !deletedImageIds.includes(img.public_id)
       )
 
-      console.log("Images to keep:", imagesToKeep.length)
+      // console.log("Images to keep:", imagesToKeep.length)
       imagesToKeep.forEach((img) => {
         formData.append("keepImages", JSON.stringify(img))
       })
 
       // Debug: Log FormData contents
-      console.log("FormData entries:")
+      // console.log("FormData entries:")
       for (const [key, value] of formData.entries()) {
         if (value instanceof File) {
           console.log(`${key}: File(${value.name})`)
@@ -360,7 +364,7 @@ export default function EditPropertyPage() {
         }
       )
 
-      console.log("Update response status:", response.status)
+      // console.log("Update response status:", response.status)
 
       if (!response.ok) {
         const errorData = await response.json()
@@ -369,7 +373,7 @@ export default function EditPropertyPage() {
       }
 
       const result = await response.json()
-      console.log("Update result:", result)
+      // console.log("Update result:", result)
 
       toast({
         title: "Property updated successfully",

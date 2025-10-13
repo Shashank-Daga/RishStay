@@ -30,14 +30,20 @@ export interface PropertyFilters {
 }
 
 const amenitiesList = [
-  "Air Conditioning",
-  "Dishwasher",
+  "2 Wheeler Parking",
+  "4 Wheeler Parking",
+  "Power Backup",
   "Gym",
-  "Parking",
-  "Pet Friendly",
-  "Laundry",
   "Garden",
-  "Internet Included",
+  "Pool",
+  "Wifi",
+  "24x7 Security",
+  "CCTV",
+  "Housekeeping",
+  "Gyser",
+  "TV",
+  "Washing Machine",
+  "Kitchen with Utensils",
 ]
 
 const propertyTypes = [

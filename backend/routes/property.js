@@ -33,22 +33,22 @@ router.post(
   fetchuser,
   upload.array("images", 10),
   async (req, res) => {
-    console.log("=== PROPERTY CREATE REQUEST ===");
-    console.log("User ID:", req.user.id);
-    console.log("Files received:", req.files?.length || 0);
-    console.log("Body keys:", Object.keys(req.body));
+    // console.log("=== PROPERTY CREATE REQUEST ===");
+    // console.log("User ID:", req.user.id);
+    // console.log("Files received:", req.files?.length || 0);
+    // console.log("Body keys:", Object.keys(req.body));
 
     // Log the first file to see its structure
-    if (req.files && req.files.length > 0) {
-      console.log("First file structure:", JSON.stringify(req.files[0], null, 2));
-    }
+    // if (req.files && req.files.length > 0) {
+    //   console.log("First file structure:", JSON.stringify(req.files[0], null, 2));
+    // }
 
     try {
       // Parse propertyData from JSON string
       let propertyData;
       try {
         propertyData = JSON.parse(req.body.propertyData);
-        console.log("Parsed propertyData:", propertyData);
+        // console.log("Parsed propertyData:", propertyData);
       } catch (error) {
         console.error("JSON parse error:", error);
         return res.status(400).json({ success: false, error: "Invalid property data format" });
@@ -113,12 +113,15 @@ router.post(
           if (room.size < 0) {
             return res.status(400).json({ success: false, error: "Room size cannot be negative" });
           }
+          if (room.maxGuests < 1) {
+            return res.status(400).json({ success: false, error: "Room max guests must be at least 1" });
+          }
         }
       }
 
-      // Filter rooms to match frontend (rent >= 0, size >= 0, roomName present)
+      // Filter rooms to match frontend (rent >= 0, size >= 0, roomName present, maxGuests >= 1)
       const filteredRooms = (propertyData.rooms || []).filter(room =>
-        room.roomName && room.roomName.trim() !== '' && room.rent >= 0 && room.size >= 0
+        room.roomName && room.roomName.trim() !== '' && room.rent >= 0 && room.size >= 0 && room.maxGuests >= 1
       );
 
       // Validate images
@@ -126,7 +129,7 @@ router.post(
         return res.status(400).json({ success: false, error: "At least one image is required" });
       }
 
-      console.log(`Processing ${req.files.length} uploaded files...`);
+      // console.log(`Processing ${req.files.length} uploaded files...`);
 
       // ✅ FIX: Handle different possible structures from multer-storage-cloudinary
       const uploads = req.files.map((file, index) => {
@@ -155,7 +158,7 @@ router.post(
         return { url, public_id };
       });
 
-      console.log("Processed uploads:", uploads);
+      // console.log("Processed uploads:", uploads);
 
       // Create property with uploaded images
       const property = new Property({
@@ -180,7 +183,7 @@ router.post(
       });
 
       const savedProperty = await property.save();
-      console.log("Property saved successfully:", savedProperty._id);
+      // console.log("Property saved successfully:", savedProperty._id);
 
       res.json({ success: true, data: savedProperty });
     } catch (error) {
@@ -281,11 +284,11 @@ router.put(
   fetchuser,
   upload.array("images", 10),
   async (req, res) => {
-    console.log("=== PROPERTY UPDATE REQUEST ===");
-    console.log("Property ID:", req.params.id);
-    console.log("User ID:", req.user.id);
-    console.log("Files received:", req.files?.length || 0);
-    console.log("Body keys:", Object.keys(req.body));
+    // console.log("=== PROPERTY UPDATE REQUEST ===");
+    // console.log("Property ID:", req.params.id);
+    // console.log("User ID:", req.user.id);
+    // console.log("Files received:", req.files?.length || 0);
+    // console.log("Body keys:", Object.keys(req.body));
 
     try {
       let property = await Property.findById(req.params.id);
@@ -300,7 +303,7 @@ router.put(
         // Format from addpropertyform.tsx (create/edit combined)
         try {
           const propertyData = JSON.parse(req.body.propertyData);
-          console.log("Parsed propertyData:", propertyData);
+          // console.log("Parsed propertyData:", propertyData);
 
           updates.title = propertyData.title;
           updates.description = propertyData.description;
@@ -319,17 +322,26 @@ router.put(
           const processedRooms = (propertyData.rooms || []).map(room => {
             const processedRoom = { ...room };
 
+            if (room.maxGuests < 1) {
+              throw new Error("Room max guests must be at least 1");
+            }
+
             if (room.status === "booked") {
-              // Validate tenant fields for booked rooms
-              if (!room.tenant || !room.tenant.profession || !room.tenant.foodPreference) {
-                throw new Error("Tenant profession, and food preference are required for booked rooms");
+              // Validate tenants fields for booked rooms
+              if (!room.tenants || !Array.isArray(room.tenants) || room.tenants.length !== room.maxGuests) {
+                throw new Error(`Tenants array must have exactly ${room.maxGuests} entries for booked rooms`);
               }
-              if (!["Vegetarian", "Non-Vegetarian", "Eggetarian"].includes(room.tenant.foodPreference)) {
-                throw new Error("Invalid food preference for tenant");
+              for (const tenant of room.tenants) {
+                if (!tenant.profession || !tenant.foodPreference) {
+                  throw new Error("Tenant profession and food preference are required for each tenant in booked rooms");
+                }
+                if (!["Vegetarian", "Non-Vegetarian", "Eggetarian"].includes(tenant.foodPreference)) {
+                  throw new Error("Invalid food preference for tenant");
+                }
               }
             } else if (room.status === "available") {
               // Remove tenant data for available rooms
-              processedRoom.tenant = undefined;
+              processedRoom.tenants = [];
             }
 
             return processedRoom;
@@ -406,17 +418,25 @@ router.put(
               if (room.size < 0) {
                 throw new Error("Room size cannot be negative");
               }
+              if (room.maxGuests < 1) {
+                throw new Error("Room max guests must be at least 1");
+              }
               if (room.status === "booked") {
-                // Validate tenant fields for booked rooms
-                if (!room.tenant || !room.tenant.profession || !room.tenant.foodPreference) {
-                  throw new Error("Tenant profession and food preference are required for booked rooms");
+                // Validate tenants fields for booked rooms
+                if (!room.tenants || !Array.isArray(room.tenants) || room.tenants.length !== room.maxGuests) {
+                  throw new Error(`Tenants array must have exactly ${room.maxGuests} entries for booked rooms`);
                 }
-                if (!["Vegetarian", "Non-Vegetarian", "Eggetarian"].includes(room.tenant.foodPreference)) {
-                  throw new Error("Invalid food preference for tenant");
+                for (const tenant of room.tenants) {
+                  if (!tenant.profession || !tenant.foodPreference) {
+                    throw new Error("Tenant profession and food preference are required for each tenant in booked rooms");
+                  }
+                  if (!["Vegetarian", "Non-Vegetarian", "Eggetarian"].includes(tenant.foodPreference)) {
+                    throw new Error("Invalid food preference for tenant");
+                  }
                 }
               } else if (room.status === "available") {
                 // Remove tenant data for available rooms
-                room.tenant = undefined;
+                room.tenants = [];
               }
             }
 
@@ -441,7 +461,7 @@ router.put(
           ? req.body.deleteImages
           : [req.body.deleteImages];
 
-        console.log("Deleting images:", imagesToDelete);
+        // console.log("Deleting images:", imagesToDelete);
 
         for (const publicId of imagesToDelete) {
           try {
@@ -461,7 +481,7 @@ router.put(
           ? req.body.keepImages
           : [req.body.keepImages];
 
-        console.log("Keeping images count:", imagesToKeep.length);
+        // console.log("Keeping images count:", imagesToKeep.length);
 
         const parsedKeepImages = imagesToKeep.map(img =>
           typeof img === 'string' ? JSON.parse(img) : img
@@ -472,21 +492,21 @@ router.put(
 
       // ✅ FIX: Handle new image uploads (already uploaded by multer)
       if (req.files && req.files.length > 0) {
-        console.log(`Processing ${req.files.length} new uploaded files...`);
+        // console.log(`Processing ${req.files.length} new uploaded files...`);
 
         const newUploads = req.files.map(file => ({
           url: file.path, // CloudinaryStorage puts the URL in file.path
           public_id: file.filename // CloudinaryStorage puts public_id in file.filename
         }));
 
-        console.log("New uploads:", newUploads);
+        // console.log("New uploads:", newUploads);
         finalImages = [...finalImages, ...newUploads];
       }
 
       // Update images if any image operations occurred
       if (req.body.deleteImages || req.body.keepImages || (req.files && req.files.length > 0)) {
         updates.images = finalImages;
-        console.log(`Final image count: ${finalImages.length}`);
+        // console.log(`Final image count: ${finalImages.length}`);
       }
 
       // Perform update
@@ -496,7 +516,7 @@ router.put(
         { new: true }
       );
 
-      console.log("Property updated successfully");
+      // console.log("Property updated successfully");
       res.json({ success: true, data: property });
     } catch (error) {
       console.error("Update property error:", error);

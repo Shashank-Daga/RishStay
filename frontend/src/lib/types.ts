@@ -18,18 +18,22 @@ export interface BackendImage {
   public_id: string
 }
 
+// ✅ Tenant type
+export interface Tenant {
+  profession: string
+  foodPreference: "Vegetarian" | "Non-Vegetarian" | "Eggetarian"
+}
+
 // ✅ Room type
 export interface Room {
   roomName: string
   rent: number
   size: number
+  maxGuests: number
   amenities: string[]
   status: "available" | "booked"
   description: string
-  tenant?: {
-    profession: string
-    foodPreference: "Vegetarian" | "Non-Vegetarian" | "Eggetarian"
-  }
+  tenants?: Tenant[]
 }
 
 // ✅ Property type

@@ -25,13 +25,14 @@ export type Room = {
   roomName: string
   rent: string
   size: string
+  maxGuests: string
   amenities: string[]
   status: "available" | "booked"
   description: string
-  tenant?: {
+  tenants: {
     profession: string
     foodPreference: "Vegetarian" | "Non-Vegetarian" | "Eggetarian"
-  }
+  }[]
 }
 
 export type PropertyData = {
@@ -295,6 +296,9 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
       const token = localStorage.getItem("auth-token")
       if (!token) throw new Error("Authentication required")
 
+      // Clean rules: trim and filter out empty/whitespace-only lines
+      const cleanedRules = propertyData.rules.map(rule => rule.trim()).filter(rule => rule.length > 0)
+
       const propertyDataToSend = {
         title: propertyData.title.trim(),
         description: propertyData.description.trim(),
@@ -312,19 +316,20 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
           zipCode: propertyData.zipCode.trim(),
         },
         amenities: propertyData.amenities,
-        rules: propertyData.rules,
+        rules: cleanedRules,
         availability: { isAvailable: propertyData.isAvailable },
         rooms: rooms
           .map((room) => ({
             roomName: room.roomName.trim(),
             rent: parseFloat(room.rent) || 0,
             size: parseFloat(room.size) || 0,
+            maxGuests: parseInt(room.maxGuests) || 0,
             amenities: room.amenities,
             status: room.status,
             description: room.description.trim(),
-            tenant: room.tenant,
+            tenants: room.tenants,
           }))
-          .filter((room) => room.roomName && room.rent >= 0 && room.size >= 0),
+          .filter((room) => room.roomName && room.rent >= 0 && room.size >= 0 && room.maxGuests >= 1),
         youtubeUrl: propertyData.youtubeUrl.trim(),
         googleMapsUrl: propertyData.googleMapsUrl.trim(),
       }
@@ -375,7 +380,7 @@ export default function AddPropertyForm({ editingId }: { editingId?: string }) {
   // ----------------------
   // Room Handlers
   // ----------------------
-  const addRoom = () => setRooms([...rooms, { roomName: "", rent: "", size: "", amenities: [], status: "available", description: "" }])
+  const addRoom = () => setRooms([...rooms, { roomName: "", rent: "", size: "", maxGuests: "", amenities: [], status: "available", description: "", tenants: [] }])
   const updateRoom = <K extends keyof Room>(index: number, field: K, value: Room[K]) => {
     const updatedRooms = [...rooms]
     updatedRooms[index] = { ...updatedRooms[index], [field]: value }

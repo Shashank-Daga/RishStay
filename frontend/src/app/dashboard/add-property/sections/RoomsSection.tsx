@@ -16,16 +16,13 @@ type Props = {
 }
 
 const amenitiesList = [
-  "Air Conditioning",
-  "Dishwasher",
-  "Gym",
-  "Parking",
-  "Pet Friendly",
-  "Laundry",
-  "Garden",
-  "WiFi",
-  "Pool",
-  "Balcony",
+  "Air Conditioned",
+  "Study Table plus Chair",
+  "TV",
+  "Attached Bath",
+  "Shared Bath",
+  "Electric Plate",
+  "Tea/Coffee Maker",
 ]
 
 export function RoomsSection({ rooms, onAdd, onRemove, onUpdate }: Props) {
@@ -61,12 +58,18 @@ export function RoomsSection({ rooms, onAdd, onRemove, onUpdate }: Props) {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Input
                 type="number"
                 placeholder="Size (sq ft)"
                 value={room.size}
                 onChange={(e) => onUpdate(index, "size", e.target.value)}
+              />
+              <Input
+                type="number"
+                placeholder="Max Guests"
+                value={room.maxGuests}
+                onChange={(e) => onUpdate(index, "maxGuests", e.target.value)}
               />
               <Select
                 value={room.status}
@@ -74,7 +77,7 @@ export function RoomsSection({ rooms, onAdd, onRemove, onUpdate }: Props) {
                   const newStatus = v as "available" | "booked"
                   onUpdate(index, "status", newStatus)
                   if (newStatus === "available") {
-                    onUpdate(index, "tenant", undefined)
+                    onUpdate(index, "tenants", [])
                   }
                 }}
               >
@@ -91,42 +94,41 @@ export function RoomsSection({ rooms, onAdd, onRemove, onUpdate }: Props) {
             {room.status === "booked" && (
               <div className="space-y-4 border-t pt-4">
                 <h5 className="font-medium text-[#003366]">Tenant Information</h5>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    placeholder="Tenant Name"
-                    value={room.tenant?.profession || ""}
-                    onChange={(e) => onUpdate(index, "tenant", {
-                      profession: room.tenant?.profession || "",
-                      foodPreference: room.tenant?.foodPreference || "Vegetarian"
-                    })}
-                  />
-                  <Input
-                    placeholder="Profession"
-                    value={room.tenant?.profession || ""}
-                    onChange={(e) => onUpdate(index, "tenant", {
-                      profession: e.target.value,
-                      foodPreference: room.tenant?.foodPreference || "Vegetarian"
-                    })}
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Select
-                    value={room.tenant?.foodPreference || "Vegetarian"}
-                    onValueChange={(v) => onUpdate(index, "tenant", {
-                      profession: room.tenant?.profession || "",
-                      foodPreference: v as "Vegetarian" | "Non-Vegetarian" | "Eggetarian"
-                    })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Food Preference" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-2 border-[#003366]/20 shadow-xl rounded-lg">
-                      <SelectItem value="Vegetarian">Vegetarian</SelectItem>
-                      <SelectItem value="Non-Vegetarian">Non-Vegetarian</SelectItem>
-                      <SelectItem value="Eggetarian">Eggetarian</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {Array.from({ length: parseInt(room.maxGuests) || 1 }, (_, tenantIndex) => (
+                  <div key={tenantIndex} className="space-y-2 border rounded p-3">
+                    <h6 className="text-sm font-medium">Tenant {tenantIndex + 1}</h6>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        placeholder="Profession"
+                        value={room.tenants?.[tenantIndex]?.profession || ""}
+                        onChange={(e) => {
+                          const newTenants = [...(room.tenants || [])]
+                          if (!newTenants[tenantIndex]) newTenants[tenantIndex] = { profession: "", foodPreference: "Vegetarian" }
+                          newTenants[tenantIndex].profession = e.target.value
+                          onUpdate(index, "tenants", newTenants)
+                        }}
+                      />
+                      <Select
+                        value={room.tenants?.[tenantIndex]?.foodPreference || "Vegetarian"}
+                        onValueChange={(v) => {
+                          const newTenants = [...(room.tenants || [])]
+                          if (!newTenants[tenantIndex]) newTenants[tenantIndex] = { profession: "", foodPreference: "Vegetarian" }
+                          newTenants[tenantIndex].foodPreference = v as "Vegetarian" | "Non-Vegetarian" | "Eggetarian"
+                          onUpdate(index, "tenants", newTenants)
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Food Preference" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border-2 border-[#003366]/20 shadow-xl rounded-lg">
+                          <SelectItem value="Vegetarian">Vegetarian</SelectItem>
+                          <SelectItem value="Non-Vegetarian">Non-Vegetarian</SelectItem>
+                          <SelectItem value="Eggetarian">Eggetarian</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 

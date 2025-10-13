@@ -41,15 +41,20 @@ import {
 import Link from "next/link"
 
 const amenityIcons: Record<string, LucideIcon> = {
-  "Air Conditioning": Check,
-  Dishwasher: Utensils,
-  Gym: Dumbbell,
-  Parking: Car,
-  "Pet Friendly": TreePine,
-  Laundry: Check,
-  Garden: TreePine,
-  "Internet Included": Wifi,
-  Pool: Waves,
+  "2 Wheeler Parking": Car,
+  "4 Wheeler Parking": Car,
+  "Power Backup": Check,
+  "Gym": Dumbbell,
+  "Garden": TreePine,
+  "Pool": Waves,
+  "Wifi": Wifi,
+  "24x7 Security": Check,
+  "CCTV": Check,
+  "Housekeeping": Check,
+  "Gyser": Check,
+  "TV": Check,
+  "Washing Machine": Check,
+  "Kitchen with Utensils": Utensils,
 }
 
 export default function PropertyDetailPage() {
@@ -416,6 +421,21 @@ export default function PropertyDetailPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {property.rules && property.rules.filter(rule => rule.trim()).length > 0 && (
+              <Card className="bg-white shadow-md rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="text-[#003366]">House Rules</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="list-disc list-inside space-y-2 text-[#6B7280]">
+                    {property.rules.filter(rule => rule.trim()).map((rule, index) => (
+                      <li key={index}>{rule}</li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
 
             <Card className="bg-white shadow-md rounded-2xl">
               <CardHeader>

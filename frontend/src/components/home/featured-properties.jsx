@@ -21,14 +21,14 @@ export function FeaturedProperties() {
     const fetchProperties = async () => {
       try {
         setLoading(true)
-        console.log("Fetching properties...") // Debug log
+        // console.log("Fetching properties...") // Debug log
         
         const all = await propertyApi.getAll()
-        console.log("All properties:", all) // Debug log
+        // console.log("All properties:", all) // Debug log
 
         // Filter available only
         const available = all.filter((p) => p.availability?.isAvailable)
-        console.log("Available properties:", available) // Debug log
+        // console.log("Available properties:", available) // Debug log
 
         // Sort newest first
         available.sort(
@@ -60,7 +60,7 @@ export function FeaturedProperties() {
 
   // Helper: get image URL from property
   const getPropertyImageUrl = (property) => {
-    console.log("Property images:", property.images) // Debug log
+    // console.log("Property images:", property.images) // Debug log
     
     if (!property.images || property.images.length === 0) {
       return "/placeholder.svg"
@@ -84,23 +84,23 @@ export function FeaturedProperties() {
     
     // Handle both _id and id formats
     const userId = user._id || user.id
-    console.log("Checking favorite for:", { propertyId, userFavorites: user.favorites, userId }) // Debug log
+    // console.log("Checking favorite for:", { propertyId, userFavorites: user.favorites, userId }) // Debug log
     
     return user.favorites.includes(propertyId)
   }
 
   const handleToggleFavorite = async (propertyId) => {
-    console.log("Toggle favorite clicked for property:", propertyId) // Debug log
-    console.log("Current user:", user) // Debug log
+    // console.log("Toggle favorite clicked for property:", propertyId) // Debug log
+    // console.log("Current user:", user) // Debug log
     
     if (!user) {
-      console.log("No user logged in")
+      // console.log("No user logged in")
       return
     }
 
     try {
       await toggleFavorite(propertyId)
-      console.log("Favorite toggled successfully")
+      // console.log("Favorite toggled successfully")
     } catch (error) {
       console.error("Error toggling favorite:", error)
     }
@@ -151,7 +151,7 @@ export function FeaturedProperties() {
                         height={250}
                         className="w-full h-48 object-cover"
                         onError={(e) => {
-                          console.log("Image failed to load:", getPropertyImageUrl(property))
+                          // console.log("Image failed to load:", getPropertyImageUrl(property))
                           e.currentTarget.src = "/placeholder.svg"
                         }}
                       />

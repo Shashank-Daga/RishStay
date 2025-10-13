@@ -65,14 +65,15 @@ const PropertySchema = new Schema({
       roomName: { type: String, required: true },
       rent: { type: Number, required: true, min: 0 },
       size: { type: Number, required: true, min: 0 },
+      maxGuests: { type: Number, required: true, min: 1 },
       amenities: [{ type: String, default: [] }],
       status: { type: String, enum: ["available", "booked"], default: "available" },
       description: { type: String, default: "" },
-      tenant: {
+      tenants: [{
         profession: { type: String },
         foodPreference: { type: String, enum: ["Vegetarian", "Non-Vegetarian", "Eggetarian"] },
         _id: false,
-      },
+      }],
       _id: false,
     }
   ],

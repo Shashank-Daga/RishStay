@@ -42,7 +42,7 @@ export default function MessagesPage() {
           return
         }
 
-        console.log("Fetching messages for user:", user.role) // Debug log
+        // console.log("Fetching messages for user:", user.role) // Debug log
         
         let fetchedMessages: Message[]
         if (isTenant) {
@@ -51,7 +51,7 @@ export default function MessagesPage() {
           fetchedMessages = await messageApi.getReceivedMessages(token)
         }
         
-        console.log("Fetched messages:", fetchedMessages) // Debug log
+        // console.log("Fetched messages:", fetchedMessages) // Debug log
         
         setMessages(Array.isArray(fetchedMessages) ? fetchedMessages : [])
       } catch (err) {
