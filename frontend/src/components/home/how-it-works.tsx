@@ -42,9 +42,9 @@ export function HowItWorks() {
                 <div className="bg-[#FFC107] rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                   <step.icon className="h-8 w-8 text-[#003366]" />
                 </div>
-                <div className="bg-[#FFC107] text-[#003366] rounded-full w-8 h-8 flex items-center justify-center mx-auto mb-4 text-sm font-bold shadow-md">
+                {/* <div className="bg-[#FFC107] text-[#003366] rounded-full w-8 h-8 flex items-center justify-center mx-auto mb-4 text-sm font-bold shadow-md">
                   {index + 1}
-                </div>
+                </div> */}
                 <h3 className="text-xl font-semibold text-[#003366] mb-4">{step.title}</h3>
                 <p className="text-[#6B7280]">{step.description}</p>
               </CardContent>
