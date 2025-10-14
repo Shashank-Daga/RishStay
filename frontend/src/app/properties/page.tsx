@@ -19,10 +19,11 @@ export default function PropertiesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Initialize filters from URL params
+  // ✅ Initialize filters from URL params - Fixed guestType initialization
   const [filters, setFilters] = useState<PropertyFiltersType>({
     location: searchParams.get("location") || "",
     propertyType: searchParams.get("type") || "",
+    guestType: searchParams.get("guestType") || "", // ✅ Fixed: was getting "type" instead of "guestType"
     minPrice: Number(searchParams.get("minPrice") || 0),
     maxPrice: Number(searchParams.get("maxPrice") || 100000),
     bedrooms: Number(searchParams.get("bedrooms") || 1),
@@ -43,11 +44,18 @@ export default function PropertiesPage() {
           maxPrice?: number
           bedrooms?: number
           bathrooms?: number
+          guestType?: "Family" | "Bachelors" | "Girls" | "Boys" // ✅ Added guestType
         } = {};
 
         if (filters.location) filterPayload.city = filters.location;
+        
+        // ✅ Fixed: Check propertyType correctly
         if (["apartment", "studio"].includes(filters.propertyType))
           filterPayload.propertyType = filters.propertyType as "apartment" | "studio";
+        
+        // ✅ Fixed: Check guestType with correct values and use correct variable
+        if (["Family", "Bachelors", "Girls", "Boys"].includes(filters.guestType))
+          filterPayload.guestType = filters.guestType as "Family" | "Bachelors" | "Girls" | "Boys";
 
         if (filters.minPrice !== 0 || filters.maxPrice !== 100000) {
           filterPayload.minPrice = filters.minPrice;
@@ -70,7 +78,7 @@ export default function PropertiesPage() {
     }
 
     fetchProperties()
-  }, [filters])
+  }, [filters, propertyApi]) // ✅ Added propertyApi to dependencies
 
   // Load favorites from localStorage
   useEffect(() => {
@@ -85,10 +93,11 @@ export default function PropertiesPage() {
   const handleFiltersChange = (newFilters: PropertyFiltersType) => {
     setFilters(newFilters)
 
-    // Update URL params
+    // ✅ Update URL params - Fixed guestType param name
     const params = new URLSearchParams()
     if (newFilters.location) params.set("location", newFilters.location)
     if (newFilters.propertyType) params.set("type", newFilters.propertyType)
+    if (newFilters.guestType) params.set("guestType", newFilters.guestType) // ✅ Fixed: was setting "type" instead
     if (newFilters.minPrice > 0) params.set("minPrice", newFilters.minPrice.toString())
     if (newFilters.maxPrice < 100000) params.set("maxPrice", newFilters.maxPrice.toString())
     if (newFilters.bedrooms) params.set("bedrooms", newFilters.bedrooms.toString())

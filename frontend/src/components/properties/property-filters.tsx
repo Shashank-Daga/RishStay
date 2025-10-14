@@ -19,14 +19,15 @@ interface PropertyFiltersProps {
 export interface PropertyFilters {
   location: string
   propertyType: string
+  guestType: string
   minPrice: number
   maxPrice: number
   bedrooms: number
   bathrooms: number
   amenities: string[]
   sortBy: string
-  hasAvailableRooms?: boolean // New filter
-  minRooms?: number // New filter
+  hasAvailableRooms?: boolean
+  minRooms?: number
 }
 
 const amenitiesList = [
@@ -52,11 +53,20 @@ const propertyTypes = [
   { value: "studio", label: "Studio" }
 ]
 
+const guestTypes = [
+  { value: "all", label: "Any" },
+  { value: "Family", label: "Family" },
+  { value: "Bachelors", label: "Bachelors" },
+  { value: "Girls", label: "Girls Only" },
+  { value: "Boys", label: "Boys Only" }
+]
+
 export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFiltersProps) {
   const [filters, setFilters] = useState<PropertyFilters>(
     initialFilters || {
       location: "",
       propertyType: "all",
+      guestType: "all",
       minPrice: 0,
       maxPrice: 100000,
       bedrooms: 1,
@@ -83,6 +93,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
     return {
       ...filters,
       propertyType: filters.propertyType === "all" ? "" : filters.propertyType,
+      guestType: filters.guestType === "all" ? "" : filters.guestType,
     }
   }
 
@@ -103,6 +114,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
     const cleared: PropertyFilters = {
       location: "",
       propertyType: "all",
+      guestType: "all",
       minPrice: 0,
       maxPrice: 100000,
       bedrooms: 1,
@@ -180,7 +192,43 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
                   </SelectTrigger>
                   <SelectContent className="bg-white border-2 border-[#003366]/20 shadow-xl rounded-lg">
                     {propertyTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
+                      <SelectItem 
+                        key={type.value} 
+                        value={type.value}
+                        className="hover:bg-gradient-to-r hover:from-[#FFE9D6] hover:to-[#FFE9D6]/50 focus:bg-gradient-to-r focus:from-[#FFE9D6] focus:to-[#FFE9D6]/50 cursor-pointer py-3 text-[#003366] font-medium transition-colors"
+                      >
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+
+            {/* Guest Type */}
+            <Card className="bg-white shadow-md rounded-2xl">
+              <CardHeader>
+                <CardTitle className="text-lg text-[#003366]">Guest Type</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Select
+                  value={filters.guestType}
+                  onValueChange={(value) => updateFilters({ guestType: value })}
+                >
+                  <SelectTrigger className="focus:ring-[#FFC107] focus:border-[#FFC107]">
+                    <SelectValue placeholder="Select guest type" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border-2 border-[#003366]/20 shadow-xl rounded-lg">
+                    {guestTypes.map((type) => (
+                      <SelectItem 
+                        key={type.value} 
+                        value={type.value}
+                        className="hover:bg-gradient-to-r hover:from-[#E9E6F7] hover:to-[#E9E6F7]/50 focus:bg-gradient-to-r focus:from-[#E9E6F7] focus:to-[#E9E6F7]/50 cursor-pointer py-3 text-[#003366] font-medium transition-colors"
+                      >
+                        {type.value === "Family" && "👨‍👩‍👧‍👦 "}
+                        {type.value === "Bachelors" && "👥 "}
+                        {type.value === "Girls" && "👩 "}
+                        {type.value === "Boys" && "👨 "}
                         {type.label}
                       </SelectItem>
                     ))}
@@ -268,7 +316,7 @@ export function PropertyFilters({ onFiltersChange, initialFilters }: PropertyFil
               </CardContent>
             </Card>
 
-            {/* NEW: Room Filters */}
+            {/* Room Filters */}
             <Card className="bg-white shadow-md rounded-2xl">
               <CardHeader>
                 <CardTitle className="text-lg text-[#003366]">Room Options</CardTitle>
