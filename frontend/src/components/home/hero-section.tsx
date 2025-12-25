@@ -37,7 +37,7 @@ export function HeroSection() {
                         <span className="text-[#FFC107] block">Luxury Executive Stay</span>
                     </h1>
                     <p className="text-lg lg:text-xl text-[#6B7280] max-w-3xl mx-auto mb-8 leading-relaxed">
-                        RISH STAY is your trusted gateway to premium, hassle-free rentals in metro cities. Designed for today's professionals, our executive homes offer not just a place to live but a luxurious lifestyle—complete with modern comforts, thoughtful amenities, and convenience tailored to your needs.
+                        RISH STAY is your trusted gateway to premium, hassle-free rentals in metro cities. Designed for today&apos;s professionals, our executive homes offer not just a place to live but a luxurious lifestyle—complete with modern comforts, thoughtful amenities, and convenience tailored to your needs.
                     </p>
                 </div>
 
